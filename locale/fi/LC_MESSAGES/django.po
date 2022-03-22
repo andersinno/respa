@@ -930,7 +930,7 @@ msgid "Payment terms"
 msgstr "Maksuehdot"
 
 msgid "Generic terms"
-msgstr "Yleiset ehdot"
+msgstr "Yleiset varaus- ja käyttöehdot"
 
 msgid "Terms type"
 msgstr "Ehtojen tyyppi"
@@ -1016,7 +1016,7 @@ msgid "Responsible contact info"
 msgstr "Vastuuhenkilön yhteystiedot"
 
 msgid "Specific terms"
-msgstr "Resurssikohtaiset ehdot"
+msgstr "Tila- / Resurssikohtaiset ehdot"
 
 msgid "Extra content to \"reservation requested\" notification"
 msgstr "Lisäsisältö \"alustava varaus\"-ilmoitukseen"
