@@ -178,6 +178,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     reservable_after = serializers.SerializerMethodField()
     max_price_per_hour = serializers.SerializerMethodField()
     min_price_per_hour = serializers.SerializerMethodField()
+    accessibility_summaries = ResourceAccessibilitySerializer(many=True, read_only=True)
 
     def get_max_price_per_hour(self, obj):
         """Backwards compatibility for 'max_price_per_hour' field that is now deprecated"""
