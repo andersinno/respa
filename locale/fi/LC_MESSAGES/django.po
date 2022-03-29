@@ -1009,6 +1009,9 @@ msgstr "Varauksia enintään per käyttäjä (voimassa olevia)"
 msgid "Reservable"
 msgstr "Varattavissa"
 
+msgid "Temporarily closed"
+msgstr "Suljettu tilapäisesti"
+
 msgid "Reservation info"
 msgstr "Varausinfo"
 

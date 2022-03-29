@@ -139,6 +139,20 @@ def resource_in_unit3(space_resource_type, test_unit3):
         reservable=True,
     )
 
+@pytest.mark.django_db
+@pytest.fixture
+def temporarily_closed_resource(space_resource_type, test_unit2):
+    return Resource.objects.create(
+        type=space_resource_type,
+        authentication="none",
+        name="resource in unit 2",
+        unit=test_unit2,
+        max_reservations_per_user=2,
+        max_period=datetime.timedelta(hours=4),
+        reservable=True,
+        temporarily_closed=True,
+    )
+
 
 @pytest.mark.django_db
 @pytest.fixture

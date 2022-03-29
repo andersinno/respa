@@ -224,6 +224,7 @@ class ResourceForm(forms.ModelForm):
             'reservable_min_days_in_advance',
             'max_reservations_per_user',
             'reservable',
+            'temporarily_closed',
             'need_manual_confirmation',
             'authentication',
             'access_code_type',
@@ -245,6 +246,9 @@ class ResourceForm(forms.ModelForm):
             ),
             'slot_size': forms.Select(
                 choices=(thirty_minute_increment_choices)
+            ),
+            'temporarily_closed': RespaRadioSelect(
+                choices=((True, _('Yes')), (False, _('No')))
             ),
             'need_manual_confirmation': RespaRadioSelect(
                 choices=((True, _('Yes')), (False, _('No')))

@@ -1006,6 +1006,9 @@ msgstr "Högsta antalet aktiva bokningar per användare"
 msgid "Reservable"
 msgstr "Bokningsbar"
 
+msgid "Temporarily closed"
+msgstr ""
+
 msgid "Reservation info"
 msgstr "Bokningsinfo"
 

@@ -221,6 +221,22 @@ def test_authenticated_user_can_modify_reservation(
     assert reservation.begin == dateparse.parse_datetime('2115-04-04T11:00:00+02:00')
     assert reservation.end == dateparse.parse_datetime('2115-04-04T12:00:00+02:00')
 
+@pytest.mark.django_db
+def test_temporarily_closed_resource_cannot_be_reserved(
+        api_client, list_url, reservation_data, user, temporarily_closed_resource):
+    """
+    Tests that temporarily closed resource cannot be reserved
+    """
+    api_client.force_authenticate(user=user)
+    reservation_data = {
+        'resource': temporarily_closed_resource.pk,
+        'begin': '2115-04-04T11:00:00+02:00',
+        'end': '2115-04-04T12:00:00+02:00'
+    }
+
+    response = api_client.post(list_url, data=reservation_data)
+
+    assert response.status_code == 403
 
 @pytest.mark.django_db
 def test_another_user_modifies_reservations(

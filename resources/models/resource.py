@@ -222,6 +222,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_reservations_per_user = models.PositiveIntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                             null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
+    temporarily_closed = models.BooleanField(verbose_name=_('Temporarily closed'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
@@ -621,7 +622,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return users
 
     def can_make_reservations(self, user):
-        return self.reservable or self._has_perm(user, 'can_make_reservations')
+        return (self.reservable and not self.temporarily_closed) or self._has_perm(user, 'can_make_reservations')
 
     def can_modify_reservations(self, user):
         return self._has_perm(user, 'can_modify_reservations')
