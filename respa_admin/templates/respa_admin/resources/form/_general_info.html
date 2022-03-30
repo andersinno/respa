@@ -34,4 +34,10 @@
     <div class="external-calendar">
         <h4>{% trans "External calendar" %}</h4>
         {% include "respa_admin/forms/_input.html" with field=form.external_reservation_url %}
-</div>
+    </div>
+    <div class="external_reservation_text">
+        <h4>{% trans "External reservation free text" %}</h4>
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.external_reservation_text_fi %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.external_reservation_text_en %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.external_reservation_text_sv %}
+    </div>

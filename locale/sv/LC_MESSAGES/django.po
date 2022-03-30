@@ -1055,6 +1055,9 @@ msgstr ""
 "En URL till ett externt bokningssystem om den här resursen hanteras "
 "annorstädes"
 
+msgid "External reservation free text"
+msgstr "Extern reservation fritext"
+
 msgid "You cannot make a multi day reservation"
 msgstr "Du kan inte boka flera dagar"
 

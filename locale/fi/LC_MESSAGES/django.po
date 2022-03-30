@@ -1057,6 +1057,9 @@ msgid ""
 msgstr ""
 "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
 
+msgid "External reservation free text"
+msgstr "Ulkoisen varauksen vapaatekstikenttä"
+
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
 

@@ -352,6 +352,10 @@ strategy:
     description_en: null
     description_fi: null
     description_sv: null
+    external_reservation_text: null
+    external_reservation_text_fi: null
+    external_reservation_text_sv: null
+    external_reservation_text_en: null
     generic_terms_id: null
     payment_terms_id: null
     id: null
