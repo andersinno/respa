@@ -227,6 +227,7 @@ class ResourceForm(forms.ModelForm):
             'reservable_min_days_in_advance',
             'max_reservations_per_user',
             'reservable',
+            'can_use_without_reservation',
             'temporarily_closed',
             'need_manual_confirmation',
             'authentication',
@@ -253,6 +254,9 @@ class ResourceForm(forms.ModelForm):
             'temporarily_closed': RespaRadioSelect(
                 choices=((True, _('Yes')), (False, _('No')))
             ),
+            'can_use_without_reservation': RespaRadioSelect(
+                choices=((True, _('Yes')), (False, _('No')))
+            ),
             'need_manual_confirmation': RespaRadioSelect(
                 choices=((True, _('Yes')), (False, _('No')))
             ),
@@ -263,6 +267,17 @@ class ResourceForm(forms.ModelForm):
                 choices=((False, _('Can not be reserved')), (True, _('Bookable')))
             ),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        can_use_without_reservation = cleaned_data['can_use_without_reservation']
+        reservable = cleaned_data['reservable']
+
+        if can_use_without_reservation and reservable:
+            error_msg = _("A reservable resource cannot be used without prior reservation.")
+            self.add_error('can_use_without_reservation', error_msg)
+
+        return cleaned_data
 
 
 class UnitForm(forms.ModelForm):

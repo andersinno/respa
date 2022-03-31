@@ -222,6 +222,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_reservations_per_user = models.PositiveIntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                             null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
+    can_use_without_reservation = models.BooleanField(verbose_name=_('Can use without reservation'), default=False)
     temporarily_closed = models.BooleanField(verbose_name=_('Temporarily closed'), default=False)
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)

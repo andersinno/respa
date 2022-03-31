@@ -1,5 +1,9 @@
 #detail-booking {
 
+  span {
+      @extend .radio-description-label;
+  }
+
   .form-group.booking-info, .form-group.email-notification {
     margin-top: 32px;
 
