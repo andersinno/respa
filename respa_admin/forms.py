@@ -210,6 +210,7 @@ class ResourceForm(forms.ModelForm):
         ]
 
         fields = [
+            'area',
             'unit',
             'type',
             'purposes',
