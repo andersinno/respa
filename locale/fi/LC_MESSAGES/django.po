@@ -949,6 +949,9 @@ msgstr "Ei mitään"
 msgid "Weak"
 msgstr "Heikko"
 
+msgid "Mid"
+msgstr "keskivahvo"
+
 msgid "Strong"
 msgstr "Vahva"
 

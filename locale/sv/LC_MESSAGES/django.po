@@ -946,6 +946,9 @@ msgstr "Ingen"
 msgid "Weak"
 msgstr "Svag"
 
+msgid "Mid"
+msgstr "Medium"
+
 msgid "Strong"
 msgstr "Stark"
 
