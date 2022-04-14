@@ -34,6 +34,7 @@ from .base import (
     NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget,
     ExtraDataMixin
 )
+from .utils import get_user_auth_backend
 
 from respa.renderers import ResourcesBrowsableAPIRenderer
 
@@ -508,6 +509,64 @@ class ReservationPermission(permissions.BasePermission):
         return obj.can_modify(request.user)
 
 
+
+class ReservationAuthenticationLevelPermission(permissions.BasePermission):
+    """
+    This class matches the authentication level on resource with the current
+    authentication backend used to authenticate the user. User authenticated with
+    higher level authentication can reserve resource with lower level authentication,
+    plus the same level as user's authentication level.
+
+    User's auth level       Reserveable resource with auth level
+      Strong          ->       strong, mid, weak, none
+      Mid             ->       mid, weak, none
+      Weak            ->       weak, none
+    """
+    message = ''
+    # TODO: Needs discussing with client which login method belongs to which level.
+    STRONG_AUTHENTICATION = ('suomifi',)
+    MID_AUTHENTICATION = ('axiell_aurora',)
+    WEAK_AUTHENTICATION = ('google', 'github', 'facebook')
+
+    def has_permission(self, request, view):
+        resource_id = request.data.get('resource')
+        if request.method in permissions.SAFE_METHODS or not resource_id:
+            return True
+
+        resource = Resource.objects.get(id=resource_id)
+        return self._can_reserve_resource_with_current_login(request, resource)
+
+    def _can_reserve_resource_with_current_login(self, request, resource):
+        resource_authentication = resource.authentication
+        user_authentication = get_user_auth_backend(request)
+
+        if resource_authentication == 'none':
+            return True
+
+        if user_authentication in self.STRONG_AUTHENTICATION:
+            return True
+
+        if user_authentication in self.MID_AUTHENTICATION:
+            if resource_authentication in ['mid', 'weak']:
+                return True
+            else:
+                self.message = _('You need to login with strong authentication to '
+                                 'reserve this resource.')
+                return False
+
+        if user_authentication in self.WEAK_AUTHENTICATION:
+            if resource_authentication == 'weak':
+                return True
+            elif resource_authentication == 'mid':
+                self.message = _('You need to login with mid authentication to reserve '
+                                 'this resource.')
+            else:
+                self.message = _('You need to login with strong authentication to '
+                                 'reserve this resource.')
+
+        return False
+
+
 class ReservationExcelRenderer(renderers.BaseRenderer):
     media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     format = 'xlsx'
@@ -563,7 +622,11 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter, UserFilterBackend, ReservationFilterBackend,
                        NeedManualConfirmationFilterBackend, StateFilterBackend, CanApproveFilterBackend)
     filterset_class = ReservationFilterSet
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, ReservationPermission)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        ReservationPermission,
+        ReservationAuthenticationLevelPermission,
+    )
     renderer_classes = (renderers.JSONRenderer, ResourcesBrowsableAPIRenderer, ReservationExcelRenderer)
     pagination_class = ReservationPagination
     authentication_classes = (
