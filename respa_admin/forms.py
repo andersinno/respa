@@ -79,6 +79,10 @@ thirty_minute_increment_choices = (
     ('23:30:00', '23,5 h'),
 )
 
+thirty_minute_increment_choices_with_empty_start_value = (
+    (('', '---'),) + thirty_minute_increment_choices
+)
+
 
 class DaysForm(forms.ModelForm):
     opens = forms.TimeField(
@@ -242,7 +246,7 @@ class ResourceForm(forms.ModelForm):
                 choices=(thirty_minute_increment_choices)
             ),
             'max_period': forms.Select(
-                choices=(thirty_minute_increment_choices)
+                choices=(thirty_minute_increment_choices_with_empty_start_value)
             ),
             'slot_size': forms.Select(
                 choices=(thirty_minute_increment_choices)
