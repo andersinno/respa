@@ -1,0 +1,35 @@
+{% load i18n %}
+
+<div id="resource-accessibility">
+    <div class="form-section-header">
+        <h2>{% trans "Resource Accessibility" %}</h2>
+    </div>
+
+    <button id="add-resource-accessibility" type="button" class="resources-button">
+        {% trans "Add accessibility" %}
+    </button>
+
+    <div id="resource-accessibility-list" class="hidden">
+        {% for form in resource_accessibility_formset %}
+            {% with forloop.counter0 as id %}
+                <div class="input-row dropdown-row" id="accessibility-{{ id }}">
+                    {{ form.id }}
+                    {{ form.resource }}
+
+                    {% include "respa_admin/forms/_select.html" with field=form.viewpoint inline=True %}
+                    {% include "respa_admin/forms/_select.html" with field=form.value inline=True %}
+                    <button id="remove-resource-accessibility-{{ id }}"
+                        type="button"
+                        class="remove-resource-accessibility-button">
+                            {% trans "Remove" %}
+                    </button>
+                </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+    <div class="accessibility_description">
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.accessibility_description_fi %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.accessibility_description_en %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.accessibility_description_sv %}
+    </div>
+</div>

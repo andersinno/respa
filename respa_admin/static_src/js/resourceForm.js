@@ -3,7 +3,11 @@ import {
   removeImage,
   updateImagesTotalForms,
 } from './resourceFormImages';
-
+import {
+  addNewResourceAccessibility,
+  removeResourceAccessibility,
+  updateResourceAccessibilityTotalForms,
+} from './resourceFormAccessibility';
 import {
   initializePeriods,
 } from './periods';
@@ -13,11 +17,13 @@ import {
 } from './resourceFormLanguage';
 
 let emptyImageItem = null;
+let emptyResourceAccessibilityItem = null;
 
 export function initializeResourceForm() {
   initializeEventHandlers();
   initializePeriods();
   setImageItem();
+  setResourceAccessibilityItem();
 }
 
 /*
@@ -27,6 +33,8 @@ export function initializeEventHandlers() {
   enableLanguageButtons();
   enableAddNewImage();
   enableRemoveImage();
+  enableAddNewResourceAccessibility();
+  enableRemoveResourceAccessibility();
 }
 
 export function getEmptyImage() {
@@ -73,6 +81,38 @@ function enableRemoveImage() {
     let removeButton = document.getElementById('remove-image-' + i);
     let imageItem = $('#image-' + i);
     removeButton.addEventListener('click', () => removeImage(imageItem), false);
+  }
+}
+
+export function getEmptyResourceAccessibility() {
+  return emptyResourceAccessibilityItem;
+}
+
+function setResourceAccessibilityItem() {
+  let $resourceAccessibilityList = $('#resource-accessibility-list')[0].children;
+
+  let $servedResourceAccessibilityItem = $resourceAccessibilityList[$resourceAccessibilityList.length-1];
+  emptyResourceAccessibilityItem = $($servedResourceAccessibilityItem).clone();
+
+  $servedResourceAccessibilityItem.remove();
+
+  $('#resource-accessibility-list')[0].classList.remove('hidden');
+
+  updateResourceAccessibilityTotalForms();
+}
+
+function enableAddNewResourceAccessibility() {
+  let accessibilityAddButton = document.getElementById('add-resource-accessibility');
+  accessibilityAddButton.addEventListener('click', addNewResourceAccessibility);
+}
+
+function enableRemoveResourceAccessibility() {
+  let resourceAccessibilities = document.getElementById('resource-accessibility-list').children;
+
+  for (let i = 0; i < resourceAccessibilities.length; i++) {
+    let removeButton = document.getElementById('remove-resource-accessibility-' + i);
+    let resourceAccessibilityItem = $('#accessibility-' + i);
+    removeButton.addEventListener('click', () => removeResourceAccessibility(resourceAccessibilityItem), false);
   }
 }
 

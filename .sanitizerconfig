@@ -343,6 +343,10 @@ strategy:
     reservationmetadatafield_id: null
     reservationmetadataset_id: null
   resources_resource:
+    accessibility_description:null
+    accessibility_description_en:null
+    accessibility_description_fi: null
+    accessibility_description_sv: null
     access_code_type: null
     area: null
     authentication: null

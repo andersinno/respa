@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-26 22:30+0300\n"
+"POT-Creation-Date: 2022-04-27 11:10+0300\n"
 "PO-Revision-Date: 2018-09-27 12:10+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -747,6 +747,12 @@ msgstr "Voi tehdä varauksia muille käyttäjille"
 msgid "Can create overlapping reservations"
 msgstr "Voi luoda päällekkäisiä varauksia"
 
+msgid "Can ignore resources max reservations per user rule"
+msgstr "Varauksia enintään per käyttäjä (voimassa olevia)"
+
+msgid "Can ignore resources max period rule"
+msgstr ""
+
 msgid "created"
 msgstr "luoja"
 
@@ -1053,6 +1059,9 @@ msgid ""
 "elsewhere"
 msgstr ""
 "Ulkoisen varausjärjestelmän osoite jos tätä resurssia hallitaan muualla"
+
+msgid "Accessibility description"
+msgstr "Esteettömyys kuvaus"
 
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
@@ -1495,6 +1504,12 @@ msgstr "Käyttöoikeudet"
 
 msgid "Manager/admin of unit"
 msgstr "Toimipisteen ylläpitäjä/hoitaja"
+
+msgid "Add accessibility"
+msgstr "Lisä Esteettömyys"
+
+msgid "Remove"
+msgstr "Poista"
 
 msgid "Booking form"
 msgstr "Varauslomake"
