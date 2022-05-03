@@ -19,6 +19,7 @@ from resources.models import (
     Period,
     Purpose,
     Resource,
+    ResourceAccessibility,
     ResourceImage,
     Unit,
     UnitAuthorization,
@@ -158,6 +159,12 @@ class ImageForm(forms.ModelForm):
         fields = ['image', 'type'] + translated_fields
 
 
+class ResourceAccessibilityForm(forms.ModelForm):
+    class Meta:
+        model = ResourceAccessibility
+        fields = ['viewpoint', 'value',]
+
+
 class ResourceForm(forms.ModelForm):
     purposes = forms.ModelMultipleChoiceField(
         widget=RespaCheckboxSelect,
@@ -185,6 +192,9 @@ class ResourceForm(forms.ModelForm):
         model = Resource
 
         translated_fields = [
+            'accessibility_description_fi',
+            'accessibility_description_en',
+            'accessibility_description_sv',
             'name_fi',
             'name_en',
             'name_sv',
@@ -379,6 +389,19 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(instance=instance)
     else:
         return resource_image_formset(data=request.POST, files=request.FILES, instance=instance)
+
+
+def get_resource_accessibility_formset(request=None, extra=1, instance=None):
+    resource_accessibility_formset = inlineformset_factory(
+        Resource,
+        ResourceAccessibility,
+        form=ResourceAccessibilityForm,
+        extra=extra,
+    )
+    if not request or request.method == 'GET':
+        return resource_accessibility_formset(instance=instance)
+    else:
+        return resource_accessibility_formset(data=request.POST, instance=instance)
 
 
 def get_translated_field_count(image_formset=None):

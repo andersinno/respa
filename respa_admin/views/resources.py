@@ -17,6 +17,7 @@ from resources.models import (
     Resource,
     Period,
     Day,
+    ResourceAccessibility,
     ResourceImage,
     ResourceType,
     Unit,
@@ -27,6 +28,7 @@ from respa_admin.forms import (
     ResourceForm,
     UserForm,
     get_period_formset,
+    get_resource_accessibility_formset,
     get_resource_image_formset,
     get_unit_authorization_formset
 )
@@ -288,6 +290,10 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             self.request,
             instance=self.object,
         )
+        resource_accessibility_formset = get_resource_accessibility_formset(
+            self.request,
+            instance=self.object
+        )
 
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
@@ -297,6 +303,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             self.get_context_data(
                 accessibility_data_link=accessibility_data_link,
                 form=form,
+                resource_accessibility_formset=resource_accessibility_formset,
                 resource_image_formset=resource_image_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
@@ -337,11 +344,30 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
 
         period_formset_with_days = self.get_period_formset()
         resource_image_formset = get_resource_image_formset(request=request, instance=self.object)
+        resource_accessibility_formset = get_resource_accessibility_formset(
+            request=request, instance=self.object
+        )
 
-        if self._validate_forms(form, period_formset_with_days, resource_image_formset):
-            return self.forms_valid(form, period_formset_with_days, resource_image_formset)
+
+        if self._validate_forms(
+                form,
+                period_formset_with_days,
+                resource_image_formset,
+                resource_accessibility_formset,
+        ):
+            return self.forms_valid(
+                form,
+                period_formset_with_days,
+                resource_image_formset,
+                resource_accessibility_formset,
+            )
         else:
-            return self.forms_invalid(form, period_formset_with_days, resource_image_formset)
+            return self.forms_invalid(
+                form,
+                period_formset_with_days,
+                resource_image_formset,
+                resource_accessibility_formset,
+            )
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -352,15 +378,23 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             unit_field.disabled = True
         return form
 
-    def forms_valid(self, form, period_formset_with_days, resource_image_formset):
+    def forms_valid(
+            self,
+            form,
+            period_formset_with_days,
+            resource_image_formset,
+            resource_accessibility_formset,
+    ):
         self.object = form.save()
         self._save_resource_purposes()
         self._delete_extra_images(resource_image_formset)
         self._save_resource_images(resource_image_formset)
         self.save_period_formset(period_formset_with_days)
+        self._delete_extra_resource_accessibility(resource_accessibility_formset)
+        self._save_resource_accessibility(resource_accessibility_formset)
         return HttpResponseRedirect(self.get_success_url())
 
-    def forms_invalid(self, form, period_formset_with_days, resource_image_formset):
+    def forms_invalid(self, form, period_formset_with_days, resource_image_formset, resource_accessibility_formset):
         messages.error(self.request, _('Failed to save. Please check the form for errors.'))
 
         # Extra forms are not added upon post so they
@@ -368,6 +402,8 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         # the front-end uses the empty 'extra' forms for cloning.
         temp_image_formset = get_resource_image_formset()
         resource_image_formset.forms.append(temp_image_formset.forms[0])
+        temp_resource_accessibility_formset = get_resource_accessibility_formset()
+        resource_accessibility_formset.forms.append(temp_resource_accessibility_formset.forms[0])
         period_formset_with_days = self.add_empty_forms(period_formset_with_days)
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
@@ -376,17 +412,19 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
                 form=form,
                 period_formset_with_days=period_formset_with_days,
                 resource_image_formset=resource_image_formset,
+                resource_accessibility_formset=resource_accessibility_formset,
                 trans_fields=trans_fields,
                 page_headline=_('Edit resource'),
             )
         )
 
-    def _validate_forms(self, form, period_formset, image_formset):
+    def _validate_forms(self, form, period_formset, image_formset, resource_accessibility_formset):
         valid_form = form.is_valid()
         valid_period_form = period_formset.is_valid()
         valid_image_formset = image_formset.is_valid()
+        valid_resource_accessibility_formset = resource_accessibility_formset.is_valid()
 
-        return valid_form and valid_period_form and valid_image_formset
+        return valid_form and valid_period_form and valid_image_formset and valid_resource_accessibility_formset
 
     def _save_resource_purposes(self):
         checked_purposes = self.request.POST.getlist('purposes')
@@ -416,6 +454,18 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
 
         ResourceImage.objects.filter(resource=self.object).exclude(pk__in=image_ids).delete()
 
+    def _save_resource_accessibility(self, resource_accessibility_formset):
+        resource_accessibility_formset.instance = self.object
+        resource_accessibility_formset.save()
+
+    def _delete_extra_resource_accessibility(self, resource_accessibility_formset):
+        data = resource_accessibility_formset.data
+        resource_accessibility_ids = get_formset_ids('accessibility_summaries', data)
+
+        if resource_accessibility_ids is None:
+            return
+
+        ResourceAccessibility.objects.filter(resource=self.object).exclude(pk__in=resource_accessibility_ids).delete()
 
 def get_formset_ids(formset_name, data):
     count = to_int(data.get('{}-TOTAL_FORMS'.format(formset_name)))

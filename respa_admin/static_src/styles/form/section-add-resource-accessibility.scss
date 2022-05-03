@@ -1,0 +1,21 @@
+button.remove-resource-accessibility-button {
+    @extend .resources-button;
+    max-height: 50px;
+    min-width: 100px;
+    max-width: 200px;
+    line-height: 0.5;
+    padding: 10px;
+    margin-top: 30px;
+}
+
+button.remove-resource-accessibility-button.remove-resource-accessibility-button {
+    @extend .remove-resource-accessibility-button;
+    color: #fd4f00;
+    border: 2px solid #fd4f00;
+    background-color: transparent;
+
+    &:hover {
+        color: #fd4f00;
+        filter: brightness(0.9);
+    }
+}

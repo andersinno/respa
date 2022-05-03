@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{% if form.errors or resource_image_formset.errors or period_formset_with_days.errors %}
+{% if form.errors or resource_image_formset.errors or period_formset_with_days.errors or resource_accessibility_formset.errors %}
     <div class="alert alert-danger">
         <strong>{% trans "Tarkista seuraavat virheet" %}:</strong>
         <ul>
@@ -17,6 +17,12 @@
             {% endfor %}
 
             {% for error in period_formset_with_days.errors %}
+                <li>
+                    {{ error }}
+                </li>
+            {% endfor %}
+
+            {% for error in resource_accessibility_formset.errors %}
                 <li>
                     {{ error }}
                 </li>
