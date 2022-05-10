@@ -1,7 +1,10 @@
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import FieldDoesNotExist, Q
-from django.http import Http404, HttpResponseRedirect
+from django.forms import model_to_dict
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
@@ -466,6 +469,67 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             return
 
         ResourceAccessibility.objects.filter(resource=self.object).exclude(pk__in=resource_accessibility_ids).delete()
+
+RESOURCE_RELATED_FIELDS = (
+    'images',
+    'opening_hours',
+    'periods',
+    'accessibility_summaries',
+)
+
+
+@transaction.atomic
+def copy_resource(request, resource_id):
+    source_resource = get_object_or_404(Resource.objects.prefetch_related(*RESOURCE_RELATED_FIELDS), pk=resource_id)
+    kwargs = model_to_dict(source_resource, exclude=['pk', 'name'])
+    resource_copy_name = _get_resource_copy_name(source_resource)
+    kwargs['name'] = resource_copy_name
+    kwargs['name_fi'] = resource_copy_name
+    kwargs['name_en'] = resource_copy_name
+    kwargs['name_sv'] = resource_copy_name
+    kwargs['public'] = False
+    form = ResourceForm(kwargs)
+
+    if form.is_valid():
+        copy_instance = form.save()
+        _copy_related_and_nested_objects(source_resource, copy_instance)
+        messages.success(request, _(f'{source_resource.name} copied successfully.'))
+        return redirect(reverse('respa_admin:index') + '?order_by=-created_at')
+    else:
+        messages.error(request, _('Something went wrong! Please contact admin.'))
+        return render(request, 'respa_admin/_base.html')
+
+
+def _copy_related_and_nested_objects(source, dest):
+    """
+    It copies the related obj and nested related obj that can be added/edited in
+    Respa admin. There might be other nested obj, but only consider the ones that
+    are modifiable via Respa Admin. E.g. A resource can have many Periods and the
+    period in turn can have many Days which is editable in Respa Admin.
+    """
+    for field in RESOURCE_RELATED_FIELDS:
+        related_obj = getattr(source, field).all()
+        for item in related_obj:
+            orig_obj_pk = item.pk
+            item.pk = None
+            item.resource = dest
+            item.save()
+
+            # Copy the nested obj used that can be edited/added in Respa admin.
+            if field == 'periods':
+                source_days = Day.objects.filter(period=orig_obj_pk)
+                for source_day in source_days:
+                    source_day.pk = None
+                    source_day.period = item
+                    source_day.save()
+
+
+def _get_resource_copy_name(resource):
+    resource_copy_name = f'{resource.name}_COPY_'
+    copied_resource_count = Resource.objects.filter(name__icontains=resource_copy_name).count()
+    next_copy_count = copied_resource_count + 1
+    resource_copy_name = f'{resource.name}_COPY_{next_copy_count}'
+    return resource_copy_name
 
 def get_formset_ids(formset_name, data):
     count = to_int(data.get('{}-TOTAL_FORMS'.format(formset_name)))
