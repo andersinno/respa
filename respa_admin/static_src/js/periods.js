@@ -6,6 +6,17 @@ export function initializePeriods() {
   enableAddNewPeriod();
   setPeriodAndDayItems();
   initialSortPeriodDays();
+  setPeriodTemplateOnFocus();
+}
+
+function setPeriodTemplateOnFocus() {
+  // Don't hide the period template options if focus is inside the drowndown
+  $('.period-template-item input').on('click', function (e){
+    e.stopPropagation();
+    if ($('.dropdown-menu').is(':hidden')) {
+      $('.dropdown-toggle').dropdown('toggle');
+    }
+  });
 }
 
 function getEmptyPeriodItem() {

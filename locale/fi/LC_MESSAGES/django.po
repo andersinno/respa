@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 11:10+0300\n"
+"POT-Creation-Date: 2022-05-10 09:36+0300\n"
 "PO-Revision-Date: 2018-09-27 12:10+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -467,6 +467,22 @@ msgstr "Resurssiryhmä"
 msgid "Resource groups"
 msgstr "Resurssiryhmät"
 
+msgid "Periods"
+msgstr "Aikavälit"
+
+msgid "Templates only"
+msgstr "Vain pohjat"
+
+msgid "Non-templates only"
+msgstr "Ei pohjia"
+
+msgid ""
+"Check this box if you want to share this period with other resources. If "
+"checked, both resource and unit field need to be blank."
+msgstr ""
+"Tämä aikaväli toimii aikavälipohjana. Tällöin resurssia tai toimipaikkaa ei "
+"tule valita"
+
 msgid "Import Service Map"
 msgstr "Tuo Service Map"
 
@@ -613,11 +629,20 @@ msgstr "Loppupäivä"
 msgid "Closed"
 msgstr "Suljettu"
 
+msgid "Is period a template"
+msgstr "Onko aikavälipohja"
+
+msgid "Template"
+msgstr "Pohja"
+
 msgid "period"
 msgstr "aikaväli"
 
 msgid "periods"
 msgstr "aikavälit"
+
+msgid "Opening hours template can't belong to any unit or resource"
+msgstr "Aikavälipohja ei voi liittyä mihinkään yksittäiseen toimipaikkaan tai resurssiin."
 
 msgid "You must set 'resource' or 'unit'"
 msgstr "Aseta 'resource' tai 'unit'"
@@ -1507,6 +1532,9 @@ msgstr "Tunnistautuminen, ehdot ja hinta"
 
 msgid "Opening hours"
 msgstr "Aukioloajat"
+
+msgid "Select from templates"
+msgstr "Valitse pohjista"
 
 msgid "Add new time period"
 msgstr "Lisää uusi aikajakso"

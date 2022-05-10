@@ -23,7 +23,7 @@ from .base import ExtraReadonlyFieldsOnUpdateMixin, CommonExcludeMixin, Populate
 from resources.admin.period_inline import PeriodInline
 
 from ..models import (
-    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Purpose,
+    AccessibilityValue, AccessibilityViewpoint, Day, Equipment, EquipmentAlias, EquipmentCategory, Period, Purpose,
     Reservation, ReservationMetadataField, ReservationMetadataSet, Resource, ResourceAccessibility,
     ResourceEquipment, ResourceGroup, ResourceImage, ResourceType, TermsOfUse,
     Unit, UnitAuthorization, UnitIdentifier, UnitGroup, UnitGroupAuthorization)
@@ -75,6 +75,7 @@ class HttpsFriendlyGeoAdmin(OSMGeoAdmin):
 
 class DayInline(admin.TabularInline):
     model = Day
+    extra = 5
 
 
 class ResourceEquipmentInline(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationStackedInline):
@@ -116,6 +117,47 @@ class ResourceAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, Transla
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         form.instance.update_opening_hours()
+
+
+class PeriodTemplateListFilter(admin.SimpleListFilter):
+    title = _('Periods')
+    parameter_name = 'is_template'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('is_template', _('Templates only')),
+            ('is_not_template', _('Non-templates only'))
+        )
+
+    def queryset(self, request, queryset):
+        selected_dropdown_filter = self.value()
+        all_periods = Period.objects.all()
+
+        if selected_dropdown_filter == 'is_template':
+            return all_periods.filter(is_template=True)
+        if selected_dropdown_filter == 'is_not_template':
+            return all_periods.exclude(is_template=True)
+        return all_periods
+
+
+class PeriodAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
+    list_filter = (PeriodTemplateListFilter,)
+    inlines = [DayInline,]
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        initial['is_template'] = True
+        return initial
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        form = super().get_form(request, obj=obj, change=change, **kwargs)
+        help_texts = _(
+            'Check this box if you want to share this period with other resources. If '
+            'checked, both resource and unit field need to be blank.'
+        )
+        form.base_fields['is_template'].help_text = help_texts
+        form.base_fields['template_src'].queryset = Period.objects.filter(is_template=True)
+        return form
 
 
 class UnitAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, FixedGuardedModelAdminMixin,
@@ -380,6 +422,7 @@ admin_site.register(Resource, ResourceAdmin)
 admin_site.register(Reservation, ReservationAdmin)
 admin_site.register(ResourceType, ResourceTypeAdmin)
 admin_site.register(Purpose, PurposeAdmin)
+admin_site.register(Period, PeriodAdmin)
 admin_site.register(Day)
 admin_site.register(Unit, UnitAdmin)
 admin_site.register(Equipment, EquipmentAdmin)

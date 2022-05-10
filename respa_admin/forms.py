@@ -187,6 +187,12 @@ class ResourceForm(forms.ModelForm):
         label='Nimi [fi]',
     )
 
+    period_templates = forms.ModelMultipleChoiceField(
+        queryset=Period.objects.filter(is_template=True),
+        widget=RespaCheckboxSelect,
+        required=False,
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['generic_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_GENERIC)
@@ -249,6 +255,7 @@ class ResourceForm(forms.ModelForm):
             'payment_terms',
             'public',
             'reservation_metadata_set',
+            'period_templates',
         ] + translated_fields
 
         widgets = {
@@ -354,7 +361,10 @@ class PeriodFormset(forms.BaseInlineFormSet):
 
         if saved_form or self.forms:
             for form in self.forms:
-                form.save(commit=commit)
+                period = form.save(commit=commit)
+                if period.template_src and (form.has_changed() or form.days.has_changed()):
+                    period.template_src = None
+                    period.save()
                 if hasattr(form, 'days'):
                     form.days.save(commit=commit)
 

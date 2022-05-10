@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-04-27 11:10+0300\n"
+"POT-Creation-Date: 2022-05-10 09:36+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -464,6 +464,20 @@ msgstr "Resursgrupp"
 msgid "Resource groups"
 msgstr "Resursgrupper"
 
+msgid "Periods"
+msgstr ""
+
+msgid "Templates only"
+msgstr ""
+
+msgid "Non-templates only"
+msgstr "Meddelande mallar"
+
+msgid ""
+"Check this box if you want to share this period with other resources. If "
+"checked, both resource and unit field need to be blank."
+msgstr ""
+
 msgid "Import Service Map"
 msgstr "Importera servicekarta"
 
@@ -609,11 +623,20 @@ msgstr "Slutdatum"
 msgid "Closed"
 msgstr "Stängd"
 
+msgid "Is period a template"
+msgstr ""
+
+msgid "Template"
+msgstr ""
+
 msgid "period"
 msgstr "period"
 
 msgid "periods"
 msgstr "perioder"
+
+msgid "Opening hours template can't belong to any unit or resource"
+msgstr ""
 
 msgid "You must set 'resource' or 'unit'"
 msgstr "Du måste ange en resurs eller en enhet"
@@ -1500,6 +1523,9 @@ msgstr "Autentisering, villkor och pris"
 
 msgid "Opening hours"
 msgstr "Öppettider"
+
+msgid "Select from templates"
+msgstr ""
 
 msgid "Add new time period"
 msgstr "Lägg till en ny tidsperiod"
