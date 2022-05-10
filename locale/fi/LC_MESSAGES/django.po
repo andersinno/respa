@@ -526,6 +526,12 @@ msgstr "Virheellinen pk \"{pk_value}\" - kohdetta ei ole olemassa."
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
+msgid "You need to login with strong authentication to reserve this resource."
+msgstr "Sinun täytyy kirjautua vahvalla tunnistautumistavalla varataksesi tämän resurssin"
+
+msgid "You need to login with mid authentication to reserve this resource."
+msgstr "Sinun täytyy kirjautua keskivahvalla tunnistautumistavalla varataksesi tämän resurssin"
+
 msgid "reservations"
 msgstr "varaukset"
 
@@ -954,6 +960,9 @@ msgstr "Ei mitään"
 
 msgid "Weak"
 msgstr "Heikko"
+
+msgid "Mid"
+msgstr "Keskivahva"
 
 msgid "Strong"
 msgstr "Vahva"

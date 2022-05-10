@@ -11,6 +11,7 @@ from freezegun import freeze_time
 from icalendar import Calendar
 from parler.utils.context import switch_language
 from rest_framework.exceptions import ErrorDetail
+from unittest import mock
 
 from caterings.models import CateringOrder, CateringProvider
 
@@ -2611,3 +2612,55 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
 
     response2 = user_api_client.post(list_url, reservation_data2)
     assert response2.status_code == 201
+
+
+
+auth_resource_and_user_auth_combo = [
+    ('strong', 'suomifi', 201),  # Resource auth -> strong; User auth -> strong
+    ('mid', 'suomifi', 201),  # Resource auth -> mid; User auth -> strong
+    ('weak', 'suomifi', 201),  # Resource auth -> weak; User auth -> strong
+    ('none', 'suomifi', 201),  #  Resouce auth -> none; User auth -> strong
+
+    ('strong', 'axiell_aurora', 403),  # Resource auth -> strong; User auth -> mid
+    ('mid', 'axiell_aurora', 201),  # Resource auth-> mid; User auth -> mid
+    ('weak', 'axiell_aurora', 201),  # Resource auth-> weak; User auth -> mid
+    ('none', 'axiell_aurora', 201),  #  Resouce auth -> none; User auth -> mid
+
+    ('strong', 'google', 403),  # Resource auth -> strong; User auth -> weak
+    ('mid', 'google', 403),  # Resource auth -> mid; User auth -> weak
+    ('weak', 'google', 201),  # Resouce auth -> weak; User auth -> weak
+    ('none', 'google', 201),  #  Resouce auth -> none; User auth -> weak
+]
+
+@pytest.mark.django_db
+@mock.patch('resources.api.reservation.get_user_auth_backend')
+@pytest.mark.parametrize(
+    ('resource_authentication', 'login_backend', 'status_code'),
+    auth_resource_and_user_auth_combo,
+)
+def test_resource_authentication_and_user_login_authentication_permission(
+        mocked_auth_backend,
+        resource_with_opening_hours,
+        user_api_client,
+        list_url,
+        resource_authentication,
+        login_backend,
+        status_code,
+):
+    resource_with_opening_hours.authentication = resource_authentication
+    resource_with_opening_hours.save()
+    mocked_auth_backend.return_value = login_backend
+
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=1)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == status_code
+

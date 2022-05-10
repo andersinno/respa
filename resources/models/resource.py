@@ -173,6 +173,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ('none', _('None')),
         ('weak', _('Weak')),
+        ('mid', _('Mid')),
         ('strong', _('Strong'))
     )
     ACCESS_CODE_TYPE_NONE = 'none'
