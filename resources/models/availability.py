@@ -119,6 +119,9 @@ class Period(models.Model):
     description = models.CharField(verbose_name=_('Description'), null=True,
                                    blank=True, max_length=500)
     closed = models.BooleanField(verbose_name=_('Closed'), default=False, editable=False)
+    is_template = models.BooleanField(verbose_name=_('Is period a template'), default=False)
+    template_src = models.ForeignKey('Period', verbose_name=_('Template of period'),
+                                     blank=True, null=True, on_delete=models.SET_NULL)
 
     class Meta:
         verbose_name = _("period")
@@ -129,7 +132,9 @@ class Period(models.Model):
         return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
 
     def _validate_belonging(self):
-        if not (self.resource_id or self.unit_id):
+        if self.is_template and (self.resource_id or self.unit_id):
+            raise ValidationError(_("Opening hours template can't belong to any unit or resource"), code="invalid_belonging")
+        if not (self.resource_id or self.unit_id) and not self.is_template:
             raise ValidationError(_("You must set 'resource' or 'unit'"), code="no_belonging")
 
         if self.resource_id and self.unit_id:

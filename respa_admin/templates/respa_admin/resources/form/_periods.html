@@ -5,7 +5,7 @@
         <h2>{% trans "Opening hours" %}</h2>
     </div>
 
-    <div>
+    <div class="input-row dropdown-row">
         <button class="resources-button" type="button" id="add-new-hour">{% trans "Add new time period" %}</button>
         <div class="select-dropdown btn btn-primary">
             <select>
@@ -13,6 +13,7 @@
             </select>
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </div>
+        {% include "respa_admin/resources/form/_period_template.html" %}
     </div>
 
     <div class="present-hours-list" id="current-periods-list">

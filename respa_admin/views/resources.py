@@ -260,6 +260,9 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super(SaveResourceView, self).get_context_data(**kwargs)
+        context['used_period_templates'] = self.object.periods.exclude(
+            template_src__isnull=True
+        ).values_list('template_src', flat=True)
         if settings.RESPA_ADMIN_VIEW_RESOURCE_URL and self.object:
             context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = settings.RESPA_ADMIN_VIEW_RESOURCE_URL + self.object.id
         else:
@@ -390,6 +393,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         self._delete_extra_images(resource_image_formset)
         self._save_resource_images(resource_image_formset)
         self.save_period_formset(period_formset_with_days)
+        self._save_or_update_opening_hours_via_period_templates()
         self._delete_extra_resource_accessibility(resource_accessibility_formset)
         self._save_resource_accessibility(resource_accessibility_formset)
         return HttpResponseRedirect(self.get_success_url())
@@ -431,6 +435,35 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
 
         for purpose in checked_purposes:
             self.object.purposes.add(purpose)
+
+    def _save_or_update_opening_hours_via_period_templates(self):
+        checked_period_templates_ids = self.request.POST.getlist('period_templates')
+        checked_period_templates = Period.objects.filter(
+            id__in=[int(p) for p in checked_period_templates_ids]
+        )
+        current_period_from_templates = self.object.periods.filter(template_src__isnull=False)
+        used_templates = [template.template_src for template in current_period_from_templates]
+
+        for current_temp in current_period_from_templates:
+            if current_temp.template_src not in checked_period_templates:
+                self.object.periods.remove(current_temp)
+
+        for selected_period in checked_period_templates:
+            if selected_period in used_templates:
+                continue
+
+            template_id = selected_period.pk
+            days = Day.objects.filter(period=selected_period)
+            selected_period.template_src_id = template_id
+            selected_period.pk = None
+            selected_period.is_template = False
+            selected_period.resource = self.object
+            selected_period.save()
+
+            for day in days:
+                day.pk = None
+                day.period = selected_period
+                day.save()
 
     def _save_resource_images(self, resource_image_formset):
         count = len(resource_image_formset)
