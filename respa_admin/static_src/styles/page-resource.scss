@@ -21,3 +21,9 @@
   }
 }
 
+ul.list-group .list-group-item .panel-body .col-5 {
+  align-items: center;
+  align-self: center;
+  justify-content: space-between;
+  flex-direction: row;
+}

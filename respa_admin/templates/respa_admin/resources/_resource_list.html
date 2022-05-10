@@ -115,6 +115,10 @@
                                         <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
                                         <a href="{% url 'respa_admin:edit-resource' resource_id=resource.id %}">{% trans 'Edit' %}</a>
                                     </h6>
+                                    <h6>
+                                        <span class='glyphicon glyphicon-duplicate icon-left' aria-hidden="true"></span>
+                                        <a href="{% url 'respa_admin:copy-resource' resource_id=resource.id %}">{% trans 'Copy' %}</a>
+                                    </h6>
                                 </div>
                             </div>
                         </div>
