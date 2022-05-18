@@ -162,12 +162,15 @@ class ReservationRateReportExcelRenderer(renderers.BaseRenderer):
 
         sheet_name_pattern = re.compile("[\\[\\]:*?/\\\\]")
 
-        for unit in data["units"]:
+        for count, unit in enumerate(data["units"]):
             row_pos = 0
-
-            # Removes unallowed characters and limits string length to 31
-            # to avoid errors.
-            sheet_name = re.sub(sheet_name_pattern, "", unit["name"])[-31:]
+            
+            # Do some string processing to avoid excel errors.
+            # 1. Remove unallowed characters
+            # 2. Append #[count] to end of string to have a unique sheet name
+            # 3. Limit sheet name to the last 31 characters
+            sheet_name = re.sub(sheet_name_pattern, "", unit["name"])
+            sheet_name = f"{sheet_name} #{count}"[-31:]
 
             sheet = workbook.add_worksheet(sheet_name)
             
