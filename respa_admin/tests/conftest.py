@@ -29,6 +29,11 @@ EMPTY_RESOURCE_FORM_DATA = {
     'periods-MIN_NUM_FORMS': ['0'],
     'periods-MAX_NUM_FORMS': ['1000'],
 
+    'accessibility_summaries-TOTAL_FORMS': ['0'],
+    'accessibility_summaries-INITIAL_FORMS': ['0'],
+    'accessibility_summaries-MIN_NUM_FORMS': ['0'],
+    'accessibility_summaries-MAX_NUM_FORMS': ['1000'],
+
     'unit': '',
     'type': '',
     'name': '',

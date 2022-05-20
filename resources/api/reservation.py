@@ -538,11 +538,10 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
 
     def _can_reserve_resource_with_current_login(self, request, resource):
         resource_authentication = resource.authentication
-        user_authentication = get_user_auth_backend(request)
-
-        if resource_authentication == 'none':
+        if resource_authentication in ('none', ''):
             return True
 
+        user_authentication = get_user_auth_backend(request)
         if user_authentication in self.STRONG_AUTHENTICATION:
             return True
 
