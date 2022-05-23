@@ -703,6 +703,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
                 new_state = Reservation.CONFIRMED
 
         instance.set_state(new_state, self.request.user)
+        instance.send_reservation_created_mail_to_officials()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
