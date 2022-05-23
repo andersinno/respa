@@ -527,10 +527,10 @@ msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
 msgid "You need to login with strong authentication to reserve this resource."
-msgstr "Sinun täytyy kirjautua vahvalla tunnistautumistavalla varataksesi tämän resurssin"
+msgstr "Sinun tulee kirjautua sisään vahvalla tunnistautumismenetelmällä varataksesi tämän tilan/resurssin"
 
 msgid "You need to login with mid authentication to reserve this resource."
-msgstr "Sinun täytyy kirjautua keskivahvalla tunnistautumistavalla varataksesi tämän resurssin"
+msgstr "Sinun tulee kirjautua sisään keskivahvalla tunnistautumismenetelmällä varataksesi tämän tilan/resurssin"
 
 msgid "reservations"
 msgstr "varaukset"
