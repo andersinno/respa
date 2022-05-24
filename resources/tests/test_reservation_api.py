@@ -2664,3 +2664,37 @@ def test_resource_authentication_and_user_login_authentication_permission(
     response = user_api_client.post(list_url, reservation_data)
     assert response.status_code == status_code
 
+@pytest.mark.django_db
+@pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
+@mock.patch('resources.api.reservation.get_user_auth_backend')
+def test_unit_admins_managers_and_official_can_bypass_resource_auth_permisson(
+    mocked_auth_backend,
+    perm_type,
+    reservation_data_extra,
+    unit_admin_user,
+    unit_manager_user,
+    staff_user,
+    api_client,
+    list_url,
+    resource_in_unit,
+    group,
+):
+    resource_in_unit.authentication = 'strong'
+    resource_in_unit.save()
+    mocked_auth_backend.return_value = 'weak'
+    staff_user.groups.add(group)
+
+    if perm_type == 'unit':
+        assign_perm('unit:can_make_reservations', group, resource_in_unit.unit)
+    elif perm_type == 'resource_group':
+        resource_group = resource_in_unit.groups.create(name='test group')
+        assign_perm('group:can_make_reservations', group, resource_group)
+
+    for user in (staff_user, unit_admin_user, unit_manager_user):
+        api_client.force_authenticate(user=user)
+        response = api_client.post(list_url, data=reservation_data_extra)
+        assert response.status_code == 201
+        reservation_id = response.json()["id"]
+        # Delete the reservation to free the time slot so it can be reserved by other
+        # users in this for loop.
+        Reservation.objects.get(id=reservation_id).delete()

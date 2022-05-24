@@ -509,7 +509,6 @@ class ReservationPermission(permissions.BasePermission):
         return obj.can_modify(request.user)
 
 
-
 class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     """
     This class matches the authentication level on resource with the current
@@ -521,6 +520,9 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
       Strong          ->       strong, mid, weak, none
       Mid             ->       mid, weak, none
       Weak            ->       weak, none
+
+    Unit admins/managers and officials who can make reservation should be able to
+    bypass this permission.
     """
     message = ''
     # TODO: Needs discussing with client which login method belongs to which level.
@@ -541,6 +543,14 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
         user_authentication = get_user_auth_backend(request)
 
         if resource_authentication == 'none':
+            return True
+        # Regular users don't have "can_make_reservations" permission. This permission
+        # can be given to staffs via the Django admin
+        if (
+            resource.is_admin(request.user) or
+            resource.is_manager(request.user) or
+            resource._has_perm(request.user, 'can_make_reservations')
+        ):
             return True
 
         if user_authentication in self.STRONG_AUTHENTICATION:
