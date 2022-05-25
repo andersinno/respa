@@ -538,11 +538,10 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
 
     def _can_reserve_resource_with_current_login(self, request, resource):
         resource_authentication = resource.authentication
-        user_authentication = get_user_auth_backend(request)
-
-        if resource_authentication == 'none':
+        if resource_authentication in ('none', ''):
             return True
 
+        user_authentication = get_user_auth_backend(request)
         if user_authentication in self.STRONG_AUTHENTICATION:
             return True
 
@@ -704,6 +703,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
                 new_state = Reservation.CONFIRMED
 
         instance.set_state(new_state, self.request.user)
+        instance.send_reservation_created_mail_to_officials()
 
     def perform_update(self, serializer):
         old_instance = self.get_object()

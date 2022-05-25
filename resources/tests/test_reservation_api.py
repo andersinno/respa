@@ -1279,6 +1279,56 @@ def test_reservation_mails_in_finnish(
         'Varauksesi on peruttu.'
     )
 
+@override_settings(RESPA_MAILS_ENABLED=True)
+@pytest.mark.django_db
+def test_unit_admins_are_notified_when_reservation_is_created_along_with_officials_and_reserver(
+        general_admin, user_api_client,
+        list_url, reservation_data_extra, user, reservation_created_notification):
+    resource = Resource.objects.get(id=reservation_data_extra['resource'])
+    assign_perm('unit:can_approve_reservation', general_admin, resource.unit)
+    unit_admin = get_user_model().objects.create(
+        username='Unit admin',
+        first_name='Ozzy',
+        last_name='Official',
+        email='unit_admin@test.com',
+        is_staff=True,
+        is_general_admin=True,
+    )
+    UnitAuthorization.objects.create(
+        subject=resource.unit,
+        level=UnitAuthorizationLevel.admin,
+        authorized=unit_admin,
+    )
+
+    response = user_api_client.post(list_url, data=reservation_data_extra, format='json')
+
+    assert response.status_code == 201
+    # One mail to unit admin and another to official who can dis/approve
+    # the reservation and one to reserver
+    assert len(mail.outbox) == 3
+    for sent_mail in mail.outbox:
+        if sent_mail.to == user.email:
+            check_received_mail_exists(
+                'Normal reservation created subject.',
+                user.email,
+                'Normal reservation created body.',
+                clear_outbox=False,
+            )
+        elif sent_mail.to == unit_admin.email:
+            check_received_mail_exists(
+                'Reservation requested',
+                unit_admin.email,
+                'A new preliminary reservation has been made',
+                clear_outbox=False,
+            )
+        else:
+            check_received_mail_exists(
+                'Reservation requested',
+                general_admin.email,
+                'A new preliminary reservation has been made',
+                clear_outbox=False,
+            )
+
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db

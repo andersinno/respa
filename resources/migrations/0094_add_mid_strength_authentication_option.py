@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('resources', '0092_auto_20211026_1113'),
+        ('resources', '0093_add_accessibility_description_to_resource'),
     ]
 
     operations = [

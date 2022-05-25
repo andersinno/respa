@@ -1061,14 +1061,6 @@ def test_order_by_accessibility_inaccessible_unit(list_url, api_client, resource
 
 
 @pytest.mark.django_db
-def test_resource_with_accessibility_data_no_include(api_client, resource_with_accessibility_data, detail_url):
-    """ Resource endpoint should not include accessibility data when not explicitly included """
-    response = api_client.get(detail_url)
-    assert response.status_code == 200
-    assert 'accessibility_summaries' not in response.data
-
-
-@pytest.mark.django_db
 def test_resource_with_accessibility_data(api_client, resource_with_accessibility_data, detail_url):
     """ Resource endpoint should include accessibility data when include-parameter is used """
     url = "{}?include=accessibility_summaries".format(detail_url)

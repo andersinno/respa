@@ -6,6 +6,7 @@ import pytz
 from django.utils import timezone
 import django.contrib.postgres.fields as pgfields
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import translation
 from django.utils.timezone import now
@@ -252,7 +253,6 @@ class Reservation(ModifiableModel):
         # Notifications
         if new_state == Reservation.REQUESTED:
             self.send_reservation_requested_mail()
-            self.send_reservation_requested_mail_to_officials()
         elif new_state == Reservation.CONFIRMED:
             if self.need_manual_confirmation():
                 self.send_reservation_confirmed_mail()
@@ -411,6 +411,7 @@ class Reservation(ModifiableModel):
                 reserver_email_address = user.email
             context = {
                 'resource': self.resource.name,
+                'state': _(self.state),
                 'begin': localize_datetime(self.begin),
                 'end': localize_datetime(self.end),
                 'begin_dt': self.begin,
@@ -508,8 +509,16 @@ class Reservation(ModifiableModel):
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
 
-    def send_reservation_requested_mail_to_officials(self):
-        notify_users = self.resource.get_users_with_perm('can_approve_reservation')
+    def send_reservation_created_mail_to_officials(self):
+        # Send mail to unit admins and officials who can approve this reservation
+        officials_who_can_approve_reservation = self.resource.get_users_with_perm(
+            'can_approve_reservation')
+        unit_admins_ids = self.resource.unit.authorizations.admin_level().values_list(
+            'authorized', flat=True
+        )
+        unit_admins = get_user_model().objects.filter(id__in=unit_admins_ids)
+        notify_users = officials_who_can_approve_reservation.union(unit_admins)
+
         if len(notify_users) > 100:
             raise Exception("Refusing to notify more than 100 users (%s)" % self)
         for user in notify_users:
