@@ -223,6 +223,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_reservations_per_user = models.PositiveIntegerField(verbose_name=_('Maximum number of active reservations per user'),
                                                             null=True, blank=True)
     reservable = models.BooleanField(verbose_name=_('Reservable'), default=False)
+    should_be_reserved_whole_day = models.BooleanField(
+        verbose_name=_('Should be reserved for whole day'),
+        default=False,
+    )
     reservation_info = models.TextField(verbose_name=_('Reservation info'), null=True, blank=True)
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
@@ -732,6 +736,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         if self.need_manual_confirmation and self.products.current().exists():
             raise ValidationError(
                 {'need_manual_confirmation': _('This cannot be enabled because the resource has product(s).')}
+            )
+        if self.max_period and self.should_be_reserved_whole_day:
+            raise ValidationError(
+                {'should_be_reserved_whole_day': _('Whole day reservation should have empty maximum reservation time.')}
             )
 
 

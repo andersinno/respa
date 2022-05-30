@@ -895,6 +895,9 @@ msgstr "Varauksen loppuaika ei voi olla ennen alkuaikaa"
 msgid "Begin and end time must match time slots"
 msgstr "Alku- ja loppuajan täytyy osua aikaikkunoihin"
 
+msgid "This resource should be reserved for entire opening hours"
+msgstr "Tämä tila täytyy varata koko päiväksi"
+
 msgid "This unit does not allow overlapping reservations for its resources"
 msgstr "Tämä toimipiste ei salli päällekkäisiä varauksia resurssien välillä"
 
@@ -1049,6 +1052,9 @@ msgstr "Varauksia enintään per käyttäjä (voimassa olevia)"
 msgid "Reservable"
 msgstr "Varattavissa"
 
+msgid "Should be reserved for whole day"
+msgstr "Vain koko päivän varauksia"
+
 msgid "Reservation info"
 msgstr "Varausinfo"
 
@@ -1118,6 +1124,9 @@ msgstr "Tämän arvon täytyy olla slot_size arvon moninkerta"
 
 msgid "This cannot be enabled because the resource has product(s)."
 msgstr "Tätä ei voi laittaa päälle, koska resurssilla on ainakin yksi tuote."
+
+msgid "Whole day reservation should have empty maximum reservation time."
+msgstr "Varauksen maksimipituutta ei voi asettaa koko päivän varauksille."
 
 msgid "Main photo"
 msgstr "Päävalokuva"
