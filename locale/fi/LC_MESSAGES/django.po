@@ -1400,6 +1400,9 @@ msgstr "Näkyvyys"
 msgid "Edit"
 msgstr "Muokkaa"
 
+msgid "Copy"
+msgstr "Kopioi"
+
 msgid "Unit management"
 msgstr "Toimipaikan hallinta"
 
@@ -1578,6 +1581,13 @@ msgstr "Muokkaa resurssia"
 
 msgid "Create new resource"
 msgstr "Luo uusi resurssi"
+
+#, python-brace-format
+msgid "{source_resource.name} copied successfully."
+msgstr "{source_resource.name} kopioitu onnistuneesti."
+
+msgid "Something went wrong! Please contact admin."
+msgstr "Jokin meni vikaan! Ota yhteyttä ylläpitäjään."
 
 msgid "Unit saved"
 msgstr "Toimipiste tallennettu"

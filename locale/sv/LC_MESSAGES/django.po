@@ -1393,6 +1393,9 @@ msgstr "Synlighet"
 msgid "Edit"
 msgstr "Redigera"
 
+msgid "Copy"
+msgstr "Kopiera"
+
 msgid "Unit management"
 msgstr "Enhetshantering"
 
@@ -1571,6 +1574,13 @@ msgstr "Modifiera resurs"
 
 msgid "Create new resource"
 msgstr "Skapa ny resurs"
+
+#, python-brace-format
+msgid "{source_resource.name} copied successfully."
+msgstr "{source_resource.name} framgångsrikt kopierat."
+
+msgid "Something went wrong! Please contact admin."
+msgstr "Något gick fel! Kontakta admin."
 
 msgid "Unit saved"
 msgstr "Enheten sparad"
