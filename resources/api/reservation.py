@@ -520,11 +520,14 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     reservable by PIKI library (axiell_aurora) card login. However, PIKI login can
     reserve every resource other than the one that requires strong authentication.
 
+    Users logged in with Tampere City's adfs login should be able to reserve all resource.
+
     User's auth level       Reserveable resource with auth level
       Strong          ->       strong, mid, weak, none
       PIKI            ->       PIKI, mid, weak, none
       Mid             ->       mid, weak, none
       Weak            ->       weak, none
+      Tampere City Auth ->     strong, mid, weak, none
 
     Unit admins/managers and officials who can make reservation should be able to
     bypass this permission.
@@ -534,6 +537,7 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     MID_AUTHENTICATION = ('phone',)
     WEAK_AUTHENTICATION = ('google', 'github', 'facebook', 'yletunnus')
     PIKI_AUTHENTICATION = ('axiell_aurora',)
+    TAMPERE_CITY_AUTHENTICATION = ('tampere_adfs',)
 
     def has_permission(self, request, view):
         resource_id = request.data.get('resource')
@@ -545,20 +549,23 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
 
     def _can_reserve_resource_with_current_login(self, request, resource):
         resource_authentication = resource.authentication
+        is_own_reservation = request.data.get('is_own', False)
+
         if resource_authentication in ('none', ''):
             return True
-        # Regular users don't have "can_make_reservations" permission. This permission
-        # can be given to staffs via the Django admin
+
+        # Staffs and users logged in via Tampere ADFS can by pass resource
+        # authentication check. Also, reservation owner should be able to edit/delete
+        # the reservations reserved by different login methods.
+        user_authentication = get_user_auth_backend(request)
         if (
-            resource.is_admin(request.user) or
-            resource.is_manager(request.user) or
-            resource._has_perm(request.user, 'can_make_reservations')
+            is_own_reservation or
+            request.user.is_staff or
+            user_authentication in self.TAMPERE_CITY_AUTHENTICATION
         ):
             return True
 
         is_PIKI_auth_required = resource_authentication == 'PIKI'
-        user_authentication = get_user_auth_backend(request)
-
         # Resource with PIKI auth level should only be reserved with PIKI login!. Even
         # the strong auth shouldn't be able to reserve such resource.
         if is_PIKI_auth_required:

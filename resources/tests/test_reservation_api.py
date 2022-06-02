@@ -2705,6 +2705,12 @@ auth_resource_and_user_auth_combo = [
     ('mid', 'google', 403),  # Resource auth -> mid; User auth -> weak
     ('weak', 'google', 201),  # Resouce auth -> weak; User auth -> weak
     ('none', 'google', 201),  #  Resouce auth -> none; User auth -> weak
+
+    ('strong', 'tampere_adfs', 201),  # Resource auth -> strong; User auth -> tampere_adfs
+    ('PIKI', 'tampere_adfs', 201), # Resource_auth -> PIKI; User auth -> tampere_adfs
+    ('mid', 'tampere_adfs', 201),  # Resource auth -> mid; User auth -> tampere_adfs
+    ('weak', 'tampere_adfs', 201),  # Resource auth -> weak; User auth -> tampere_adfs
+    ('none', 'tampere_adfs', 201),  # Resouce auth -> none; User auth -> tampere_adfs
 ]
 
 @pytest.mark.django_db
