@@ -532,7 +532,7 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     message = ''
     STRONG_AUTHENTICATION = ('suomifi',)
     MID_AUTHENTICATION = ('phone',)
-    WEAK_AUTHENTICATION = ('google', 'github', 'facebook')
+    WEAK_AUTHENTICATION = ('google', 'github', 'facebook', 'yletunnus')
     PIKI_AUTHENTICATION = ('axiell_aurora',)
 
     def has_permission(self, request, view):
