@@ -263,9 +263,14 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super(SaveResourceView, self).get_context_data(**kwargs)
-        context['used_period_templates'] = self.object.periods.exclude(
-            template_src__isnull=True
-        ).values_list('template_src', flat=True)
+
+        if self.object:
+            context['used_period_templates'] = self.object.periods.exclude(
+                template_src__isnull=True
+            ).values_list('template_src', flat=True)
+        else:
+            context['used_period_templates'] = Period.objects.none()
+
         if settings.RESPA_ADMIN_VIEW_RESOURCE_URL and self.object:
             context['RESPA_ADMIN_VIEW_RESOURCE_URL'] = settings.RESPA_ADMIN_VIEW_RESOURCE_URL + self.object.id
         else:
