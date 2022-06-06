@@ -3,6 +3,7 @@ import pytest
 
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
+from unittest import mock
 
 from .utils import check_only_safe_methods_allowed
 from resources.tests.test_api import JWTMixin
@@ -26,9 +27,10 @@ def test_disallowed_methods(all_user_types_api_client, list_url, detail_url):
     """
     check_only_safe_methods_allowed(all_user_types_api_client, (list_url, detail_url))
 
-
+@mock.patch('users.api.get_user_auth_backend')
 @pytest.mark.django_db
-def test_user_perms(api_client, list_url, staff_user, user, test_unit):
+def test_user_perms(mocked_auth_backend, api_client, list_url, staff_user, user, test_unit):
+    mocked_auth_backend.return_value = ''
     api_client.force_authenticate(user=user)
     response = api_client.get(list_url)
     assert response.status_code == 200

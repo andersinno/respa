@@ -3,7 +3,7 @@ from rest_framework import permissions, serializers, generics, mixins, viewsets
 
 from resources.models.utils import build_ical_feed_url
 from resources.models import Unit
-
+from .utils import get_user_auth_backend
 
 all_views = []
 
@@ -19,12 +19,14 @@ class UserSerializer(serializers.ModelSerializer):
     display_name = serializers.ReadOnlyField(source='get_display_name')
     ical_feed_url = serializers.SerializerMethodField()
     staff_perms = serializers.SerializerMethodField()
+    login_method = serializers.SerializerMethodField()
 
     class Meta:
         fields = [
             'last_login', 'username', 'email', 'date_joined',
             'first_name', 'last_name', 'uuid', 'department_name',
-            'is_staff', 'display_name', 'ical_feed_url', 'staff_perms', 'favorite_resources'
+            'is_staff', 'display_name', 'ical_feed_url', 'staff_perms', 'favorite_resources',
+            'login_method',
         ]
         model = get_user_model()
 
@@ -47,6 +49,8 @@ class UserSerializer(serializers.ModelSerializer):
             return {}
         return {'unit': perms}
 
+    def get_login_method(self, obj):
+        return get_user_auth_backend(self.context['request'])
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
