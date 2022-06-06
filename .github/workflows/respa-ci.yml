@@ -1,0 +1,57 @@
+name: Respa-github-ci
+on:
+  pull_request:
+    branches:
+      - tre-varaamo
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DEBUG: True
+      DATABASE_URL: postgis://postgres:postgres@localhost/respa
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.8"
+    - name: Install Ubuntu packages
+      run: |
+        sudo apt-get install -y gdal-bin gettext libxml2-dev libxslt-dev python-dev python3-lxml
+
+    - name: Install postgres extensions
+      run: |
+          psql -h localhost -U postgres template1 -c 'create extension hstore;create extension postgis;'
+
+    # Reinstall the uneditable version of django-tamusers for CI as it tries to run
+    # the tests for that module which breaks. Also remove the location of source code.
+    - name: Install python packages
+      run: |
+        pip install -r requirements.txt
+        pip install git+https://github.com/Tampere/django-tamusers.git@3b93b96cacb4a9cb07a8e932dd5c3a8aa465dfc4#egg=django-tamusers
+        rm -rf src/
+
+    # Not sure why some of the strings are not translated during test. Thus,
+    # explicitly compile messages.
+    - name: Compile the messages
+      run: |
+        python manage.py compilemessages
+
+    - name: Run pytest
+      run: |
+        py.test .
+
+    services:
+      postres:
+        image: postgis/postgis:10-2.5
+        env:
+          # It lets postgres user login without password so postgres extensions can be
+          # installed
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
