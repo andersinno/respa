@@ -6,7 +6,7 @@
 #
 --no-binary psycopg2
 
--e git+git://github.com/Tampere/django-tamusers.git@3b93b96cacb4a9cb07a8e932dd5c3a8aa465dfc4#egg=django-tamusers
+-e git+https://github.com/Tampere/django-tamusers.git@3b93b96cacb4a9cb07a8e932dd5c3a8aa465dfc4#egg=django-tamusers
 arrow==0.13.0             # via -r requirements.in
 asn1crypto==0.24.0        # via cryptography
 atomicwrites==1.2.1       # via pytest
@@ -65,7 +65,7 @@ ecdsa==0.15               # via python-jose
 factory-boy==2.12.0       # via -r requirements.in
 faker==1.0.2              # via -r requirements.in, factory-boy
 flake8==3.6.0             # via -r requirements.in
-freezegun==0.3.11         # via -r requirements.in
+freezegun==1.2.1        # via -r requirements.in
 future==0.17.1            # via pyjwkest
 humanize==0.5.1           # via delorean
 icalendar==4.0.3          # via -r requirements.in
