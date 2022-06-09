@@ -542,11 +542,18 @@ msgstr "Virheellinen pk \"{pk_value}\" - kohdetta ei ole olemassa."
 msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
+msgid "You need to login with PIKI library card to reserve this resource."
+msgstr "Sinun tulee kirjautua sisään PIKI-kirjastokortilla varataksesi tämän tilan/resurssin."
+
 msgid "You need to login with strong authentication to reserve this resource."
-msgstr "Sinun tulee kirjautua sisään vahvalla tunnistautumismenetelmällä varataksesi tämän tilan/resurssin"
+msgstr ""
+"Sinun tulee kirjautua sisään vahvalla tunnistautumismenetelmällä varataksesi "
+"tämän tilan/resurssin"
 
 msgid "You need to login with mid authentication to reserve this resource."
-msgstr "Sinun tulee kirjautua sisään keskivahvalla tunnistautumismenetelmällä varataksesi tämän tilan/resurssin"
+msgstr ""
+"Sinun tulee kirjautua sisään keskivahvalla tunnistautumismenetelmällä "
+"varataksesi tämän tilan/resurssin"
 
 msgid "reservations"
 msgstr "varaukset"
@@ -642,7 +649,9 @@ msgid "periods"
 msgstr "aikavälit"
 
 msgid "Opening hours template can't belong to any unit or resource"
-msgstr "Aikavälipohja ei voi liittyä mihinkään yksittäiseen toimipaikkaan tai resurssiin."
+msgstr ""
+"Aikavälipohja ei voi liittyä mihinkään yksittäiseen toimipaikkaan tai "
+"resurssiin."
 
 msgid "You must set 'resource' or 'unit'"
 msgstr "Aseta 'resource' tai 'unit'"
@@ -994,6 +1003,9 @@ msgstr "Keskivahva"
 
 msgid "Strong"
 msgstr "Vahva"
+
+msgid "PIKI"
+msgstr ""
 
 msgid "4-digit PIN code"
 msgstr "4-numeroinen pin-koodi"

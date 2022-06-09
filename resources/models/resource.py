@@ -174,7 +174,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         ('none', _('None')),
         ('weak', _('Weak')),
         ('mid', _('Mid')),
-        ('strong', _('Strong'))
+        ('strong', _('Strong')),
+        ('PIKI', _('PIKI')),
     )
     ACCESS_CODE_TYPE_NONE = 'none'
     ACCESS_CODE_TYPE_PIN4 = 'pin4'

@@ -516,8 +516,13 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     higher level authentication can reserve resource with lower level authentication,
     plus the same level as user's authentication level.
 
+    PIKI login is an exception. Resources whose auth level is PIKI, should only be
+    reservable by PIKI library (axiell_aurora) card login. However, PIKI login can
+    reserve every resource other than the one that requires strong authentication.
+
     User's auth level       Reserveable resource with auth level
       Strong          ->       strong, mid, weak, none
+      PIKI            ->       PIKI, mid, weak, none
       Mid             ->       mid, weak, none
       Weak            ->       weak, none
 
@@ -525,10 +530,10 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     bypass this permission.
     """
     message = ''
-    # TODO: Needs discussing with client which login method belongs to which level.
     STRONG_AUTHENTICATION = ('suomifi',)
-    MID_AUTHENTICATION = ('axiell_aurora',)
+    MID_AUTHENTICATION = ('phone',)
     WEAK_AUTHENTICATION = ('google', 'github', 'facebook')
+    PIKI_AUTHENTICATION = ('axiell_aurora',)
 
     def has_permission(self, request, view):
         resource_id = request.data.get('resource')
@@ -551,11 +556,23 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
         ):
             return True
 
+        is_PIKI_auth_required = resource_authentication == 'PIKI'
         user_authentication = get_user_auth_backend(request)
+
+        # Resource with PIKI auth level should only be reserved with PIKI login!. Even
+        # the strong auth shouldn't be able to reserve such resource.
+        if is_PIKI_auth_required:
+            if user_authentication in self.PIKI_AUTHENTICATION:
+                return True
+            else:
+                self.message = _('You need to login with PIKI library card to reserve '
+                                 'this resource.')
+                return False
+
         if user_authentication in self.STRONG_AUTHENTICATION:
             return True
 
-        if user_authentication in self.MID_AUTHENTICATION:
+        if user_authentication in [*self.MID_AUTHENTICATION, *self.PIKI_AUTHENTICATION]:
             if resource_authentication in ['mid', 'weak']:
                 return True
             else:

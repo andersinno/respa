@@ -536,11 +536,18 @@ msgstr "Felaktig pk \"{pk_value}\" - objektet existerar inte."
 msgid "Invalid value in filter %(filter)s"
 msgstr "Felaktigt värde i filter %(filter)s"
 
+msgid "You need to login with PIKI library card to reserve this resource."
+msgstr "Du måste logga in med ett PIKI bibliotekskort för att reservera den här resursen."
+
 msgid "You need to login with strong authentication to reserve this resource."
-msgstr "Du måste logga in med en stark autentiseringsmetod för att reservera den här resursen"
+msgstr ""
+"Du måste logga in med en stark autentiseringsmetod för att reservera den här "
+"resursen"
 
 msgid "You need to login with mid authentication to reserve this resource."
-msgstr "Du måste logga in med en medelstark autentiseringsmetod för att reservera den här resursen"
+msgstr ""
+"Du måste logga in med en medelstark autentiseringsmetod för att reservera "
+"den här resursen"
 
 msgid "reservations"
 msgstr "reservationer"
@@ -989,6 +996,9 @@ msgstr "Medium"
 
 msgid "Strong"
 msgstr "Stark"
+
+msgid "PIKI"
+msgstr ""
 
 msgid "4-digit PIN code"
 msgstr "4-siffrig PIN-kod"
