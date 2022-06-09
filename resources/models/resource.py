@@ -750,6 +750,7 @@ class ResourceImage(ModifiableModel):
         ('ground_plan', _('Ground plan')),
         ('map', _('Map')),
         ('other', _('Other')),
+        ('panorama', _('360 panorama')),
     )
     resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
                                  related_name='images', on_delete=models.CASCADE)

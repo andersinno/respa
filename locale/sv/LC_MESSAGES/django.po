@@ -1146,6 +1146,9 @@ msgstr "Karta"
 msgid "Other"
 msgstr "Annan"
 
+msgid "360 panorama"
+msgstr "360 panorama"
+
 msgid "Caption"
 msgstr "Bildtext"
 
