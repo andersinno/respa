@@ -2664,6 +2664,31 @@ def test_disallow_overlapping_reservations(resource_in_unit, resource_in_unit2, 
     assert response2.status_code == 201
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ('reservation_data', 'is_valid', 'status_code'),
+    [
+        ({'begin': '2115-04-04T11:00:00+02:00', 'end': '2115-04-04T12:30:00+02:00'}, False, 400),
+        ({'begin': '2115-04-04T08:00:00+02:00', 'end': '2115-04-04T18:00:00+02:00'}, True, 201)
+    ]
+)
+def test_whole_day_reservation_do_not_allow_partial_reservation(
+    reservation_data, is_valid, status_code, resource_with_opening_hours, user_api_client, list_url,
+):
+    # Resource opens from 08-18.
+    resource_with_opening_hours.should_be_reserved_whole_day = True
+    resource_with_opening_hours.save()
+    data = {
+        'resource': resource_with_opening_hours.pk,
+        **reservation_data
+    }
+
+    response = user_api_client.post(list_url, data)
+    response.status_code == status_code
+    if not is_valid:
+        json_response = response.json()
+        assert json_response['non_field_errors'] == ["['Tämä tila täytyy varata koko päiväksi']"]
+
 
 auth_resource_and_user_auth_combo = [
     ('strong', 'suomifi', 201),  # Resource auth -> strong; User auth -> strong

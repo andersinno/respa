@@ -35,6 +35,7 @@ export function initializeEventHandlers() {
   enableRemoveImage();
   enableAddNewResourceAccessibility();
   enableRemoveResourceAccessibility();
+  enableResourceReservationForWholeDay();
 }
 
 export function getEmptyImage() {
@@ -128,6 +129,16 @@ function enableLanguageButtons() {
     let language = languageButton.value;
     languageButton.addEventListener('click', () => toggleLanguage(language), false);
   }
+}
+
+function enableResourceReservationForWholeDay() {
+  const wholeDayReservationCheckbox = document.getElementById('id_should_be_reserved_whole_day');
+  wholeDayReservationCheckbox.addEventListener('change', () => {
+    if (wholeDayReservationCheckbox.checked) {
+      const maxReservationTime = document.getElementById('id_max_period');
+      maxReservationTime.value = '';
+    }
+  });
 }
 
 export function calendarHandler() {

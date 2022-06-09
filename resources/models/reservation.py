@@ -364,6 +364,13 @@ class Reservation(ModifiableModel):
             if day and not is_valid_time_slot(dt, self.resource.slot_size, day['opens']):
                 raise ValidationError(_("Begin and end time must match time slots"), code='invalid_time_slot')
 
+            if self.resource.should_be_reserved_whole_day:
+                if day['opens'] != self.begin or day['closes'] != self.end:
+                    raise ValidationError(_(
+                        "This resource should be reserved for entire opening hours"),
+                        code='invalid_time_slot'
+                    )
+
         # Check if Unit has disallow_overlapping_reservations value of True
         if (
             self.resource.unit.disallow_overlapping_reservations and not

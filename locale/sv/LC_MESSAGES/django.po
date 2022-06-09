@@ -889,6 +889,9 @@ msgstr "Du måste avsluta bokningen när den har börjat"
 msgid "Begin and end time must match time slots"
 msgstr "Början och sluttiden måste matcha tidsluckor"
 
+msgid "This resource should be reserved for entire opening hours"
+msgstr ""
+
 msgid "This unit does not allow overlapping reservations for its resources"
 msgstr ""
 "Den här enheten tillåter inte överlappande reservationer för sina resurser"
@@ -1044,6 +1047,9 @@ msgstr "Högsta antalet aktiva bokningar per användare"
 msgid "Reservable"
 msgstr "Bokningsbar"
 
+msgid "Should be reserved for whole day"
+msgstr ""
+
 msgid "Reservation info"
 msgstr "Bokningsinfo"
 
@@ -1114,6 +1120,9 @@ msgstr "Detta värde måste vara ett flertal av slot_size"
 
 msgid "This cannot be enabled because the resource has product(s)."
 msgstr "Detta kan inte aktiveras eftersom resursen har produkter"
+
+msgid "Whole day reservation should have empty maximum reservation time."
+msgstr ""
 
 msgid "Main photo"
 msgstr "Huvudbild"

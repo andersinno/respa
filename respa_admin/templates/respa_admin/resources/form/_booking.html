@@ -14,6 +14,9 @@
         {% include "respa_admin/forms/_select.html" with field=form.max_period inline=True %}
         {% include "respa_admin/forms/_select.html" with field=form.slot_size inline=True %}
     </div>
+  <div class="whole-day-reservation">
+   {% include "respa_admin/forms/_checkbox.html" with field=form.should_be_reserved_whole_day %}
+  </div>
     <div class="input-row">
         {% include "respa_admin/forms/_input.html" with field=form.reservable_max_days_in_advance %}
         {% include "respa_admin/forms/_input.html" with field=form.reservable_min_days_in_advance %}

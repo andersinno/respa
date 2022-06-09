@@ -27,3 +27,11 @@ ul.list-group .list-group-item .panel-body .col-5 {
     padding-left: 5px;
   }
 }
+
+.whole-day-reservation .custom-checkbox {
+  padding-left: 0;
+
+  .checkbox-custom-label {
+    padding-left: 30px !important;
+  }
+}
