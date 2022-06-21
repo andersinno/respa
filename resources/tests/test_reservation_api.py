@@ -2696,10 +2696,10 @@ auth_resource_and_user_auth_combo = [
     ('weak', 'suomifi', 201),  # Resource auth -> weak; User auth -> strong
     ('none', 'suomifi', 201),  #  Resouce auth -> none; User auth -> strong
 
-    ('strong', 'axiell_aurora', 403),  # Resource auth -> strong; User auth -> mid
-    ('mid', 'axiell_aurora', 201),  # Resource auth-> mid; User auth -> mid
-    ('weak', 'axiell_aurora', 201),  # Resource auth-> weak; User auth -> mid
-    ('none', 'axiell_aurora', 201),  #  Resouce auth -> none; User auth -> mid
+    ('strong', 'phone', 403),  # Resource auth -> strong; User auth -> mid
+    ('mid', 'phone', 201),  # Resource auth-> mid; User auth -> mid
+    ('weak', 'phone', 201),  # Resource auth-> weak; User auth -> mid
+    ('none', 'phone', 201),  #  Resouce auth -> none; User auth -> mid
 
     ('strong', 'google', 403),  # Resource auth -> strong; User auth -> weak
     ('mid', 'google', 403),  # Resource auth -> mid; User auth -> weak
@@ -2738,6 +2738,82 @@ def test_resource_authentication_and_user_login_authentication_permission(
 
     response = user_api_client.post(list_url, reservation_data)
     assert response.status_code == status_code
+
+
+@pytest.mark.django_db
+@mock.patch('resources.api.reservation.get_user_auth_backend')
+@pytest.mark.parametrize(
+    ('resource_authentication', 'login_backend', 'status_code'),
+    [
+        ('PIKI', 'axiell_aurora', 201),
+        ('PIKI', 'suomifi', 403),
+        ('PIKI', 'phone', 403),
+        ('PIKI', 'google', 403),
+    ]
+)
+def test_resources_with_PIKI_auth_can_only_be_reserved_with_PIKI_login(
+        mocked_auth_backend,
+        resource_with_opening_hours,
+        user_api_client,
+        list_url,
+        resource_authentication,
+        login_backend,
+        status_code,
+):
+    resource_with_opening_hours.authentication = resource_authentication
+    resource_with_opening_hours.save()
+    mocked_auth_backend.return_value = login_backend
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=1)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == status_code
+
+
+@pytest.mark.django_db
+@mock.patch('resources.api.reservation.get_user_auth_backend')
+@pytest.mark.parametrize(
+    ('resource_authentication', 'login_backend', 'status_code'),
+    [
+        ('PIKI', 'axiell_aurora', 201),
+        ('strong', 'axiell_aurora', 403),
+        ('mid', 'axiell_aurora', 201),
+        ('weak', 'axiell_aurora', 201),
+        ('none', 'axiell_aurora', 201),
+    ]
+)
+def test_PIKI_login_can_reserve_resource_with_authentication_other_than_strong(
+        mocked_auth_backend,
+        resource_with_opening_hours,
+        user_api_client,
+        list_url,
+        resource_authentication,
+        login_backend,
+        status_code,
+):
+    resource_with_opening_hours.authentication = resource_authentication
+    resource_with_opening_hours.save()
+    mocked_auth_backend.return_value = login_backend
+    tz = timezone.get_current_timezone()
+    begin = tz.localize(datetime.datetime(2115, 6, 1, 8, 0, 0))
+    end = begin + datetime.timedelta(hours=1)
+
+    reservation_data = {
+        'resource': resource_with_opening_hours.pk,
+        'begin': begin,
+        'end': end,
+    }
+
+    response = user_api_client.post(list_url, reservation_data)
+    assert response.status_code == status_code
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize('perm_type', ['unit', 'resource_group'])
