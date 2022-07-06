@@ -1513,9 +1513,6 @@ msgstr "*Obligatoriska fält"
 msgid "Name and description"
 msgstr "Namn och beskrivning"
 
-msgid "Area"
-msgstr "Yta (m2)"
-
 msgid "Contact person"
 msgstr "Kontaktperson"
 
