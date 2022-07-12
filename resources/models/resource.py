@@ -272,6 +272,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         null=True, blank=True)
     reservation_extra_questions = models.TextField(verbose_name=_('Reservation extra questions'), blank=True)
     accessibility_description = models.TextField(verbose_name=_('Accessibility description'), blank=True)
+    notification_email_addresses = models.TextField(
+        verbose_name=_('Notification email addresses separated by comma'),
+        blank=True,
+    )
 
     objects = ResourceQuerySet.as_manager()
 

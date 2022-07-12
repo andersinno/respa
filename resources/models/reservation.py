@@ -478,7 +478,7 @@ class Reservation(ModifiableModel):
 
         return context
 
-    def send_reservation_mail(self, notification_type, user=None, attachments=None):
+    def send_reservation_mail(self, notification_type, user=None, email=None, attachments=None):
         """
         Stuff common to all reservation related mails.
 
@@ -491,6 +491,8 @@ class Reservation(ModifiableModel):
 
         if user:
             email_address = user.email
+        elif email:
+            email_address = email
         else:
             if not (self.reserver_email_address or self.user):
                 return
@@ -526,11 +528,17 @@ class Reservation(ModifiableModel):
         )
         unit_admins = get_user_model().objects.filter(id__in=unit_admins_ids)
         notify_users = officials_who_can_approve_reservation.union(unit_admins)
+        extra_notification_email_list = self.resource.notification_email_addresses
 
         if len(notify_users) > 100:
             raise Exception("Refusing to notify more than 100 users (%s)" % self)
         for user in notify_users:
             self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED_OFFICIAL, user=user)
+
+        if extra_notification_email_list:
+            for email in extra_notification_email_list.split(','):
+                space_stripped_email = email.strip()
+                self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED_OFFICIAL, email=space_stripped_email)
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
