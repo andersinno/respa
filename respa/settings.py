@@ -77,7 +77,8 @@ env = environ.Env(
     RESPA_PAYMENTS_PROVIDER_CLASS=(str, ''),
     RESPA_PAYMENTS_PAYMENT_WAITING_TIME=(int, 15),
     ENABLE_RESOURCE_TOKEN_AUTH=(bool, False),
-    DISABLE_SERVER_SIDE_CURSORS=(bool, False)
+    DISABLE_SERVER_SIDE_CURSORS=(bool, False),
+    PRODUCTION_MODE=(str, 'production'),
 )
 environ.Env.read_env()
 
@@ -201,6 +202,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'respa.production_mode_processor.get_current_production_mode',
             ],
         },
     },
@@ -210,6 +212,8 @@ WSGI_APPLICATION = 'respa.wsgi.application'
 
 TEST_RUNNER = 'respa.test_runner.PyTestShimRunner'
 TEST_PERFORMANCE = False
+
+PRODUCTION_MODE = env('PRODUCTION_MODE')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

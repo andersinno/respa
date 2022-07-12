@@ -1337,6 +1337,9 @@ msgstr ""
 msgid "Log out"
 msgstr "Logga ut"
 
+msgid "This is Respa test version"
+msgstr "Detta är Respa testversion."
+
 msgid "User management"
 msgstr "Användarhantering"
 

@@ -59,7 +59,13 @@
         </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->
 </nav>
-
+<nav>
+  {%  if PRODUCTION_MODE == 'development' %}
+    <div role="alert" class="test-site-message alert alert-danger">
+      {% trans "This is Respa test version" %}
+    </div>
+  {% endif %}
+</nav>
 <nav class="navbar navbar-default service">
     <div class="container">
         <!-- Brand and toggle get grouped for better mobile display -->
