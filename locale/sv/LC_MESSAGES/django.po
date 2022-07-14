@@ -217,6 +217,9 @@ msgstr "Bokning godkänd"
 msgid "Reservation created"
 msgstr "Bokning skapad"
 
+msgid "Reservation changed"
+msgstr "Reservationen ändrad"
+
 msgid "Reservation denied"
 msgstr "Bokning avböjd"
 
@@ -537,7 +540,9 @@ msgid "Invalid value in filter %(filter)s"
 msgstr "Felaktigt värde i filter %(filter)s"
 
 msgid "You need to login with PIKI library card to reserve this resource."
-msgstr "Du måste logga in med ett PIKI bibliotekskort för att reservera den här resursen."
+msgstr ""
+"Du måste logga in med ett PIKI bibliotekskort för att reservera den här "
+"resursen."
 
 msgid "You need to login with strong authentication to reserve this resource."
 msgstr ""
@@ -1075,6 +1080,9 @@ msgstr "Extra innehåll till \"reservation begärd\" anmälan"
 msgid "Extra content to \"reservation confirmed\" notification"
 msgstr "Extra innehåll till \"reservation godkänd\" anmälan"
 
+msgid "The space is free of charge"
+msgstr "Utrymmet är kostnadsfritt"
+
 msgid "Min price"
 msgstr "Lägsta pris"
 
@@ -1095,6 +1103,13 @@ msgstr "Bokningsbar dagar i förväg"
 
 msgid "Reservable min. days in advance"
 msgstr "Dagar tills bokning är möjlig"
+
+msgid ""
+"The customer can cancel the reservation (days) before the reservation starts."
+msgstr "Kunden kan avboka bokningen (dagar) innan bokningen startar."
+
+msgid "Owner can cancel manually confirmed reservation"
+msgstr "Ägaren kan manuellt avbryta bekräftad bokning"
 
 msgid "External reservation URL"
 msgstr "Extern kalenderadress"
@@ -1124,6 +1139,9 @@ msgstr "Den maximala bokningslängden är %(max_period)s"
 
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr "Maximalt antal aktiva reservationer för denna resurs överskred"
+
+msgid "Free resources can't have a price."
+msgstr ""
 
 msgid "This value cannot be greater than max price"
 msgstr "Detta värde kan inte vara högre än maxpriset"
@@ -1578,9 +1596,6 @@ msgstr "Bokningsformulär"
 
 msgid "Pricing"
 msgstr "Pris"
-
-msgid "The space is free of charge"
-msgstr "Detta utrymme är gratis"
 
 msgid "Functions"
 msgstr "Funktioner"

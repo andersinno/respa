@@ -216,6 +216,9 @@ msgstr "Varaus vahvistettu"
 msgid "Reservation created"
 msgstr "Varaus luotu"
 
+msgid "Reservation changed"
+msgstr "Varaus muutettu"
+
 msgid "Reservation denied"
 msgstr "Varaus hylätty"
 
@@ -543,7 +546,8 @@ msgid "Invalid value in filter %(filter)s"
 msgstr "Virheellinen arvo filtterissä %(filter)s"
 
 msgid "You need to login with PIKI library card to reserve this resource."
-msgstr "Sinun tulee kirjautua sisään PIKI-kirjastokortilla varataksesi tämän tilan/resurssin."
+msgstr ""
+"Tämän resurssin varaaminen edellyttää PIKI-kirjastokortilla kirjautumista."
 
 msgid "You need to login with strong authentication to reserve this resource."
 msgstr ""
@@ -1082,6 +1086,9 @@ msgstr "Lisäsisältö \"alustava varaus\"-ilmoitukseen"
 msgid "Extra content to \"reservation confirmed\" notification"
 msgstr "Lisäsisältö \"varaus vahvistettu\"-ilmoitukseen"
 
+msgid "The space is free of charge"
+msgstr "Tila on ilmainen"
+
 msgid "Min price"
 msgstr "Minimihinta"
 
@@ -1102,6 +1109,13 @@ msgstr "Varattavissa enintään näin monta päivää etukäteen"
 
 msgid "Reservable min. days in advance"
 msgstr "Varattavissa vähintään näin monta päivää etukäteen"
+
+msgid ""
+"The customer can cancel the reservation (days) before the reservation starts."
+msgstr "Asiakas voi perua varauksen (pv) ennen varauksen alkamista."
+
+msgid "Owner can cancel manually confirmed reservation"
+msgstr "Omistaja voi peruuttaa manuaalisesti vahvistetun varauksen"
 
 msgid "External reservation URL"
 msgstr "Ulkoisen varauskalenterin URL"
@@ -1130,6 +1144,9 @@ msgstr "Varauksen maksimikesto on %(max_period)s"
 
 msgid "Maximum number of active reservations for this resource exceeded."
 msgstr "Liikaa voimassa olevia varauksia tähän tilaan."
+
+msgid "Free resources can't have a price."
+msgstr "Ilmaisille resursseille ei voi asettaa hintaa."
 
 msgid "This value cannot be greater than max price"
 msgstr "Tämä arvo ei voi olla suurempi kuin maksimihinta"
@@ -1589,9 +1606,6 @@ msgstr "Varauslomake"
 
 msgid "Pricing"
 msgstr "Hinnoittelu"
-
-msgid "The space is free of charge"
-msgstr "Tila on ilmainen"
 
 msgid "Functions"
 msgstr "Toiminnot"

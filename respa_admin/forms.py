@@ -248,12 +248,15 @@ class ResourceForm(forms.ModelForm):
             'slot_size',
             'reservable_max_days_in_advance',
             'reservable_min_days_in_advance',
+            'cancellation_min_days_in_advance',
+            'owner_can_cancel_reservation',
             'max_reservations_per_user',
             'reservable',
             'should_be_reserved_whole_day',
             'need_manual_confirmation',
             'authentication',
             'access_code_type',
+            'free_to_use',
             'max_price',
             'min_price',
             'price_type',
@@ -276,6 +279,9 @@ class ResourceForm(forms.ModelForm):
                 choices=(thirty_minute_increment_choices)
             ),
             'need_manual_confirmation': RespaRadioSelect(
+                choices=((True, _('Yes')), (False, _('No')))
+            ),
+            'free_to_use': RespaRadioSelect(
                 choices=((True, _('Yes')), (False, _('No')))
             ),
             'public': forms.Select(

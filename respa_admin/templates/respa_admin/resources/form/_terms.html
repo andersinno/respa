@@ -22,17 +22,9 @@
     <div class="pricing">
         <h4>{% trans "Pricing" %}</h4>
         <div class="price-confirm">
-            <span class="control-label input-label">{% trans "The space is free of charge" %}</span>
-            <div class="radio-group">
-                <div class="rdio rdio-primary radio-inline">
-                    <input name="radio" value="true" id="radio-pricing-true" type="radio" checked>
-                    <label for="radio-pricing-true">{% trans "Yes" %}</label>
-                </div>
-                <div class="rdio rdio-primary radio-inline">
-                    <input name="radio" value="2" id="radio-pricing-false" type="radio">
-                    <label for="radio-pricing-false">Ei</label>
-                </div>
-            </div>
+          <span class="control-label input-label">{% trans "The space is free of charge" %}</span>
+            {{ form.free_to_use }}
+          {% include "respa_admin/forms/_errors.html" with field=form.free_to_use %}
         </div>
         <div class="price-range">
             <div class="input-row">
