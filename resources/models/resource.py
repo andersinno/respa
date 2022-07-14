@@ -262,6 +262,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                                       null=True, blank=True)
     reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
                                                                       null=True, blank=True)
+    cancellation_min_days_in_advance = models.PositiveIntegerField(
+        verbose_name=_('Reservation cancellation min. days in advance'),
+        default=0,
+    )
+    owner_can_cancel_reservation = models.BooleanField(
+        verbose_name=_('Owner can cancel manually confirmed reservation'),
+        default=False,
+    )
     reservation_metadata_set = models.ForeignKey(
         'resources.ReservationMetadataSet', verbose_name=_('Reservation metadata set'),
         null=True, blank=True, on_delete=models.SET_NULL

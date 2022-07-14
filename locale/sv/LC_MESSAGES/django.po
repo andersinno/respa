@@ -1096,6 +1096,12 @@ msgstr "Bokningsbar dagar i förväg"
 msgid "Reservable min. days in advance"
 msgstr "Dagar tills bokning är möjlig"
 
+msgid "Reservation cancellation min. days in advance"
+msgstr ""
+
+msgid "Owner can cancel manually confirmed reservation"
+msgstr ""
+
 msgid "External reservation URL"
 msgstr "Extern kalenderadress"
 

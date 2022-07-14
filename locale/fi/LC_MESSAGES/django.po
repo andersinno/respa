@@ -1103,6 +1103,12 @@ msgstr "Varattavissa enintään näin monta päivää etukäteen"
 msgid "Reservable min. days in advance"
 msgstr "Varattavissa vähintään näin monta päivää etukäteen"
 
+msgid "Reservation cancellation min. days in advance"
+msgstr ""
+
+msgid "Owner can cancel manually confirmed reservation"
+msgstr ""
+
 msgid "External reservation URL"
 msgstr "Ulkoisen varauskalenterin URL"
 

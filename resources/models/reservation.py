@@ -278,7 +278,7 @@ class Reservation(ModifiableModel):
         self.state = new_state
         self.save()
 
-    def can_modify(self, user):
+    def can_modify(self, user, request_method=None):
         if not user:
             return False
 
@@ -289,10 +289,22 @@ class Reservation(ModifiableModel):
             return self.resource.can_modify_paid_reservations(user)
 
         # reservations that need manual confirmation and are confirmed cannot be
-        # modified or cancelled without reservation approve permission
+        # modified or cancelled without reservation approve permission. However, if
+        # resource allows cancelling and the if cancelled before the allowed number of
+        # days, it's possible to cancel the reservation.
+        cancellation_min_days_in_advance = self.resource.cancellation_min_days_in_advance
+        cancellation_date_in_range = (self.begin - datetime.datetime.now(timezone.utc)).days >= cancellation_min_days_in_advance
+        can_cancel_manually_confirmed_reservation = self.resource.owner_can_cancel_reservation
         cannot_approve = not self.resource.can_approve_reservations(user)
-        if self.need_manual_confirmation() and self.state == Reservation.CONFIRMED and cannot_approve:
-            return False
+        if self.need_manual_confirmation() and self.state == Reservation.CONFIRMED:
+            if (
+                request_method == 'DELETE'
+                and cancellation_date_in_range
+                and can_cancel_manually_confirmed_reservation
+            ):
+                return True
+            if cannot_approve:
+                return False
 
         return self.user == user or self.resource.can_modify_reservations(user)
 

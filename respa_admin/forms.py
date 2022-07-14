@@ -243,6 +243,8 @@ class ResourceForm(forms.ModelForm):
             'slot_size',
             'reservable_max_days_in_advance',
             'reservable_min_days_in_advance',
+            'cancellation_min_days_in_advance',
+            'owner_can_cancel_reservation',
             'max_reservations_per_user',
             'reservable',
             'should_be_reserved_whole_day',
