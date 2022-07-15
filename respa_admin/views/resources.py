@@ -221,8 +221,12 @@ class ManageUserPermissionsSearchView(ExtraContextMixin, ListView):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        if self.search_query and '@' in self.search_query:
-            qs = self.model.objects.filter(email__iexact=self.search_query)
+        if self.search_query and len(self.search_query) > 3:
+            qs = self.model.objects.filter(
+                Q(email__icontains=self.search_query)
+                | Q(first_name__icontains=self.search_query)
+                | Q(last_name__icontains=self.search_query)
+            )
             return qs
         elif self.search_query and ' ' in self.search_query:
             try:
