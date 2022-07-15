@@ -1456,7 +1456,7 @@ msgid "Staff"
 msgstr "Henkilökunta"
 
 msgid "Admin"
-msgstr "Admin"
+msgstr "Ylläpitäjä"
 
 msgid "Viewer"
 msgstr "Katsoja"
