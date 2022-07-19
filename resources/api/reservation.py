@@ -34,7 +34,7 @@ from .base import (
     NullableDateTimeField, TranslatedModelSerializer, register_view, DRFFilterBooleanWidget,
     ExtraDataMixin
 )
-from .utils import get_user_auth_backend
+from users.utils import get_user_auth_backend
 
 from respa.renderers import ResourcesBrowsableAPIRenderer
 
