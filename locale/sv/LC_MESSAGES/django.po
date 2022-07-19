@@ -1109,6 +1109,9 @@ msgstr ""
 msgid "Accessibility description"
 msgstr "Tillgänglighetsbeskrivning"
 
+msgid "Notification email addresses separated by comma"
+msgstr "E-postadresser för avisering, separerade med kommatecken"
+
 msgid "You cannot make a multi day reservation"
 msgstr "Du kan inte boka flera dagar"
 
@@ -1521,6 +1524,9 @@ msgstr "Kontaktperson"
 
 msgid "Contact person information is only for internal use."
 msgstr "Kontaktperson information är endast för internt bruk."
+
+msgid "Extra email addresses for notification"
+msgstr "Extra e-postadresser för avisering"
 
 msgid "External calendar"
 msgstr "Externt kalendersystem"

@@ -1115,6 +1115,9 @@ msgstr ""
 msgid "Accessibility description"
 msgstr "Esteettömyys kuvaus"
 
+msgid "Notification email addresses separated by comma"
+msgstr "Ilmoitussähköpostiosoitteet pilkulla erotettuina"
+
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
 
@@ -1532,6 +1535,9 @@ msgstr "Yhteyshenkilö"
 
 msgid "Contact person information is only for internal use."
 msgstr "Yhteyshenkilön tiedot ovat vain sisäiseen käyttöön."
+
+msgid "Extra email addresses for notification"
+msgstr "Ylimääräiset sähköpostiosoitteet ilmoituksia varten"
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"

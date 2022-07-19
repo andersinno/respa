@@ -198,6 +198,12 @@ class ResourceForm(forms.ModelForm):
         self.fields['generic_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_GENERIC)
         self.fields['payment_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_PAYMENT)
 
+    def clean_notification_email_addresses(self):
+        notification_email_addresses = self.cleaned_data['notification_email_addresses']
+        emails = ', '.join([email.strip() for email in notification_email_addresses.split(',')])
+        return emails
+
+
     class Meta:
         model = Resource
 
@@ -256,6 +262,7 @@ class ResourceForm(forms.ModelForm):
             'public',
             'reservation_metadata_set',
             'period_templates',
+            'notification_email_addresses',
         ] + translated_fields
 
         widgets = {
