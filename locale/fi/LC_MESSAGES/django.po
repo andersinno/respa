@@ -1152,6 +1152,9 @@ msgstr "Kartta"
 msgid "Other"
 msgstr "Toinen"
 
+msgid "360 panorama"
+msgstr "360 panoraama"
+
 msgid "Caption"
 msgstr "Kuvateksti"
 
