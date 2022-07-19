@@ -239,6 +239,7 @@ class Reservation(ModifiableModel):
             if old_state == Reservation.CONFIRMED:
                 reservation_modified.send(sender=self.__class__, instance=self,
                                           user=user)
+            self.send_reservation_changed_mail_to_user()
             return
 
         if new_state == Reservation.CONFIRMED:
@@ -560,6 +561,9 @@ class Reservation(ModifiableModel):
 
     def send_access_code_created_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_ACCESS_CODE_CREATED)
+
+    def send_reservation_changed_mail_to_user(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_CHANGED)
 
     def save(self, *args, **kwargs):
         self.duration = DateTimeTZRange(self.begin, self.end, '[)')
