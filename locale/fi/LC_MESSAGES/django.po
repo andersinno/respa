@@ -1524,9 +1524,6 @@ msgstr "*Pakolliset kentät"
 msgid "Name and description"
 msgstr "Nimi ja kuvaus"
 
-msgid "Area"
-msgstr "Pinta-ala (m2)"
-
 msgid "Contact person"
 msgstr "Yhteyshenkilö"
 
