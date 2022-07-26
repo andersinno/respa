@@ -197,6 +197,8 @@ class ResourceForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['generic_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_GENERIC)
         self.fields['payment_terms'].queryset = TermsOfUse.objects.filter(terms_type=TermsOfUse.TERMS_TYPE_PAYMENT)
+        self.fields['authentication'].choices = [choice for choice in self.fields['authentication'].choices if choice[0] not in ['', 'none']]
+        self.fields['authentication'].initial = ['weak']
 
     def clean_notification_email_addresses(self):
         notification_email_addresses = self.cleaned_data['notification_email_addresses']
