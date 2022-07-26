@@ -27,7 +27,7 @@ from munigeo import api as munigeo_api
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
-from resources.models.utils import generate_reservation_xlsx, get_object_or_none
+from resources.models.utils import generate_reservation_csv, generate_reservation_xlsx, get_object_or_none
 
 from ..auth import is_general_admin
 from .base import (
@@ -263,7 +263,7 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
         prefetched_user = self.context.get('prefetched_user', None)
         user = prefetched_user or self.context['request'].user
 
-        if self.context['request'].accepted_renderer.format == 'xlsx':
+        if self.context['request'].accepted_renderer.format in ['xlsx', 'csv']:
             # Return somewhat different data in case we are dealing with xlsx.
             # The excel renderer needs datetime objects, so begin and end are passed as objects
             # to avoid needing to convert them back and forth.
@@ -607,12 +607,29 @@ class ReservationExcelRenderer(renderers.BaseRenderer):
     render_style = 'binary'
 
     def render(self, data, media_type=None, renderer_context=None):
+        exclude_reservation_extra_fields_param = renderer_context['request'].query_params.get('excludeReservationExtraFields')
+        exclude_reservation_extra_fields = exclude_reservation_extra_fields_param == '1'
         if not renderer_context or renderer_context['response'].status_code == 404:
             return bytes()
         if renderer_context['view'].action == 'retrieve':
             return generate_reservation_xlsx([data])
         elif renderer_context['view'].action == 'list':
-            return generate_reservation_xlsx(data['results'])
+            return generate_reservation_xlsx(data['results'], exclude_reservation_extra_fields)
+        else:
+            return NotAcceptable()
+
+
+class ReservationCSVRenderer(renderers.BaseRenderer):
+    media_type = 'text/csv'
+    format = 'csv'
+    charset = 'utf-8'
+    render_style = 'binary'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        if not renderer_context or renderer_context['response'].status_code == 404:
+            return bytes()
+        if renderer_context['view'].action == 'list':
+            return generate_reservation_csv(data['results'])
         else:
             return NotAcceptable()
 
@@ -660,7 +677,12 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         ReservationPermission,
         ReservationAuthenticationLevelPermission,
     )
-    renderer_classes = (renderers.JSONRenderer, ResourcesBrowsableAPIRenderer, ReservationExcelRenderer)
+    renderer_classes = (
+        renderers.JSONRenderer,
+        ResourcesBrowsableAPIRenderer,
+        ReservationExcelRenderer,
+        ReservationCSVRenderer,
+    )
     pagination_class = ReservationPagination
     authentication_classes = (
         list(drf_settings.DEFAULT_AUTHENTICATION_CLASSES) +
@@ -752,6 +774,8 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         response = super().list(request, *args, **kwargs)
         if request.accepted_renderer.format == 'xlsx':
             response['Content-Disposition'] = 'attachment; filename={}.xlsx'.format(_('reservations'))
+        if request.accepted_renderer.format == 'csv':
+            response['Content-Disposition'] = 'attachment; filename={}.csv'.format(_('reservations'))
         return response
 
     def retrieve(self, request, *args, **kwargs):
