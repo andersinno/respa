@@ -89,6 +89,7 @@ def test_price_validations(resource_in_unit):
 
     resource_in_unit.min_price = Decimal(1)
     resource_in_unit.max_price = None
+    resource_in_unit.free_to_use = False
     resource_in_unit.full_clean()  # should not raise
 
     resource_in_unit.min_price = Decimal(8)

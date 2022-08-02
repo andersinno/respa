@@ -239,6 +239,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         'Extra content to "reservation requested" notification'), blank=True)
     reservation_confirmed_notification_extra = models.TextField(verbose_name=_(
         'Extra content to "reservation confirmed" notification'), blank=True)
+    free_to_use = models.BooleanField(
+        verbose_name=_('The space is free of charge'),
+        blank=True,
+        default=True,
+    )
     min_price = models.DecimalField(verbose_name=_('Min price'), max_digits=8, decimal_places=2,
                                              blank=True, null=True, validators=[MinValueValidator(Decimal('0.00'))])
     max_price = models.DecimalField(verbose_name=_('Max price'), max_digits=8, decimal_places=2,
@@ -262,6 +267,16 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                                                                       null=True, blank=True)
     reservable_min_days_in_advance = models.PositiveSmallIntegerField(verbose_name=_('Reservable min. days in advance'),
                                                                       null=True, blank=True)
+    cancellation_min_days_in_advance = models.PositiveIntegerField(
+        verbose_name=_('The customer can cancel the reservation (days) before the reservation starts.'),
+        default=0,
+        blank=True,
+    )
+    owner_can_cancel_reservation = models.BooleanField(
+        verbose_name=_('Owner can cancel manually confirmed reservation'),
+        default=False,
+        blank=True,
+    )
     reservation_metadata_set = models.ForeignKey(
         'resources.ReservationMetadataSet', verbose_name=_('Reservation metadata set'),
         null=True, blank=True, on_delete=models.SET_NULL
@@ -731,6 +746,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return [x.field_name for x in metadata_set.required_fields.all()]
 
     def clean(self):
+        if self.free_to_use and (self.min_price or self.max_price):
+            raise ValidationError(
+                {'free_to_use': _("Free resources can't have a price.")}
+            )
         if self.min_price is not None and self.max_price is not None and self.min_price > self.max_price:
             raise ValidationError(
                 {'min_price': _('This value cannot be greater than max price')}

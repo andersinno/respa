@@ -986,6 +986,42 @@ def test_user_cannot_modify_or_cancel_manually_confirmed_reservation(user_api_cl
     assert response.status_code == 403
 
 
+@freeze_time('2115-02-04T11:00:00+02:00')
+@pytest.mark.django_db
+def test_user_can_cancel_manually_confirmed_reservation_if_cancellation_within_range(
+    user_api_client, detail_url, reservation,
+    reservation_data_extra, resource_in_unit
+):
+    # Reservation starts at 2115-04-04T11:00:00+02:00
+    resource_in_unit.cancellation_min_days_in_advance = 1
+    resource_in_unit.owner_can_cancel_reservation = True
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    reservation.state = Reservation.CONFIRMED
+    reservation.save()
+
+    response = user_api_client.delete(detail_url)
+    assert response.status_code == 204
+
+
+@freeze_time('2115-04-03T12:00:00+02:00')
+@pytest.mark.django_db
+def test_user_cannot_cancel_manually_confirmed_reservation_if_cancellation_not_within_range(
+    user_api_client, detail_url, reservation,
+    reservation_data_extra, resource_in_unit
+):
+    # Reservation starts at 2115-04-04T11:00:00+02:00
+    resource_in_unit.cancellation_min_days_in_advance = 1
+    resource_in_unit.owner_can_cancel_reservation = True
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+    reservation.state = Reservation.CONFIRMED
+    reservation.save()
+
+    response = user_api_client.delete(detail_url)
+    assert response.status_code == 403
+
+
 @pytest.mark.parametrize('username, expected_visibility', [
     (None, False),  # unauthenticated user
     ('test_user', True),  # own reservation
