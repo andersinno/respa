@@ -1,4 +1,5 @@
 import base64
+import csv
 import datetime
 import struct
 import time
@@ -117,7 +118,39 @@ def send_respa_mail(email_address, subject, body, html_body=None, attachments=No
     msg.send()
 
 
-def generate_reservation_xlsx(reservations):
+def generate_reservation_csv(reservations):
+    output = io.StringIO()
+    csv_writer = csv.writer(output)
+    headers = [
+        'Unit',
+        'Resource',
+        'Begin time',
+        'End time',
+        'Created at',
+        'User',
+        'Comments',
+        'Staff event',
+        'State',
+    ]
+    csv_writer.writerow([_(header) for header in headers])
+
+    for reservation in reservations:
+        row_data = [
+            reservation['unit'],
+            reservation['resource'],
+            localtime(reservation['begin']).replace(tzinfo=None),
+            localtime(reservation['end']).replace(tzinfo=None),
+            localtime(reservation['created_at']).replace(tzinfo=None),
+            reservation['user'] if reservation['user'] else '',
+            reservation['comments'] if reservation['comments'] else '',
+            reservation['staff_event'],
+            reservation['state'],
+        ]
+        csv_writer.writerow(row_data)
+    return output.getvalue()
+
+
+def generate_reservation_xlsx(reservations, exclude_reservation_extra_fields=False):
     """
     Return reservations in Excel xlsx format
 
@@ -148,10 +181,12 @@ def generate_reservation_xlsx(reservations):
         ('User', 30),
         ('Comments', 30),
         ('Staff event', 10),
+        ('State', 15),
     ]
 
-    for field in RESERVATION_EXTRA_FIELDS:
-        headers.append((Reservation._meta.get_field(field).verbose_name, 20))
+    if not exclude_reservation_extra_fields:
+        for field in RESERVATION_EXTRA_FIELDS:
+            headers.append((Reservation._meta.get_field(field).verbose_name, 20))
 
     header_format = workbook.add_format({'bold': True})
     for column, header in enumerate(headers):
@@ -170,7 +205,8 @@ def generate_reservation_xlsx(reservations):
         if 'comments' in reservation:
             worksheet.write(row, 6, reservation['comments'])
         worksheet.write(row, 7, reservation['staff_event'])
-        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 8):
+        worksheet.write(row, 8, reservation['state'])
+        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 9):
             if field in reservation:
                 worksheet.write(row, i, reservation[field])
     workbook.close()
