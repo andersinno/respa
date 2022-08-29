@@ -1115,7 +1115,7 @@ msgid ""
 msgstr "Asiakas voi perua varauksen (pv) ennen varauksen alkamista."
 
 msgid "Owner can cancel manually confirmed reservation"
-msgstr "Omistaja voi peruuttaa manuaalisesti vahvistetun varauksen"
+msgstr "Asiakas voi peruuttaa manuaalisesti vahvistetun varauksen"
 
 msgid "External reservation URL"
 msgstr "Ulkoisen varauskalenterin URL"
