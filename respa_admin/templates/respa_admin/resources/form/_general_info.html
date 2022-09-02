@@ -39,4 +39,8 @@
         <h4>{% trans "External calendar" %}</h4>
         {% include "respa_admin/forms/_input.html" with field=form.external_reservation_url %}
     </div>
+    <div class="resource-placement">
+      <h4>{% trans "Placement of resource" %}</h4>
+      {% include "respa_admin/forms/_select.html" with field=form.placement skip_label=True %}
+    </div>
 </div>

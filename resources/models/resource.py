@@ -196,6 +196,14 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         (PRICE_TYPE_WEEKLY, _('Weekly')),
         (PRICE_TYPE_FIXED, _('Fixed')),
     )
+    PLACEMENT_INSIDE = 'inside'
+    PLACEMENT_OUTSIDE = 'outside'
+    PLACEMENT_INSIDE_AND_OUTSIDE = 'both'
+    PLACEMENT_CHOICES = (
+        (PLACEMENT_INSIDE, _('Inside')),
+        (PLACEMENT_OUTSIDE, _('Outside')),
+        (PLACEMENT_INSIDE_AND_OUTSIDE, _('Inside and outside')),
+    )
     id = models.CharField(primary_key=True, max_length=100)
     public = models.BooleanField(default=True, verbose_name=_('Public'))
     unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True, null=True, blank=True,
@@ -289,6 +297,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     accessibility_description = models.TextField(verbose_name=_('Accessibility description'), blank=True)
     notification_email_addresses = models.TextField(
         verbose_name=_('Notification email addresses separated by comma'),
+        blank=True,
+    )
+    placement = models.CharField(
+        verbose_name=_('Placement'),
+        max_length=32,
+        choices=PLACEMENT_CHOICES,
         blank=True,
     )
 
