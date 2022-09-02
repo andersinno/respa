@@ -157,6 +157,7 @@ INSTALLED_APPS = [
 
     'respa_exchange',
     'respa_admin',
+    'respa_instructions',
     'respa_pricing',
 
     'sanitized_dump',

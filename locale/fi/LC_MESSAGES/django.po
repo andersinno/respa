@@ -1435,6 +1435,9 @@ msgstr "Käyttäjien hallinta"
 msgid "Contact us"
 msgstr "Ota yhteyttä"
 
+msgid "Instruction"
+msgstr "Ohje"
+
 msgid "Instructions"
 msgstr "Ohjeet"
 
@@ -1811,6 +1814,21 @@ msgstr "Exchange varaus"
 
 msgid "Exchange reservations"
 msgstr "Exchange varaukset"
+
+msgid "Ordering"
+msgstr "Järjestysnumero"
+
+msgid "Title"
+msgstr "Otsikko"
+
+msgid "Applicable for"
+msgstr "Sovellettavissa"
+
+msgid "Content"
+msgstr "Sisältö"
+
+msgid "Active"
+msgstr "Aktiivinen"
 
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
