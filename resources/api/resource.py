@@ -179,6 +179,20 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     max_price_per_hour = serializers.SerializerMethodField()
     min_price_per_hour = serializers.SerializerMethodField()
     accessibility_summaries = ResourceAccessibilitySerializer(many=True, read_only=True)
+    can_only_be_reserved_externally = serializers.SerializerMethodField()
+
+    def get_can_only_be_reserved_externally(self, obj):
+        today = datetime.datetime.today()
+        opening_hours_period_exists = obj.periods.exists()
+        resource_has_external_reservation_link = obj.external_reservation_url
+        resource_period_is_not_valid = not obj.periods.filter(end__gte=today).exists()
+        if (
+            not opening_hours_period_exists or
+            resource_has_external_reservation_link or
+            resource_period_is_not_valid
+        ):
+            return True
+        return False
 
     def get_max_price_per_hour(self, obj):
         """Backwards compatibility for 'max_price_per_hour' field that is now deprecated"""
