@@ -51,3 +51,4 @@ django-admin-json-editor
 factory_boy
 isort
 uWSGI
+django-ckeditor==5.9.0
