@@ -268,6 +268,7 @@ class ResourceForm(forms.ModelForm):
             'reservation_metadata_set',
             'period_templates',
             'notification_email_addresses',
+            'placement',
         ] + translated_fields
 
         widgets = {

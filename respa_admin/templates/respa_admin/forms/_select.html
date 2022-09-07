@@ -16,5 +16,8 @@
             <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
         </div>
     {% endif %}
+    {% if show_help_text %}
+      <span class="help-text">{{ field.help_text }}</span>
+    {% endif %}
     {% include "respa_admin/forms/_errors.html" with field=field %}
 </div>
