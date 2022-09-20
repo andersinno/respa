@@ -266,7 +266,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
         if user and obj.is_admin(user):
             return None
         else:
-            return obj.get_reservable_after()
+            return obj.get_reservable_after(exclude_extra_day=True)
 
     def to_representation(self, obj):
         # we must parse the time parameters before serializing
