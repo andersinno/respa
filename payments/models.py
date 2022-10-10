@@ -285,6 +285,14 @@ class OrderLine(models.Model):
     )
 
     quantity = models.PositiveIntegerField(verbose_name=_('quantity'), default=1)
+    unit_price = models.DecimalField(
+        verbose_name=_('Unit price including VAT'), max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    total_price = models.DecimalField(
+        verbose_name=_('Total price including VAT'), max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
 
     class Meta:
         verbose_name = _('order line')
@@ -293,12 +301,6 @@ class OrderLine(models.Model):
 
     def __str__(self):
         return str(self.product)
-
-    def get_unit_price(self) -> Decimal:
-        return self.product.get_price_for_reservation(self.order.reservation)
-
-    def get_price(self) -> Decimal:
-        return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
 
 
 class OrderLogEntry(models.Model):
