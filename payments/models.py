@@ -285,6 +285,20 @@ class OrderLine(models.Model):
     )
 
     quantity = models.PositiveIntegerField(verbose_name=_('quantity'), default=1)
+    unit_price = models.DecimalField(
+        verbose_name=_('Unit price including VAT'), max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    tax_percentage = models.DecimalField(
+        verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
+        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
+    )
+    price_period = models.DurationField(
+        verbose_name=_('price period'), null=True, blank=True, default=timedelta(hours=1),
+    )
+    price_type = models.CharField(
+        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_PER_PERIOD
+    )
 
     class Meta:
         verbose_name = _('order line')
@@ -294,11 +308,16 @@ class OrderLine(models.Model):
     def __str__(self):
         return str(self.product)
 
-    def get_unit_price(self) -> Decimal:
-        return self.product.get_price_for_reservation(self.order.reservation)
-
     def get_price(self) -> Decimal:
-        return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
+        return self.total_price
+
+    @property
+    def total_price(self):
+        return self.quantity * self.unit_price
+
+    @rounded
+    def get_pretax_price(self) -> Decimal:
+        return convert_aftertax_to_pretax(self.total_price, self.tax_percentage)
 
 
 class OrderLogEntry(models.Model):
