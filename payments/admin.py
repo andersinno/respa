@@ -38,16 +38,12 @@ class ProductForm(forms.ModelForm):
 
 class ProductAdmin(TranslationAdmin):
     list_display = (
-        'product_id', 'sku', 'name', 'type', 'price', 'price_type', 'get_price_period', 'tax_percentage',
-        'max_quantity', 'get_resources', 'get_created_at', 'get_modified_at'
+        'product_id', 'sku', 'name', 'get_resources', 'get_created_at', 'get_modified_at'
     )
     readonly_fields = ('product_id',)
     fieldsets = (
         (None, {
-            'fields': ('sku', 'type', 'name', 'description', 'max_quantity')
-        }),
-        (_('price').capitalize(), {
-            'fields': ('price', 'price_type', 'price_period', 'tax_percentage'),
+            'fields': ('sku', 'name', 'description')
         }),
         (_('resources').capitalize(), {
             'fields': ('resources',)
@@ -81,15 +77,10 @@ class ProductAdmin(TranslationAdmin):
         extra_context['show_save_and_continue'] = False
         return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
-    def get_price_period(self, obj):
-        return get_price_period_display(obj.price_period)
-
-    get_price_period.short_description = _('price period')
-
 
 class OrderLineInline(admin.TabularInline):
     model = OrderLine
-    fields = ('product', 'product_type', 'unit_price', 'quantity', 'price', 'tax_percentage')
+    fields = ('product', 'product_type', 'unit_price', 'quantity', 'total_price', 'tax_percentage')
     extra = 0
     readonly_fields = fields
     can_delete = False
@@ -101,21 +92,6 @@ class OrderLineInline(admin.TabularInline):
         return obj.product.type
 
     product_type.short_description = _('product type')
-
-    def price(self, obj):
-        return obj.get_price()
-
-    price.short_description = _('price including VAT')
-
-    def unit_price(self, obj):
-        return obj.get_unit_price()
-
-    unit_price.short_description = _('unit price')
-
-    def tax_percentage(self, obj):
-        return obj.product.tax_percentage
-
-    tax_percentage.short_description = _('tax percentage')
 
 
 class OrderLogEntryInline(admin.TabularInline):
