@@ -32,7 +32,12 @@ TAX_PERCENTAGES = [Decimal(x) for x in (
 )]
 
 DEFAULT_TAX_PERCENTAGE = Decimal('24.00')
-
+PRICE_PER_PERIOD = 'per_period'
+PRICE_FIXED = 'fixed'
+PRICE_TYPE_CHOICES = (
+    (PRICE_PER_PERIOD, _('per period')),
+    (PRICE_FIXED, _('fixed')),
+)
 
 class ProductQuerySet(models.QuerySet):
     def current(self):
@@ -48,13 +53,6 @@ class Product(models.Model):
     TYPE_CHOICES = (
         (RENT, _('rent')),
         (EXTRA, _('extra')),
-    )
-
-    PRICE_PER_PERIOD = 'per_period'
-    PRICE_FIXED = 'fixed'
-    PRICE_TYPE_CHOICES = (
-        (PRICE_PER_PERIOD, _('per period')),
-        (PRICE_FIXED, _('fixed')),
     )
 
     created_at = models.DateTimeField(verbose_name=_('created at'), auto_now_add=True)
@@ -74,25 +72,6 @@ class Product(models.Model):
     sku = models.CharField(max_length=255, verbose_name=_('SKU'))
     name = models.CharField(max_length=100, verbose_name=_('name'), blank=True)
     description = models.TextField(verbose_name=_('description'), blank=True)
-
-    price = models.DecimalField(
-        verbose_name=_('price including VAT'), max_digits=10, decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
-    )
-    tax_percentage = models.DecimalField(
-        verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
-        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
-    )
-    price_type = models.CharField(
-        max_length=32, verbose_name=_('price type'), choices=PRICE_TYPE_CHOICES, default=PRICE_PER_PERIOD
-    )
-    price_period = models.DurationField(
-        verbose_name=_('price period'), null=True, blank=True, default=timedelta(hours=1),
-    )
-
-    max_quantity = models.PositiveSmallIntegerField(verbose_name=_('max quantity'),
-                                                    default=1, validators=[MinValueValidator(1)])
-
     resources = models.ManyToManyField(Resource, verbose_name=_('resources'), related_name='products', blank=True)
 
     objects = ProductQuerySet.as_manager()
@@ -105,15 +84,6 @@ class Product(models.Model):
 
     def __str__(self):
         return '{} ({})'.format(self.name, self.product_id)
-
-    def clean(self):
-        if self.price_type == Product.PRICE_PER_PERIOD:
-            if not self.price_period:
-                raise ValidationError(
-                    {'price_period': _('This field requires a non-zero value when price type is "per period".')}
-                )
-        else:
-            self.price_period = None
 
     def save(self, *args, **kwargs):
         if self.id:
@@ -131,32 +101,6 @@ class Product(models.Model):
 
     def delete(self, *args, **kwargs):
         Product.objects.filter(id=self.id).update(archived_at=now())
-
-    @rounded
-    def get_pretax_price(self) -> Decimal:
-        return convert_aftertax_to_pretax(self.price, self.tax_percentage)
-
-    @rounded
-    def get_pretax_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
-        return convert_aftertax_to_pretax(self.get_price_for_time_range(begin, end), self.tax_percentage)
-
-    @rounded
-    def get_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
-        assert begin < end
-
-        if self.price_type == Product.PRICE_FIXED:
-            return self.price
-        elif self.price_type == Product.PRICE_PER_PERIOD:
-            assert self.price_period, '{} {}'.format(self, self.price_period)
-            return self.price * Decimal((end - begin) / self.price_period)
-        else:
-            raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
-
-    def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
-        return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
-
-    def get_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
-        return self.get_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
 
 
 class OrderQuerySet(models.QuerySet):
@@ -289,6 +233,10 @@ class OrderLine(models.Model):
         verbose_name=_('Unit price including VAT'), max_digits=10, decimal_places=2,
         validators=[MinValueValidator(Decimal('0.00'))]
     )
+    total_price = models.DecimalField(
+        verbose_name=_('Total price including VAT'), max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
     tax_percentage = models.DecimalField(
         verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
         choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
@@ -305,15 +253,20 @@ class OrderLine(models.Model):
         verbose_name_plural = _('order lines')
         ordering = ('id',)
 
+    def clean(self):
+        if self.price_type == PRICE_PER_PERIOD:
+            if not self.price_period:
+                raise ValidationError(
+                    {'price_period': _('This field requires a non-zero value when price type is "per period".')}
+                )
+        else:
+            self.price_period = None
+
     def __str__(self):
         return str(self.product)
 
     def get_price(self) -> Decimal:
         return self.total_price
-
-    @property
-    def total_price(self):
-        return self.quantity * self.unit_price
 
     @rounded
     def get_pretax_price(self) -> Decimal:
@@ -352,29 +305,28 @@ class LocalizedSerializerField(serializers.Field):
 
 class NotificationProductSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='product_id')
-    tax_percentage = LocalizedSerializerField()
-    price = LocalizedSerializerField()
     type_display = serializers.ReadOnlyField(source='get_type_display')
-    price_type_display = serializers.ReadOnlyField(source='get_price_type_display')
-    price_period_display = serializers.SerializerMethodField()
-
-    def get_price_period_display(self, obj):
-        return get_price_period_display(obj.price_period)
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'description', 'type', 'type_display', 'price_type', 'price_type_display',
-                  'tax_percentage', 'price', 'price_period', 'price_period_display')
+        fields = ('id', 'name', 'description', 'type', 'type_display')
 
 
 class NotificationOrderLineSerializer(serializers.ModelSerializer):
     product = NotificationProductSerializer()
     price = LocalizedSerializerField(source='get_price')
-    unit_price = LocalizedSerializerField(source='get_unit_price')
+    unit_price = LocalizedSerializerField()
 
     class Meta:
         model = OrderLine
         fields = ('product', 'quantity', 'price', 'unit_price')
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['product']['tax_percentage'] = instance.tax_percentage
+        ret['product']['price_type_display'] = instance.get_price_type_display()
+        ret['product']['price_period_display'] = get_price_period_display(instance.price_period)
+        return ret
 
 
 class NotificationOrderSerializer(serializers.ModelSerializer):

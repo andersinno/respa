@@ -34,10 +34,12 @@ def build_reservation_data(resource):
 
 
 def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
+    unit_price = 10.00
     data = {
         "order_lines": [
             {
                 "product": product.product_id,
+                "unit_price": unit_price
             }
         ],
         "return_url": "https://varauspalvelu.com/payment_return_url/",
@@ -47,7 +49,10 @@ def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
         data['order_lines'][0]['quantity'] = quantity
 
     if product_2:
-        order_line_data = {'product': product_2.product_id}
+        order_line_data = {
+            'product': product_2.product_id,
+            'unit_price': unit_price
+        }
         if quantity_2:
             order_line_data['quantity'] = quantity_2
         data['order_lines'].append(order_line_data)
@@ -218,23 +223,6 @@ def test_order_line_products_are_unique(user_api_client, resource_in_unit, produ
     response = user_api_client.post(LIST_URL, reservation_data)
 
     assert response.status_code == 400
-
-
-@pytest.mark.parametrize('quantity, expected_status', (
-    (1, 201),
-    (2, 201),
-    (3, 400),
-))
-def test_order_line_product_quantity_limitation(user_api_client, resource_in_unit, quantity, expected_status):
-    """Test order validator order line quantity is within product max quantity limitation"""
-    reservation_data = build_reservation_data(resource_in_unit)
-    product_with_quantity = ProductFactory(resources=[resource_in_unit], max_quantity=2)
-    order_data = build_order_data(product=product_with_quantity, quantity=quantity)
-    reservation_data['order'] = order_data
-
-    response = user_api_client.post(LIST_URL, reservation_data)
-
-    assert response.status_code == expected_status, response.data
 
 
 @pytest.mark.parametrize('has_rent', (True, False))

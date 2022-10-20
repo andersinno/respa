@@ -51,17 +51,19 @@ There are currently two types of products:
 
 Everytime a product is saved, a new copy of it is created in the db, so product modifying does not affect already existing orders.
 
-All prices are in euros. A product's price is stored in `price` field. However, there are different ways the value should be interpreted depending on `price_type` field's value: 
-
-- `fixed`: The price stays always the same regardless of the reservation, so if `price` is `10.00` the final price is 10.00 EUR.
-
-- `per_period`: When price type is `per_period`, field `price_period` contains length of the period, for example if `price` is `10.00` and `price_period` is `00:30:00` it means the actual price is 10.00 EUR / 0.5h
-
 Model `Order` represents orders of products. One and only one order is linked to exactly one reservation.
 
 An order can be in state `waiting`, `confirmed`, `rejected`, `expired` or `cancelled`. A new order will start from state `waiting`, and from there it will change to one of the other states. Only valid other state change is from `confirmed` to `cancelled`.
 
-An order is created by providing its data in `order` field when creating a reservation via the API. The UI must also provide a return URL to which the user will be redirected after the payment process has been completed. In the creation response the UI gets back a payment URL, to which it must redirect the user to start the actual payment process. 
+An order is created by providing its data in `order` field when creating a reservation via the API. The UI must also provide a return URL to which the user will be redirected after the payment process has been completed. In the creation response the UI gets back a payment URL, to which it must redirect the user to start the actual payment process.
+
+Model `OrderLine` is where the pricing information is stored.
+
+All prices are in euros. A product's price at the time of ordering is stored in `unit_price` field. However, there are different ways the value should be interpreted depending on `price_type` field's value: 
+
+- `fixed`: The price stays always the same regardless of the reservation, so if `unit_price` is `10.00` the final price is 10.00 EUR.
+
+- `per_period`: When price type is `per_period`, field `price_period` contains length of the period, for example if `unit_price` is `10.00` and `price_period` is `00:30:00` it means the actual price is 10.00 EUR / 0.5h
 
 ## Administration
 
@@ -100,7 +102,6 @@ Example response (GET `/v1/resource/`):
         "price": "10.00",
         "price_type": "per_period",
         "price_period": "01:00:00",
-        "max_quantity": 1
     }
 ],
 
@@ -185,7 +186,8 @@ Example request (POST `/v1/reservation/`):
         "order_lines": [
             {
                 "product": "awevmfmr3w5a",
-                "quantity": 1
+                "quantity": 1,
+                "unit_price": 10.00,
             }
         ],
         "return_url": "https://varaamo.hel.fi/payment-return-url/"
@@ -224,7 +226,6 @@ Example response:
                         "amount": "10.00",
                         "period": "01:00:00",
                     }
-                    "max_quantity": 1
                 },
                 "quantity": 1,
                 "unit_price": "20.00",
@@ -291,7 +292,6 @@ Example response (GET `/v1/reservation/?include=order_detail`):
                         "amount": "10.00",
                         "period": "01:00:00",
                     }
-                    "max_quantity": 1
                 },
                 "quantity": 1,
                 "unit_price": "20.00",

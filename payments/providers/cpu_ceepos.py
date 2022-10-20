@@ -112,7 +112,6 @@ class CPUCeeposProvider(PaymentProvider):
                 )
             return taxcode
 
-        reservation = order.reservation
         order_lines = OrderLine.objects.filter(order=order.id)
         items = []
         for order_line in order_lines:
@@ -121,9 +120,7 @@ class CPUCeeposProvider(PaymentProvider):
                 {
                     "Code": product.sku,
                     "Amount": order_line.quantity,
-                    "Price": price_as_sub_units(
-                        product.get_price_for_reservation(reservation)
-                    ),
+                    "Price": price_as_sub_units(order_line.total_price),
                     "Description": product.name,
                 }
             )

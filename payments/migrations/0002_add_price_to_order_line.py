@@ -23,6 +23,7 @@ def populate_prices_in_order(apps, schema_editor):
     for order_line in OrderLine.objects.all():
         unit_price = get_price_for_time_range(order_line.product, order_line.order.reservation)
         order_line.unit_price = unit_price
+        order_line.total_price = unit_price * order_line.quantity
         order_line.save()
 
 class Migration(migrations.Migration):
@@ -32,6 +33,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='orderline',
+            name='total_price',
+            field=models.DecimalField(decimal_places=2, default=0.0, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.00'))], verbose_name='Total price including VAT'),
+            preserve_default=False,
+        ),
         migrations.AddField(
             model_name='orderline',
             name='unit_price',

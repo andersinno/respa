@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, serializers, status
 from rest_framework.exceptions import PermissionDenied
@@ -12,7 +13,7 @@ from payments.exceptions import (
 )
 from resources.api.reservation import ReservationSerializer
 
-from ..models import OrderLine, Product
+from ..models import OrderLine, Product, PRICE_PER_PERIOD
 from ..providers import get_payment_provider
 from .base import OrderSerializerBase
 
@@ -31,6 +32,20 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
         order = super().create(validated_data)
 
         for order_line_data in order_lines_data:
+
+            # TODO: Calculate the prices using product price lists
+            qty = order_line_data.get('quantity', 1)
+            unit_price = order_line_data['unit_price']
+            res_begin = order.reservation.begin
+            res_end = order.reservation.end
+            price_type = order_line_data.get('price_type', PRICE_PER_PERIOD)
+            price_period = order_line_data.get('price_period')
+            total_price = unit_price * qty
+
+            if price_type == PRICE_PER_PERIOD and price_period:
+                total_price = unit_price * Decimal((res_end - res_begin) / price_period)
+
+            order_line_data['total_price'] = total_price
             OrderLine.objects.create(order=order, **order_line_data)
 
         payments = get_payment_provider(request=self.context['request'],

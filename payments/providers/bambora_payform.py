@@ -98,13 +98,13 @@ class BamboraPayformProvider(PaymentProvider):
         items = []
         for order_line in order_lines:
             product = order_line.product
-            int_tax = int(product.tax_percentage)
-            assert int_tax == product.tax_percentage  # make sure the tax is a whole number
+            int_tax = int(order_line.tax_percentage)
+            assert int_tax == order_line.tax_percentage  # make sure the tax is a whole number
             items.append({
                 'id': product.sku,
                 'title': product.name,
-                'price': price_as_sub_units(product.get_price_for_reservation(reservation)),
-                'pretax_price': price_as_sub_units(product.get_pretax_price_for_reservation(reservation)),
+                'price': price_as_sub_units(order_line.get_price()),
+                'pretax_price': price_as_sub_units(order_line.get_pretax_price()),
                 'tax': int_tax,
                 'count': order_line.quantity,
                 'type': 1

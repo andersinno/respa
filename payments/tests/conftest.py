@@ -6,7 +6,7 @@ import pytest
 from pytz import UTC
 
 from payments.factories import OrderFactory, OrderLineFactory
-from payments.models import Order, Product
+from payments.models import Order, PRICE_FIXED, PRICE_PER_PERIOD
 from resources.models import Reservation
 from resources.tests.conftest import *  # noqa
 
@@ -50,18 +50,20 @@ def order_with_products(two_hour_reservation):
     OrderLineFactory.create(
         quantity=1,
         product__name="Test product",
-        product__price=Decimal('12.40'),
-        product__tax_percentage=Decimal('24.00'),
-        product__price_type=Product.PRICE_PER_PERIOD,
-        product__price_period=datetime.timedelta(hours=1),
+        unit_price=Decimal('12.40'),
+        tax_percentage=Decimal('24.00'),
+        price_type=PRICE_PER_PERIOD,
+        price_period=datetime.timedelta(hours=1),
+        total_price=Decimal('24.80'),
         order=order
     )
     OrderLineFactory.create(
         quantity=1,
         product__name="Test product 2",
-        product__price=Decimal('12.40'),
-        product__tax_percentage=Decimal('24.00'),
-        product__price_type=Product.PRICE_FIXED,
+        unit_price=Decimal('12.40'),
+        tax_percentage=Decimal('24.00'),
+        price_type=PRICE_FIXED,
+        total_price=Decimal('12.40'),
         order=order
     )
     return order

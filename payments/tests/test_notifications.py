@@ -28,9 +28,7 @@ def get_body_with_all_template_vars():
         'product.description',
         'product.type',
         'product.type_display',
-        'product.price_type',
         'product.price_type_display',
-        'product.price_period',
         'product.price_period_display',
     )
     body = '{% set order_line=order.order_lines[0] %}{% set product=order_line.product %}\n'
@@ -48,16 +46,11 @@ def get_expected_strings(order):
         localize_decimal(order.get_price()),
         localize_decimal(order_line.get_price()),
         str(order_line.quantity),
-        localize_decimal(order_line.get_unit_price()),
+        localize_decimal(order_line.unit_price),
         product.product_id,
         product.name,
         product.description,
         product.type,
-        product.get_type_display(),
-        product.price_type,
-        product.get_price_type_display(),
-        str(product.price_period),
-        str(get_price_period_display(product.price_period)),
     )
 
 
