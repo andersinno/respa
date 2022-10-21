@@ -1764,6 +1764,18 @@ msgstr "Exchange varaus"
 msgid "Exchange reservations"
 msgstr "Exchange varaukset"
 
+msgid "Applicant"
+msgstr "Hakija"
+
+msgid "Title"
+msgstr "Otsikko"
+
+msgid "Applicable for"
+msgstr "Sovellettavissa"
+
+msgid "Active"
+msgstr "Aktiivinen"
+
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
 
