@@ -220,9 +220,11 @@ def get_object_or_none(cls, **kwargs):
         return None
 
 
-def create_datetime_days_from_now(days_from_now):
+def create_datetime_days_from_now(days_from_now, exclude_extra_day=False):
     if days_from_now is None:
         return None
+    if exclude_extra_day:
+        return timezone.now() + datetime.timedelta(days=days_from_now)
 
     dt = timezone.now() + datetime.timedelta(days=days_from_now + 1)
     dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
