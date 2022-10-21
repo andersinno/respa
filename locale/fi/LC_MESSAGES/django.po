@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 09:36+0300\n"
+"POT-Creation-Date: 2022-09-11 21:35+0300\n"
 "PO-Revision-Date: 2018-09-27 12:10+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1029,6 +1029,15 @@ msgstr "Per viikko"
 msgid "Fixed"
 msgstr "Kiinteä"
 
+msgid "Inside"
+msgstr "Sisätila"
+
+msgid "Outside"
+msgstr "Ulkotila"
+
+msgid "Inside and outside"
+msgstr "Ulko- ja sisätila"
+
 msgid "Resource type"
 msgstr "Resurssityyppi"
 
@@ -1131,6 +1140,9 @@ msgstr "Esteettömyys kuvaus"
 
 msgid "Notification email addresses separated by comma"
 msgstr "Ilmoitussähköpostiosoitteet pilkulla erotettuina"
+
+msgid "Placement"
+msgstr "Sijoitus"
 
 msgid "You cannot make a multi day reservation"
 msgstr "Varaus ei saa ulottua useammalle päivälle"
@@ -1561,6 +1573,9 @@ msgstr "Ylimääräiset sähköpostiosoitteet ilmoituksia varten"
 
 msgid "External calendar"
 msgstr "Ulkoinen kalenterijärjestelmä"
+
+msgid "Placement of resource"
+msgstr "Sisätila/Ulkotila"
 
 msgid "Images"
 msgstr "Kuva"

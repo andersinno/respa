@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-10 09:36+0300\n"
+"POT-Creation-Date: 2022-09-11 21:35+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1023,6 +1023,15 @@ msgstr "Per vecka"
 msgid "Fixed"
 msgstr "Fixerad"
 
+msgid "Inside"
+msgstr "Inomhusutrymme"
+
+msgid "Outside"
+msgstr "Utomhusutrymme"
+
+msgid "Inside and outside"
+msgstr "Utomhus och inomhusutrymme"
+
 msgid "Resource type"
 msgstr "Resurs typ"
 
@@ -1126,6 +1135,9 @@ msgstr "Tillgänglighetsbeskrivning"
 
 msgid "Notification email addresses separated by comma"
 msgstr "E-postadresser för avisering, separerade med kommatecken"
+
+msgid "Placement"
+msgstr "Placering"
 
 msgid "You cannot make a multi day reservation"
 msgstr "Du kan inte boka flera dagar"
@@ -1551,6 +1563,9 @@ msgstr "Extra e-postadresser för avisering"
 
 msgid "External calendar"
 msgstr "Externt kalendersystem"
+
+msgid "Placement of resource"
+msgstr "Placering av resurser"
 
 msgid "Images"
 msgstr "Bilder"
