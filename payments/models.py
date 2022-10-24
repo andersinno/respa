@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -15,6 +17,7 @@ from rest_framework import serializers
 
 from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
+from respa_pricing.models import PriceList
 
 from .exceptions import OrderStateTransitionError
 from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
@@ -93,17 +96,18 @@ class Product(models.Model):
     def get_pretax_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
         return convert_aftertax_to_pretax(self.get_price_for_time_range(begin, end), self.tax_percentage)
 
-    @rounded
-    def get_price_for_time_range(self, begin: datetime, end: datetime) -> Decimal:
-        assert begin < end
-
-        if self.price_type == Product.PRICE_FIXED:
-            return self.price
-        elif self.price_type == Product.PRICE_PER_PERIOD:
-            assert self.price_period, '{} {}'.format(self, self.price_period)
-            return self.price * Decimal((end - begin) / self.price_period)
+    def get_price_for_time_range(
+            self,
+            begin: datetime,
+            end: datetime,
+            user_group,
+            event_type,
+    ):
+        if hasattr(self, 'pricedproduct'):
+            price_info = PriceList.get_price_info(self, user_group, event_type, begin, end)
+            return price_info
         else:
-            raise NotImplementedError('Cannot calculate price, unknown price type "{}".'.format(self.price_type))
+            raise ValueError('Product doesnt have related priced product in respa_pricing app!')
 
     def get_pretax_price_for_reservation(self, reservation: Reservation, rounded: bool = True) -> Decimal:
         return self.get_pretax_price_for_time_range(reservation.begin, reservation.end, rounded=rounded)
@@ -240,12 +244,16 @@ class OrderLine(models.Model):
     quantity = models.PositiveIntegerField(verbose_name=_('quantity'), default=1)
     unit_price = models.DecimalField(
         verbose_name=_('Unit price including VAT'), max_digits=10, decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
+        validators=[MinValueValidator(Decimal('0.00'))]
     )
     total_price = models.DecimalField(
         verbose_name=_('Total price including VAT'), max_digits=10, decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
+        validators=[MinValueValidator(Decimal('0.00'))]
     )
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    # object_id = models.PositiveIntegerField()
+    # # Should point to either EventPriceListItem or UserGroupPriceListItem model instances
+    # price_source = GenericForeignKey('content_type', 'object_id')
     tax_percentage = models.DecimalField(
         verbose_name=_('tax percentage'), max_digits=5, decimal_places=2, default=DEFAULT_TAX_PERCENTAGE,
         choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES]
@@ -273,6 +281,9 @@ class OrderLine(models.Model):
 
     def __str__(self):
         return str(self.product)
+
+    def get_price(self) -> Decimal:
+        return self.total_price
 
 
 class OrderLogEntry(models.Model):
@@ -340,3 +351,23 @@ class NotificationOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ('id', 'order_lines', 'price', 'created_at')
+
+"""
+# TODO: Remaining codes 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.price = self._get_upto_date_total_price()
+        self.unit_price = self._get_upto_date_unit_price()
+
+    def _get_upto_date_unit_price(self) -> Decimal:
+        return self.product.get_price_for_reservation(self.order.reservation)
+
+    def _get_upto_date_total_price(self) -> Decimal:
+        return self.product.get_price_for_reservation(self.order.reservation) * self.quantity
+
+    def get_price(self) -> Decimal:
+        return self.price * self.quantity
+
+    def get_unit_price(self) -> Decimal:
+        return self.price
+"""

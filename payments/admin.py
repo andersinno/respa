@@ -110,9 +110,9 @@ class OrderLogEntryInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number', 'user', 'created_at', 'state', 'reservation', 'price')
+    list_display = ('order_number', 'user', 'created_at', 'state', 'reservation')
 
-    fields = ('order_number', 'created_at', 'state', 'reservation', 'user', 'price')
+    fields = ('order_number', 'created_at', 'state', 'reservation', 'user')
 
     raw_id_fields = ('reservation',)
     inlines = (OrderLineInline, OrderLogEntryInline)
@@ -149,10 +149,10 @@ class OrderAdmin(admin.ModelAdmin):
 
     user.short_description = _('user')
 
-    def price(self, obj):
-        return obj.get_price()
-
-    price.short_description = _('price including VAT')
+    # def price(self, obj):
+    #     return obj.get_price()
+    #
+    # price.short_description = _('price including VAT')
 
     def created_at(self, obj):
         return get_datetime_display(obj.created_at)

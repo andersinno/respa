@@ -121,9 +121,7 @@ class CPUCeeposProvider(PaymentProvider):
                 {
                     "Code": product.sku,
                     "Amount": order_line.quantity,
-                    "Price": price_as_sub_units(
-                        product.get_price_for_reservation(reservation)
-                    ),
+                    "Price": price_as_sub_units(order_line.total_price),
                     "Description": product.name,
                 }
             )
