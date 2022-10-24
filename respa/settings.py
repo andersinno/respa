@@ -134,8 +134,6 @@ INSTALLED_APPS = [
     'anymail',
     'reversion',
     'django_admin_json_editor',
-    'ckeditor',
-    'ckeditor_uploader',
 
     'allauth',
     'allauth.account',
@@ -154,7 +152,6 @@ INSTALLED_APPS = [
 
     'respa_exchange',
     'respa_admin',
-    'respa_instructions',
 
     'sanitized_dump',
 ]
@@ -422,13 +419,3 @@ if 'SECRET_KEY' not in locals():
 #
 if DATABASES['default']['ENGINE'] != 'django.contrib.gis.db.backends.postgis':
     raise ImproperlyConfigured("Only postgis database backend is supported")
-
-# Ckeditor config
-CKEDITOR_UPLOAD_PATH = "uploads/"
-
-CKEDITOR_CONFIGS = {
-    'default': {
-        'height': 600,
-        'width': 1500,
-    },
-}
