@@ -1,0 +1,128 @@
+{% extends "respa_admin/_base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block form_nav %}
+    {% include "respa_admin/resources/form/_nav.html" %}
+{% endblock form_nav %}
+
+{% block body %}
+  <div class="container form-container">
+    <form method="post">
+      {% csrf_token %}
+      {% include "respa_admin/forms/_form_errors.html" %}
+
+      <div>
+        <div class="description">
+          {% include "respa_admin/forms/_input.html" with field=form.name %}
+        </div>
+{#      <div class="accordion-item" id="price-list">#}
+{#        <div class="card">#}
+{#          <div class="card-header" id="user-group-price">#}
+{#            <h2 class="mb-0">#}
+{#              <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">#}
+{#                {{ form.user_group_price.label }}#}
+{#              </button>#}
+{#            </h2>#}
+{#          </div>#}
+{#          <div id="collapseOne" class="collapse" aria-labelledby="user-group-price" data-parent="#price-list">#}
+{#            <div class="card-body">#}
+{#              {{ form.user_group_price }}#}
+{#            </div>#}
+{#          </div>#}
+{#        </div>#}
+{##}
+{#        <div class="card">#}
+{#          <div class="card-header" id="event-price">#}
+{#            <h2 class="mb-0">#}
+{#              <button#}
+{#                class="btn btn-link btn-block text-left"#}
+{#                type="button"#}
+{#                data-toggle="collapse"#}
+{#                data-target="#event-price-collapse"#}
+{#                aria-expanded="true"#}
+{#                aria-controls="event-price-collapse"#}
+{#              >#}
+{#                {{ form.event_price.label }}#}
+{#              </button>#}
+{#            </h2>#}
+{#          </div>#}
+{#          <div#}
+{#            id="event-price-collapse"#}
+{#            class="collapse"#}
+{#            aria-labelledby="event-price"#}
+{#            data-parent="#price-list"#}
+{#          >#}
+{#            <div class="card-body">#}
+{#              {{ form.event_price }}#}
+{#            </div>#}
+{#          </div>#}
+{#        </div>#}
+{#      </div>#}
+{#    </form>#}
+    <div class="accordion-item" id="accordion-item-1">
+      <div
+        class="dropdown-time panel-group input-row"
+        id="accordion1"
+        role="tablist"
+        aria-multiselectable="true"
+      >
+        <a
+          class="btn"
+          role="button"
+          data-toggle="collapse"
+          data-parent="#accordion1"
+          href="#collapse1"
+          aria-expanded="true"
+          aria-controls="#collapse1"
+        >
+          <span class="glyphicon glyphicon-edit icon-left"></span>
+          {% trans "User group" %}
+          <span class="glyphicon glyphicon-chevron-down icon-right"></span>
+        </a>
+      </div>
+      <div
+        class="panel-collapse collapse show"
+        role="tabpanel"
+        id="collapse1"
+        aria-labelledby="heading1"
+      >
+        <div class="container-fluid">
+          {{ form.user_group_price }}
+        </div>
+      </div>
+
+      <div
+        class="dropdown-time panel-group input-row"
+        id="accordion2"
+        role="tablist"
+        aria-multiselectable="true"
+      >
+        <a
+          class="btn"
+          role="button"
+          data-toggle="collapse"
+          data-parent="#accordion2"
+          href="#collapse2"
+          aria-expanded="true"
+          aria-controls="#collapse2"
+        >
+          <span class="glyphicon glyphicon-edit icon-left"></span>
+          {% trans "Reservation event type" %}
+          <span class="glyphicon glyphicon-chevron-down icon-right"></span>
+        </a>
+      </div>
+      <div
+          class="panel-collapse collapse show"
+          role="tabpanel"
+          id="collapse2"
+          aria-labelledby="heading2"
+        >
+          <div class="container-fluid">
+            {{ form.event_price }}
+          </div>
+        </div>
+    </div>
+    </form>
+  </div>
+{% endblock body %}

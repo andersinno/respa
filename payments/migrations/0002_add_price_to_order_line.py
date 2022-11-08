@@ -12,9 +12,9 @@ def get_price_for_time_range(product, reservation):
     end = reservation.end
     assert begin < end
 
-    if product.price_type == Product.PRICE_FIXED:
+    if product.price_type == 'fixed':
         return product.price
-    elif product.price_type == Product.PRICE_PER_PERIOD:
+    elif product.price_type == 'per_period':
         assert product.price_period, '{} {}'.format(product, product.price_period)
         return product.price * Decimal((end - begin) / product.price_period)
 

@@ -27,6 +27,7 @@ from resources.models import (
 )
 
 from users.models import User
+from respa_pricing.models import PriceList, UserGroup, Event
 
 from respa.settings import LANGUAGES
 
@@ -259,9 +260,9 @@ class ResourceForm(forms.ModelForm):
             'authentication',
             'access_code_type',
             'free_to_use',
+            'price_list',
             'max_price',
             'min_price',
-            'price_type',
             'generic_terms',
             'payment_terms',
             'public',
@@ -333,6 +334,21 @@ class UnitForm(forms.ModelForm):
             ),
         }
 
+class PriceListForm(forms.ModelForm):
+    user_group_price = forms.ModelMultipleChoiceField(
+        queryset=UserGroup.objects.all(),
+        widget=RespaCheckboxSelect,
+        required=True
+    )
+    event_price = forms.ModelMultipleChoiceField(
+        queryset=Event.objects.all(),
+        widget=RespaCheckboxSelect,
+        required=False,
+    )
+
+    class Meta:
+        model = PriceList
+        fields = ['name', 'user_group_price', 'event_price']
 
 class PeriodFormset(forms.BaseInlineFormSet):
 
@@ -560,3 +576,17 @@ def get_unit_authorization_formset(request=None, extra=1, instance=None):
         return unit_authorization_formset(request=request, instance=instance)
     else:
         return unit_authorization_formset(request=request, data=request.POST, instance=instance)
+
+
+
+"""
+User group::
+    Students -          0.00
+    Senior citizens -   23.00
+    Unemployed -        12.50
+
+
+EventType::
+    Private event -     60.00
+    Public event -      40.00
+"""

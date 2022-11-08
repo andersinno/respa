@@ -139,7 +139,7 @@ class ExchangeListener(object):
         for resource in new_resources:
             try:
                 log.info('Resource %s added, subscribing', resource)
-                self.subscribe_resource(resource)
+                self.subscribe_resource(resource) # Here
             except SoapFault:  # pragma: no cover
                 log.warn('Subscription to %s failed', resource, exc_info=True)
 
@@ -159,7 +159,7 @@ class ExchangeListener(object):
         assert self.exchange == resource.exchange
         sess = self.exchange.get_ews_session()
         sub = SubscribeRequest(resource.principal_email)
-        sub_id, _ = sub.send(sess)
+        sub_id, _ = sub.send(sess) # Here
         self.resource_to_subscription_map[resource] = sub_id
         log.info('Subscribed to %s on channel %s', resource, sub_id)
 

@@ -24,7 +24,8 @@ from .resource import generate_access_code, validate_access_code
 from .resource import Resource
 from .utils import (
     get_dt, save_dt, is_valid_time_slot, humanize_duration, send_respa_mail,
-    DEFAULT_LANG, localize_datetime, format_dt_range, build_reservations_ical_file
+    DEFAULT_LANG, localize_datetime, format_dt_range, build_reservations_ical_file,
+    get_varaamo_payment_return_url
 )
 
 DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
@@ -89,6 +90,8 @@ class Reservation(ModifiableModel):
     DENIED = 'denied'
     REQUESTED = 'requested'
     WAITING_FOR_PAYMENT = 'waiting_for_payment'
+    CONFIRMED_BUT_NOT_PAID = 'confirmed_but_not_paid'
+    PAID = 'paid'
     STATE_CHOICES = (
         (CREATED, _('created')),
         (CANCELLED, _('cancelled')),
@@ -96,6 +99,8 @@ class Reservation(ModifiableModel):
         (DENIED, _('denied')),
         (REQUESTED, _('requested')),
         (WAITING_FOR_PAYMENT, _('waiting for payment')),
+        (CONFIRMED_BUT_NOT_PAID, _('confirmed but not paid')),
+        (PAID, _('paid'))
     )
 
     TYPE_NORMAL = 'normal'
@@ -212,6 +217,9 @@ class Reservation(ModifiableModel):
         return user == self.user
 
     def need_manual_confirmation(self):
+        price_list = self.resource.price_list
+        if price_list:
+            return price_list.needs_manual_confirmation
         return self.resource.need_manual_confirmation
 
     def are_extra_fields_visible(self, user):
@@ -227,11 +235,16 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_reservation_access_code(user)
 
-    def set_state(self, new_state, user):
+    def set_state(
+        self,
+        new_state,
+        user,
+        request=None
+    ):
         # Make sure it is a known state
         assert new_state in (
             Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED,
-            Reservation.CANCELLED, Reservation.WAITING_FOR_PAYMENT
+            Reservation.CANCELLED, Reservation.WAITING_FOR_PAYMENT, Reservation.CONFIRMED_BUT_NOT_PAID
         )
 
         old_state = self.state
@@ -254,6 +267,14 @@ class Reservation(ModifiableModel):
         # Notifications
         if new_state == Reservation.REQUESTED:
             self.send_reservation_requested_mail()
+        elif new_state == Reservation.CONFIRMED_BUT_NOT_PAID:
+            # Initiate payment process and send a payment link in mail
+            from payments.providers import get_payment_provider
+            ui_return_url = get_varaamo_payment_return_url()
+            payments = get_payment_provider(request, ui_return_url=ui_return_url)
+            order = Reservation.objects.get(id=self.id).order
+            payment_info = payments.get_payment_info(order)
+            self.send_resrvation_confirmed_email_with_payment_link(payment_info)
         elif new_state == Reservation.CONFIRMED:
             if self.need_manual_confirmation():
                 self.send_reservation_confirmed_mail()
@@ -422,7 +443,7 @@ class Reservation(ModifiableModel):
         if self.access_code:
             validate_access_code(self.access_code, self.resource.access_code_type)
 
-    def get_notification_context(self, language_code, user=None, notification_type=None):
+    def get_notification_context(self, language_code, user=None, payment_info={}, notification_type=None):
         if not user:
             user = self.user
         with translation.override(language_code):
@@ -471,7 +492,10 @@ class Reservation(ModifiableModel):
             elif notification_type == NotificationType.RESERVATION_REQUESTED:
                 if self.resource.reservation_requested_notification_extra:
                     context['extra_content'] = self.resource.reservation_requested_notification_extra
-
+            if notification_type == NotificationType.PAID_RESERVATION_CONFIRMED:
+                context['payment_url'] = payment_info['payment_url']
+                payment_link_valid_until = datetime.datetime.strptime(payment_info['expires_at'], '%Y%m%d%H%M')
+                context['expires_at'] = payment_link_valid_until
             # Get last main and ground plan images. Normally there shouldn't be more than one of each
             # of those images.
             images = self.resource.images.filter(type__in=('main', 'ground_plan')).order_by('-sort_order')
@@ -493,7 +517,7 @@ class Reservation(ModifiableModel):
 
         return context
 
-    def send_reservation_mail(self, notification_type, user=None, email=None, attachments=None):
+    def send_reservation_mail(self, notification_type, user=None, email=None, attachments=None, payment_info={}):
         """
         Stuff common to all reservation related mails.
 
@@ -515,7 +539,7 @@ class Reservation(ModifiableModel):
             user = self.user
 
         language = user.get_preferred_language() if user else DEFAULT_LANG
-        context = self.get_notification_context(language, notification_type=notification_type)
+        context = self.get_notification_context(language, payment_info=payment_info, notification_type=notification_type)
 
         try:
             rendered_notification = notification_template.render(context, language)
@@ -557,6 +581,16 @@ class Reservation(ModifiableModel):
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
+
+    def send_resrvation_confirmed_email_with_payment_link(self, payment_info):
+        reservations = [self]
+        ical_file = build_reservations_ical_file(reservations)
+        attachment = ('reservation.ics', ical_file, 'text/calendar')
+        self.send_reservation_mail(
+            NotificationType.PAID_RESERVATION_CONFIRMED,
+           attachments=[attachment],
+           payment_info=payment_info,
+        )
 
     def send_reservation_confirmed_mail(self):
         reservations = [self]

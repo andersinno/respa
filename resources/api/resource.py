@@ -15,6 +15,8 @@ from django.urls import reverse
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from django.utils.timezone import now
 
 from resources.pagination import PurposePagination
 from rest_framework import exceptions, filters, mixins, serializers, viewsets, response, status
@@ -23,6 +25,8 @@ from rest_framework.decorators import action
 from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
+from payments.models import Product
+from respa_pricing.models import PriceList
 from resources.models import (
     AccessibilityValue, AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
@@ -180,6 +184,9 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     min_price_per_hour = serializers.SerializerMethodField()
     accessibility_summaries = ResourceAccessibilitySerializer(many=True, read_only=True)
     can_only_be_reserved_externally = serializers.SerializerMethodField()
+    pricing_user_group = serializers.SerializerMethodField()
+    pricing_event_group = serializers.SerializerMethodField()
+    need_manual_confirmation = serializers.SerializerMethodField()
 
     def get_can_only_be_reserved_externally(self, obj):
         today = datetime.datetime.today()
@@ -194,6 +201,34 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
             return True
         return False
 
+    def get_pricing_user_group(self, obj):
+        if obj.free_to_use:
+            return
+        resource_price_list = obj.price_list
+        if not resource_price_list:
+            return
+        pricing_user_groups = resource_price_list.usergroup_prices.all()
+        data = []
+        for item in pricing_user_groups:
+            user_group = item.user_group
+            data.append({'id': user_group.id, 'name': user_group.name})
+        return data
+
+    def get_pricing_event_group(self, obj):
+        if obj.free_to_use:
+            return
+        resource_price_list = obj.price_list
+        if not resource_price_list:
+            return
+        pricing_event_groups = resource_price_list.event_prices.all()
+        if not pricing_event_groups:
+            return
+        data = []
+        for event in pricing_event_groups:
+            event_groups = event.event
+            data.append({'id': event_groups.id, 'name': event_groups.name})
+        return data
+
     def get_max_price_per_hour(self, obj):
         """Backwards compatibility for 'max_price_per_hour' field that is now deprecated"""
         return obj.max_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
@@ -201,6 +236,11 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
     def get_min_price_per_hour(self, obj):
         """Backwards compatibility for 'min_price_per_hour' field that is now deprecated"""
         return obj.min_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
+
+    def get_need_manual_confirmation(self, obj):
+        if obj.price_list:
+            return obj.price_list.needs_manual_confirmation
+        return obj.need_manual_confirmation
 
     def get_extra_fields(self, includes, context):
         """ Define extra fields that can be included via query parameters. Method from ExtraDataMixin."""
@@ -798,6 +838,14 @@ class ResourceListViewSet(munigeo_api.GeoModelAPIView, mixins.ListModelMixin,
         return self.queryset.visible_for(self.request.user)
 
 
+class ReservationProductPriceSerializer(serializers.Serializer):
+    begin = serializers.DateTimeField(required=True)
+    end = serializers.DateTimeField(required=True)
+    user_group = serializers.CharField(required=True)
+    product = serializers.CharField(required=True)
+    event_type = serializers.CharField(required=False)
+
+
 class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
                       viewsets.GenericViewSet, ResourceCacheMixin):
     queryset = ResourceListViewSet.queryset
@@ -858,6 +906,20 @@ class ResourceViewSet(munigeo_api.GeoModelAPIView, mixins.RetrieveModelMixin,
     @action(detail=True, methods=['post'])
     def unfavorite(self, request, pk=None):
         return self._set_favorite(request, False)
+
+    @action(detail=True, methods=['post'])
+    def get_price(self, request, pk=None):
+        price_data_serializer = ReservationProductPriceSerializer(data=request.data)
+        price_data_serializer.is_valid(raise_exception=True)
+        user_group = price_data_serializer.validated_data['user_group']
+        event_type = price_data_serializer.validated_data.get('event_type')
+        product_id = price_data_serializer.validated_data.get('product')
+        begin = price_data_serializer.validated_data['begin']
+        end = price_data_serializer.validated_data['end']
+        product = Product.objects.current().get(product_id=product_id)
+        price_info = PriceList.get_price_info(product, user_group, event_type, begin, end)
+        price_info.pop('price_source')
+        return response.Response(price_info)
 
 
 register_view(ResourceListViewSet, 'resource')

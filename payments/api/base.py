@@ -9,12 +9,12 @@ from ..models import Order, OrderLine, Product
 
 class ProductSerializer(TranslatedModelSerializer):
     id = serializers.CharField(source='product_id')
-    price = serializers.SerializerMethodField()
+    # price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = (
-            'id', 'type', 'name', 'description', 'price', 'max_quantity'
+            'id', 'type', 'name', 'description'
         )
 
     def get_price(self, obj):
@@ -36,20 +36,23 @@ class OrderLineSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(queryset=Product.objects.current(), slug_field='product_id')
     price = serializers.CharField(source='get_price', read_only=True)
     unit_price = serializers.CharField(source='get_unit_price', read_only=True)
+    user_group = serializers.CharField(write_only=True)
+    event_type = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = OrderLine
-        fields = ('product', 'quantity', 'unit_price', 'price')
+        fields = ('product', 'quantity', 'unit_price', 'price', 'user_group', 'event_type')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['product'] = ProductSerializer(instance.product).data
         return data
 
-    def validate(self, order_line):
-        if order_line.get('quantity', 1) > order_line['product'].max_quantity:
-            raise serializers.ValidationError({'quantity': _('Cannot exceed max product quantity')})
-        return order_line
+    # TODO: This is not needed ?
+    # def validate(self, order_line):
+    #     if order_line.get('quantity', 1) > order_line['product'].max_quantity:
+    #         raise serializers.ValidationError({'quantity': _('Cannot exceed max product quantity')})
+    #     return order_line
 
     def validate_product(self, product):
         available_products = self.context['available_products']

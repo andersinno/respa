@@ -12,6 +12,7 @@ from .views.resources import (
     SaveResourceView,
 )
 from .views.units import UnitEditView, UnitListView
+from .views.prices import PriceListView, PriceListEditView
 
 app_name = 'respa_admin'
 urlpatterns = [
@@ -26,6 +27,8 @@ urlpatterns = [
     url(r'^resource/copy/(?P<resource_id>\w+)/$', copy_resource, name='copy-resource'),
     url(r'^units/$', UnitListView.as_view(), name='units'),
     url(r'^units/edit/(?P<unit_id>[\w\d:]+)/$', UnitEditView.as_view(), name='edit-unit'),
+    url(r'^prices/$', PriceListView.as_view(), name='price-list'),
+    url(r'^prices/edit/(?P<price_list_id>\w+)/$', PriceListEditView.as_view(), name='edit-price-list'),
     url(r'^i18n/$', include('django.conf.urls.i18n'), name='language'),
     url(r'^user_management/$', ManageUserPermissionsListView.as_view(), name='user-management'),
     url(r'^user_management/search/$', ManageUserPermissionsSearchView.as_view(), name='user-management-search'),

@@ -2,6 +2,8 @@ from datetime import timedelta
 from decimal import ROUND_HALF_UP, Decimal
 from functools import wraps
 
+from django.db import transaction
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -48,3 +50,32 @@ def get_price_period_display(price_period):
         return _('hour')
     else:
         return _('{hours} hours'.format(hours=hours))
+
+
+def create_products_from_resource_pricelist(resource):
+    from .models import Product
+
+    resource_pricelist = resource.price_list
+    if not resource_pricelist:
+        return
+    pricelist_items = resource_pricelist.price_list_items.all()
+
+    for pricelist_item in pricelist_items:
+        product = Product.objects.create(**{
+            'sku': pricelist_item.id,
+            'name_fi': pricelist_item.name,
+            'price': pricelist_item.price,
+            'price_type': pricelist_item.price_type,
+            'price_period': pricelist_item.price_period,
+            'tax_percentage': pricelist_item.tax_percentage,
+            'pricelist_item': pricelist_item,
+        })
+        product.resources.add(resource)
+
+
+@transaction.atomic
+def archive_old_products_and_create_new_from_resource_pricelist(resource, old_pricelist):
+    from .models import Product
+    old_pricelist_items = old_pricelist.price_list_items.all()
+    Product.objects.filter(pricelist_item__in=old_pricelist_items).update(archived_at=now())
+    create_products_from_resource_pricelist(resource)

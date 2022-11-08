@@ -1,6 +1,8 @@
+from decimal import Decimal
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, serializers, status
 from rest_framework.exceptions import PermissionDenied
+from django.utils.duration import duration_string
 
 from payments.exceptions import (
     DuplicateOrderError,
@@ -11,10 +13,10 @@ from payments.exceptions import (
     UnknownReturnCodeError,
 )
 from resources.api.reservation import ReservationSerializer
-
+from respa_pricing.models import UserGroupPriceListItem, EventPriceListItem, PriceList
 from ..models import OrderLine, Product
 from ..providers import get_payment_provider
-from .base import OrderSerializerBase
+from .base import OrderSerializerBase, ProductSerializer
 
 
 class ReservationEndpointOrderSerializer(OrderSerializerBase):
@@ -31,11 +33,31 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
         order = super().create(validated_data)
 
         for order_line_data in order_lines_data:
+            order_line_price_info = PriceList.get_price_info(
+                order_line_data['product'],
+                order_line_data.pop('user_group'),
+                order_line_data.pop('event_type', ''),
+                validated_data['reservation'].begin,
+                validated_data['reservation'].end,
+
+            )
+            order_line_data['unit_price'] = Decimal(order_line_price_info['amount'])
+            order_line_data['total_price'] = Decimal(order_line_price_info['total_price'])
+            price_source = order_line_price_info['price_source']
+            # order_line_data['price_source'] = price_source
+            order_line_data['tax_percentage'] = price_source.tax_percentage
+            order_line_data['price_period'] = price_source.price_period
+            order_line_data['price_type'] = price_source.price_type
             OrderLine.objects.create(order=order, **order_line_data)
 
         payments = get_payment_provider(request=self.context['request'],
                                         ui_return_url=return_url)
         try:
+            # Don't initiate payment if the reservation needs manual confirmation. The
+            # payment link will be sent via email when reservation is confirmed.
+            price_list = order.order_lines.first().product.pricedproduct.price_list
+            if price_list.needs_manual_confirmation:
+                return order
             self.context['payment_url'] = payments.initiate_payment(order)
         except DuplicateOrderError as doe:
             raise exceptions.APIException(detail=str(doe),
@@ -97,7 +119,9 @@ class PaymentsReservationSerializer(ReservationSerializer):
             request = self.context.get('request')
             resource = self.context.get('resource')
 
-            if resource and request:
+            if resource and resource.free_to_use:
+                order_required = False
+            elif resource and request:
                 order_required = resource.has_rent() and not resource.can_bypass_payment(request.user)
             elif resource:
                 order_required = resource.has_rent()
@@ -118,6 +142,18 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
         if not instance.can_view_product_orders(user):
             data.pop('order', None)
+        else:
+            if hasattr(instance, 'order'):
+                order_lines = instance.order.order_lines.all()
+                # TODO: What should happen if price_source's field value changes
+                # And there are multiple order lines ???
+                order_line = order_lines.first()
+                data['price_info'] = {}
+                data['price_info']['amount'] = str(order_line.unit_price)
+                data['price_info']['period'] = duration_string(order_line.price_period)
+                data['price_info']['tax_percentage'] = str(order_line.tax_percentage)
+                data['price_info']['total_price'] = str(order_line.total_price)
+                data['price_info']['type'] = order_line.price_type
         return data
 
     def create(self, validated_data):

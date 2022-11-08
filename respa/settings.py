@@ -73,14 +73,14 @@ env = environ.Env(
     RESPA_ADMIN_VIEW_UNIT_URL=(str, ''),
     RESPA_ADMIN_LOGO=(str, ''),
     RESPA_ADMIN_KORO_STYLE=(str, ''),
-    RESPA_PAYMENTS_ENABLED=(bool, False),
-    RESPA_PAYMENTS_PROVIDER_CLASS=(str, ''),
+    RESPA_PAYMENTS_ENABLED=(bool, True),
+    RESPA_PAYMENTS_PROVIDER_CLASS=(str, 'payments.providers.CPUCeeposProvider'),
     RESPA_PAYMENTS_PAYMENT_WAITING_TIME=(int, 15),
     ENABLE_RESOURCE_TOKEN_AUTH=(bool, False),
     DISABLE_SERVER_SIDE_CURSORS=(bool, False),
     PRODUCTION_MODE=(str, 'production'),
 )
-environ.Env.read_env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # used for generating links to images, when no request context is available
 # reservation confirmation emails use this
@@ -152,6 +152,8 @@ INSTALLED_APPS = [
 
     'respa_exchange',
     'respa_admin',
+    'respa_pricing',
+    'django_extensions',
 
     'sanitized_dump',
 ]
@@ -419,3 +421,10 @@ if 'SECRET_KEY' not in locals():
 #
 if DATABASES['default']['ENGINE'] != 'django.contrib.gis.db.backends.postgis':
     raise ImproperlyConfigured("Only postgis database backend is supported")
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# CeePos payment provider settings
+RESPA_PAYMENTS_PROVIDER_CLASS='payments.providers.CPUCeeposProvider'
+RESPA_PAYMENTS_CEEPOS_API_URL="https://verkkomaksutesti.cpu.fi/maksu.html" # test env
+RESPA_PAYMENTS_CEEPOS_API_KEY="varaamo"
+RESPA_PAYMENTS_CEEPOS_API_SECRET="VARAAMO_TEST_SECRET"

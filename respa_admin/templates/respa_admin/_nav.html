@@ -94,6 +94,9 @@
                     <a href="{% url 'respa_admin:user-management' %}">{% trans "User management" %}</a>
                 </li>
                 {% endif %}
+                <li>
+                  <a href="{% url 'respa_admin:price-list' %}">{% trans "Price lists" %}</a>
+                </li>
                 {% if SUPPORT_EMAIL %}
                 <li>
                     <a href="mailto:{{ SUPPORT_EMAIL }}">

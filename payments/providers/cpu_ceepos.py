@@ -62,16 +62,26 @@ class CPUCeeposProvider(PaymentProvider):
             RESPA_PAYMENTS_CEEPOS_API_SECRET: str,
         }
 
+    def get_payment_info(self, order: Order) -> Dict:
+        response = self.post_order_to_ceepos(order)
+        payment_url = self.handle_initiate_payment_response(response)
+        payment_expires_at = response["PaymentExpires"]
+        return {"payment_url": payment_url, "expires_at": payment_expires_at}
+
     def initiate_payment(self, order: Order) -> str:
+        """
+        Returns an URL to which the user is redirected
+        to actually pay the order.
+        """
+        response = self.post_order_to_ceepos(order)
+        return self.handle_initiate_payment_response(response)
+
+    def post_order_to_ceepos(self, order: Order) -> Dict:
         """
         Creates a payment to the provider. The insertion order of the
         fields in the payload data is important here since the values
         are used for checksum calculations.
-
-        Returns an URL to which the user is redirected
-        to actually pay the order.
         """
-
         payload = {
             "ApiVersion": "3.0.0",
             "Source": self.config.get(RESPA_PAYMENTS_CEEPOS_API_KEY),
@@ -89,7 +99,7 @@ class CPUCeeposProvider(PaymentProvider):
         try:
             r = requests.post(self.url_payment_api, json=payload, timeout=60)
             r.raise_for_status()
-            return self.handle_initiate_payment_response(r.json())
+            return r.json()
         except RequestException as e:
             raise ServiceUnavailableError("Payment service is unreachable") from e
 
@@ -121,9 +131,7 @@ class CPUCeeposProvider(PaymentProvider):
                 {
                     "Code": product.sku,
                     "Amount": order_line.quantity,
-                    "Price": price_as_sub_units(
-                        product.get_price_for_reservation(reservation)
-                    ),
+                    "Price": price_as_sub_units(order_line.total_price),
                     "Description": product.name,
                 }
             )
@@ -335,6 +343,9 @@ class CPUCeeposProvider(PaymentProvider):
                     Order.CONFIRMED,
                     "Code 1 (payment succeeded) in CeePos notify request.",
                 )
+                reservation = order.reservation
+                reservation.state = 'paid'
+                reservation.save()
             except OrderStateTransitionError as oste:
                 LOG.warning(oste)
         elif status_code == "0":

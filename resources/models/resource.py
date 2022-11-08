@@ -40,7 +40,7 @@ from .unit import Unit
 from .availability import get_opening_hours
 from .permissions import RESOURCE_GROUP_PERMISSIONS, UNIT_ROLE_PERMISSIONS
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
-
+from respa_pricing.models import PriceList
 
 def generate_access_code(access_code_type):
     if access_code_type == Resource.ACCESS_CODE_TYPE_NONE:
@@ -305,6 +305,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         choices=PLACEMENT_CHOICES,
         blank=True,
     )
+    price_list = models.ForeignKey(
+        PriceList,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     objects = ResourceQuerySet.as_manager()
 
@@ -315,6 +321,26 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
     def __str__(self):
         return "%s (%s)/%s" % (get_translated(self, 'name'), self.id, self.unit)
+
+    def save(self, *args, **kwargs):
+        resource_is_being_created = not self.id
+        previous_pricelist = None
+        if self.pk:
+            previous_pricelist = Resource.objects.get(pk=self.pk).price_list
+        super().save(*args, **kwargs)
+        if settings.RESPA_PAYMENTS_ENABLED:
+            self._handle_payment_products(resource_is_being_created, previous_pricelist)
+
+    def _handle_payment_products(self, resource_is_being_created, previous_pricelist):
+        if self.free_to_use and self.products.current().exists():
+            previous_pricelist.archive_old_products()
+        elif not self.free_to_use and (resource_is_being_created or (previous_pricelist == None and self.price_list)):
+            self.price_list.create_related_products(self)
+        elif previous_pricelist and self.price_list == None:
+            previous_pricelist.archive_old_products()
+        elif previous_pricelist and previous_pricelist != self.price_list:
+            previous_pricelist.archive_old_products()
+            self.price_list.unarchive_products()
 
     @cached_property
     def main_image(self):
@@ -760,9 +786,13 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return [x.field_name for x in metadata_set.required_fields.all()]
 
     def clean(self):
-        if self.free_to_use and (self.min_price or self.max_price):
+        if self.free_to_use and self.price_list:
             raise ValidationError(
-                {'free_to_use': _("Free resources can't have a price.")}
+                {'free_to_use': _("Free resources can't have a price list.")}
+            )
+        if not self.free_to_use and not self.price_list:
+            raise ValidationError(
+                {'price_list': _("This resource requires price list.")}
             )
         if self.min_price is not None and self.max_price is not None and self.min_price > self.max_price:
             raise ValidationError(
