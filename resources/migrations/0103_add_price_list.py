@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('respa_pricing', '0001_initial'),
-        ('resources', '0101_add_free_reservation_cancellation'),
+        ('resources', '0102_add_resource_placement'),
     ]
 
     operations = [
