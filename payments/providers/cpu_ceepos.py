@@ -68,11 +68,13 @@ class CPUCeeposProvider(PaymentProvider):
         payment_expires_at = response["PaymentExpires"]
         return {"payment_url": payment_url, "expires_at": payment_expires_at}
 
-    def initiate_payment(self, order: Order) -> str:
+    def initiate_payment(self, order: Order, is_refund: bool = False, refund_amount: float = 0.0) -> str:
         """
         Returns an URL to which the user is redirected
         to actually pay the order.
         """
+        self.is_refund = is_refund
+        self.refund_amount = refund_amount
         response = self.post_order_to_ceepos(order)
         return self.handle_initiate_payment_response(response)
 
@@ -127,11 +129,18 @@ class CPUCeeposProvider(PaymentProvider):
         items = []
         for order_line in order_lines:
             product = order_line.product
+            amount = order_line.quantity
+            price = order_line.total_price
+
+            if self.is_refund:
+                amount = - amount
+                price = self.refund_amount
+
             items.append(
                 {
                     "Code": product.sku,
-                    "Amount": order_line.quantity,
-                    "Price": price_as_sub_units(order_line.total_price),
+                    "Amount": amount,
+                    "Price": price_as_sub_units(price),
                     "Description": product.name,
                 }
             )

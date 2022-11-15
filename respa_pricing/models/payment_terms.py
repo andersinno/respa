@@ -1,10 +1,12 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from resources.models.utils import get_translated_name
+
 
 class RespaPaymentTerm(models.Model):
     name = models.CharField(verbose_name=_('Name'), max_length=200)
-    description = models.TextField(verbose_name=_('Description'), blank=True)
+    text = models.TextField(verbose_name=_('Description'), blank=True)
     payment_is_refundable = models.BooleanField(
         verbose_name=_('Payment is refundable'),
         default=False,
@@ -23,9 +25,4 @@ class RespaPaymentTerm(models.Model):
     )
 
     def __str__(self):
-        return self.name
-
-    def get_refundable_amount(self, paid_amount):
-        deductible_amount = ((100 - self.refund_percentage) / 100) * paid_amount
-        assert paid_amount >= deductible_amount
-        return deductible_amount
+        return get_translated_name(self)

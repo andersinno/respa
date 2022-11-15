@@ -5,7 +5,14 @@ from django.db.models import Q
 from django import forms
 
 from resources.admin.base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
-from .models import Event, PriceList, EventPriceListItem, UserGroup, UserGroupPriceListItem
+from .models import (
+    Event,
+    PriceList,
+    EventPriceListItem,
+    RespaPaymentTerm,
+    UserGroup,
+    UserGroupPriceListItem,
+)
 
 
 class UserGroupAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin):
@@ -17,7 +24,7 @@ class EventAdmin(PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.Mode
 
 
 class UserGroupPriceListItemForm(forms.ModelForm):
-    pre_tax_price = forms.DecimalField()
+    pre_tax_price = forms.DecimalField(required=False)
 
     class Meta:
         model = UserGroupPriceListItem
@@ -87,3 +94,4 @@ if settings.RESPA_PAYMENTS_ENABLED:
     admin.site.register(EventPriceListItem, EventPriceListItemAdmin)
     admin.site.register(UserGroupPriceListItem, UserGroupPriceListItemAdmin)
     admin.site.register(PriceList, PriceListAdmin)
+    admin.site.register(RespaPaymentTerm)

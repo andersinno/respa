@@ -267,13 +267,15 @@ class Reservation(ModifiableModel):
         # Notifications
         if new_state == Reservation.REQUESTED:
             self.send_reservation_requested_mail()
+        elif new_state == Reservation.CANCELLED and old_state == Reservation.PAID:
+            order = Reservation.objects.get(id=self.id).order
+            payment_provider = self.get_payment_provider(request)
+            payment_provider.initiate_payment(order)
         elif new_state == Reservation.CONFIRMED_BUT_NOT_PAID:
             # Initiate payment process and send a payment link in mail
-            from payments.providers import get_payment_provider
-            ui_return_url = get_varaamo_payment_return_url()
-            payments = get_payment_provider(request, ui_return_url=ui_return_url)
             order = Reservation.objects.get(id=self.id).order
-            payment_info = payments.get_payment_info(order)
+            payment_provider = self.get_payment_provider(request)
+            payment_info = payment_provider.get_payment_info(order)
             self.send_resrvation_confirmed_email_with_payment_link(payment_info)
         elif new_state == Reservation.CONFIRMED:
             if self.need_manual_confirmation():
@@ -299,6 +301,30 @@ class Reservation(ModifiableModel):
 
         self.state = new_state
         self.save()
+
+    def get_payment_provider(self, request):
+        from payments.providers import get_payment_provider
+        ui_return_url = get_varaamo_payment_return_url()
+        payment_provider = get_payment_provider(request, ui_return_url=ui_return_url)
+        return payment_provider
+
+    def get_refundable_amount(self):
+        order = self.order
+        payment_term = self.resource.payment_terms
+        if not payment_term.payment_is_refundable:
+            raise Exception('This payment term doesn"t allow refund.')
+        paid_amount = order.get_price()
+        refundable_amount = ((100 - payment_term.refund_percentage) / 100) * paid_amount
+        return refundable_amount
+
+    def can_cancel_paid_reservation(self):
+        payment_term = self.resource.payment_terms
+        reservation_begins_at = self.begin
+        time_now = datetime.datetime.now(timezone.utc)
+
+        if (reservation_begins_at - time_now).days >= payment_term.cancellation_min_days_in_advance:
+            return True
+        return False
 
     def can_modify(self, user, request_method=None):
         if not user:

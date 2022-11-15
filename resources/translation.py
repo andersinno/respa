@@ -4,6 +4,7 @@ from .models import (
     AccessibilityViewpoint, Equipment, EquipmentCategory, Purpose, Resource, ResourceEquipment,
     ResourceImage, ResourceType, TermsOfUse, Unit, UnitGroup)
 
+from respa_pricing.models import RespaPaymentTerm
 
 @register(UnitGroup)
 class UnitGroupTranslationOptions(TranslationOptions):
@@ -64,3 +65,7 @@ class TermsOfUserTranslationOptions(TranslationOptions):
 @register(AccessibilityViewpoint)
 class AccessibilityViewpointTranslationOptions(TranslationOptions):
     fields = ('name',)
+
+@register(RespaPaymentTerm)
+class RespaPaymentTermTranslationOptions(TranslationOptions):
+    fields = ('text',)

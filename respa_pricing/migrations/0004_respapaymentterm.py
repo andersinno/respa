@@ -15,7 +15,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=200, verbose_name='Name')),
-                ('description', models.TextField(verbose_name='Description', blank=True)),
+                ('text_en', models.TextField(verbose_name='Description', blank=True)),
+                ('text_fi', models.TextField(verbose_name='Description', blank=True)),
+                ('text_sv', models.TextField(verbose_name='Description', blank=True)),
                 ('payment_is_refundable', models.BooleanField(default=False, verbose_name='Payment is refundable')),
                 ('refund_percentage', models.DecimalField(blank=True, decimal_places=2, max_digits=5, null=True, verbose_name='Deductible percentage if reservation is refunded')),
                 ('cancellation_min_days_in_advance', models.PositiveIntegerField(blank=True, default=0, verbose_name='The customer can cancel the reservation (days) before the reservation starts.')),
