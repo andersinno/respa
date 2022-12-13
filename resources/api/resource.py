@@ -183,14 +183,12 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
 
     def get_can_only_be_reserved_externally(self, obj):
         today = datetime.datetime.today()
-        opening_hours_period_exists = obj.periods.exists()
         resource_has_external_reservation_link = obj.external_reservation_url
-        resource_period_is_not_valid = not obj.periods.filter(end__gte=today).exists()
-        if (
-            not opening_hours_period_exists or
-            resource_has_external_reservation_link or
-            resource_period_is_not_valid
-        ):
+        resource_period_is_valid = obj.periods.exists() and obj.periods.filter(end__gte=today).exists()
+        unit_period_is_valid = obj.unit.periods.exists() and obj.unit.periods.filter(end__gte=today).exists()
+        period_is_invalid = not any([resource_period_is_valid, unit_period_is_valid])
+
+        if resource_has_external_reservation_link or period_is_invalid:
             return True
         return False
 
