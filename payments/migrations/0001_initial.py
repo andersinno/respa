@@ -77,7 +77,7 @@ class Migration(migrations.Migration):
                 ('description_fi', models.TextField(blank=True, null=True, verbose_name='description')),
                 ('description_en', models.TextField(blank=True, null=True, verbose_name='description')),
                 ('description_sv', models.TextField(blank=True, null=True, verbose_name='description')),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.01'))], verbose_name='price including VAT')),
+                ('price', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.01'))], verbose_name='price including VAT', default=Decimal('0.00'))),
                 ('tax_percentage', models.DecimalField(choices=[(Decimal('0.00'), '0.00'), (Decimal('10.00'), '10.00'), (Decimal('14.00'), '14.00'), (Decimal('24.00'), '24.00')], decimal_places=2, default=Decimal('24.00'), max_digits=5, verbose_name='tax percentage')),
                 ('price_type', models.CharField(choices=[('per_period', 'per period'), ('fixed', 'fixed')], default='per_period', max_length=32, verbose_name='price type')),
                 ('price_period', models.DurationField(blank=True, default=datetime.timedelta(0, 3600), null=True, verbose_name='price period')),
