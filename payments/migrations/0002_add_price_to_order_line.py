@@ -46,5 +46,5 @@ class Migration(migrations.Migration):
             field=models.DecimalField(decimal_places=2, default=0.0, max_digits=10, validators=[django.core.validators.MinValueValidator(Decimal('0.01'))], verbose_name='Unit price including VAT'),
             preserve_default=False,
         ),
-        migrations.RunPython(populate_prices_in_order),
+        migrations.RunPython(populate_prices_in_order, migrations.RunPython.noop),
     ]

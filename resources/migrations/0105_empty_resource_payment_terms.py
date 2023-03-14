@@ -14,5 +14,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(empty_existing_resource_payment_terms)
+        migrations.RunPython(empty_existing_resource_payment_terms, migrations.RunPython.noop)
     ]

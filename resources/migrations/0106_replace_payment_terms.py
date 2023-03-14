@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('resources', '0105_empty_resource_payment_terms'),
+        ('respa_pricing', '0004_respapaymentterm'),
     ]
 
     operations = [
