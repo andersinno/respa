@@ -108,65 +108,6 @@ Example response (GET `/v1/resource/`):
 ...
 ```
 
-### Checking the price of an order
-
-Price checking endpoint can be used to check the price of an order without actually creating the order.
-
-Example request (POST `/v1/order/check_price/`):
-
-```json
-{
-    "begin": "2019-04-11T08:00:00+03:00",
-    "end": "2019-04-11T10:00:00+03:00",
-    "order_lines": [
-        {
-            "product": "awemfcd2iqlq",
-            "quantity": 5
-        }
-    ]
-}
-```
-
-Example response:
-
-```json
-{
-    "order_lines": [
-        {
-            "product": {
-                "id": "awemfcd2iqlq",
-                "type": "extra",
-                "name": {
-                    "fi": "testituote"
-                },
-                "description": {
-                    "fi": "testituotteen kuvaus"
-                },
-                "tax_percentage": "24.00",
-                "price": {
-                    "type": "per_period",
-                    "tax_percentage": "24.00",
-                    "amount": "10.00",
-                    "period": "01:00:00",
-                }
-                "max_quantity": 10
-            },
-            "quantity": 5,
-            "unit_price": "20.00",
-            "price": "100.00"
-        }
-    ],
-    "price": "100.00",
-    "begin": "2019-04-11T08:00:00+03:00",
-    "end": "2019-04-11T11:00:00+03:00"
-}
-```
-
-A product's `price` always has `type` field. Existence of other fields depends on the type:
-
-* when the type is `fixed`, there are also fields `tax_percentage` and `amount`
-* when the type is `per_period`, there are also fields `tax_percentage`, `amount` and `period`
-
 ### Creating an order
 
 Orders are created by creating a reservation normally and including additional `order` field which contains the order's data.

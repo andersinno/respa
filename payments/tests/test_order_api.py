@@ -3,9 +3,6 @@ from guardian.shortcuts import assign_perm
 from rest_framework.reverse import reverse
 
 from ..factories import ProductFactory
-from ..models import Order
-
-CHECK_PRICE_URL = reverse('order-check-price')
 
 
 PRICE_ENDPOINT_ORDER_FIELDS = {
@@ -40,32 +37,3 @@ def product(resource_in_unit):
 @pytest.fixture
 def product_2(resource_in_unit):
     return ProductFactory(resources=[resource_in_unit])
-
-
-def test_order_price_check_success(user_api_client, product, two_hour_reservation):
-    """Test the endpoint returns price calculations for given product without persisting anything"""
-
-    order_count_before = Order.objects.count()
-
-    price_check_data = {
-        "order_lines": [
-            {
-                "product": product.product_id,
-                "unit_price": 10.00,
-            }
-        ],
-        "begin": str(two_hour_reservation.begin),
-        "end": str(two_hour_reservation.end)
-    }
-
-    response = user_api_client.post(CHECK_PRICE_URL, price_check_data)
-    assert response.status_code == 200
-    assert len(response.data['order_lines']) == 1
-    assert set(response.data.keys()) == PRICE_ENDPOINT_ORDER_FIELDS
-    for ol in response.data['order_lines']:
-        assert set(ol.keys()) == ORDER_LINE_FIELDS
-        assert set(ol['product']) == PRODUCT_FIELDS
-        assert ol['total_price'] == ol['unit_price'] * ol['quantity']
-
-    # Check order count didn't change
-    assert order_count_before == Order.objects.count()

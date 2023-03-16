@@ -867,25 +867,6 @@ paths:
         204:
           description: Reservation deleted
           content: {}
-  /order/check_price/:
-    post:
-      tags:
-        - order
-      description: Check the price of an order (available only when the payment support is enabled)
-      requestBody:
-        description: The order data for which one wishes to find out the price
-        content:
-          application/json:
-              schema:
-                $ref: '#/components/schemas/order_check_price_request'
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/order_check_price_response'
-
 components:
   schemas:
     unit:
@@ -1443,20 +1424,3 @@ components:
                 payment_url:
                   type: string
                   description: URL to the payment provider's site where the user should be redirected to execute the payment
-    order_check_price_base:
-      type: object
-      properties:
-        begin:
-          type: string
-          description: Begin timestamp, format hh:mm:ss
-        end:
-          type: string
-          description: End timestamp, format hh:mm:ss
-    order_check_price_request:
-      allOf:
-        - $ref: '#/components/schemas/order_request_base'
-        - $ref: '#/components/schemas/order_check_price_base'
-    order_check_price_response:
-      allOf:
-        - $ref: '#/components/schemas/order_response_base'
-        - $ref: '#/components/schemas/order_check_price_base'
