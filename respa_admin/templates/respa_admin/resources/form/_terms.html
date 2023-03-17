@@ -28,11 +28,7 @@
         </div>
         <div class="price-range">
             <div class="input-row">
-                {% include "respa_admin/forms/_input.html" with field=form.min_price prefix_icon="euro" %}
-                {% include "respa_admin/forms/_input.html" with field=form.max_price prefix_icon="euro" %}
-            </div>
-            <div class="input-row">
-                {% include "respa_admin/forms/_select.html" with field=form.price_type %}
+                {% include "respa_admin/forms/_select.html" with field=form.price_list %}
             </div>
         </div>
     </div>

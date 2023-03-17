@@ -1,0 +1,48 @@
+{% extends "respa_admin/_base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block form_nav %}
+<div class="panel panel-default form-nav-wrapper">
+    <div class='container form-header-wrapper'>
+        <div class="container-fluid row form-header">
+            <div class='form-title col-sm-6'>
+                <h2>
+                    <span class="glyphicon glyphicon-trash icon-left" aria-hidden="true"></span>
+                    {% trans "Delete price list" %}
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock form_nav %}
+
+{% block body %}
+<div class="container form-container">
+    <form method="post">
+        {% csrf_token %}
+        <p class="lead">
+            {% blocktrans %}
+            Are you sure you want to delete price list "{{ object }}"?
+            {% endblocktrans %}
+        </p>
+        <p>
+            {% trans "Samalla poistetaan seuraavat hinnoitellut tuotteet (resursseja ei poisteta):" %}
+        </p>
+        <ul>
+            {% for pp in object.priced_products.all %}
+                <li>{{ pp.product }}</li>
+            {% endfor %}
+        </ul>
+        <hr>
+        <a href="{% url 'respa_admin:price-list' %}" rel="noopener noreferrer">
+            <button class="btn btn-default" type="button">
+                {% trans "Cancel" %}
+            </button>
+        </a>
+        <button class="btn btn-danger" type="submit">
+            {% trans "Delete" %}
+        </button>
+    </form>
+</div>
+{% endblock %}
