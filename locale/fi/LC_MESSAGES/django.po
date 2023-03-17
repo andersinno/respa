@@ -1786,3 +1786,54 @@ msgid ""
 msgstr ""
 "Määrää onko käyttäjä yleinen ylläpitäjä, jolla on erityisoikeuksia moniin "
 "Respan kohteisiin. Tämä on lähes yhtä vaikutusvaltainen kuin pääkäyttäjä."
+
+msgid "Pricing app"
+msgstr "Hinnoittelusovellus"
+
+msgid "User group"
+msgstr "Käyttäjäryhmä"
+
+msgid "User groups"
+msgstr "Käyttäjäryhmät"
+
+msgid "Event type"
+msgstr "Tapahtumatyyppi"
+
+msgid "Event types"
+msgstr "Tapahtumatyypit"
+
+msgid "Price list"
+msgstr "Hinnasto"
+
+msgid "Price lists"
+msgstr "Hinnastot"
+
+msgid "price list"
+msgstr "hinnasto"
+
+msgid "Priced product"
+msgstr "Hinnoiteltu tuote"
+
+msgid "Priced products"
+msgstr "Hinnoitellut tuotteet"
+
+msgid "event type"
+msgstr "tapahtumatyyppi"
+
+msgid "Event type price"
+msgstr "Hinta tapahtumatyypin mukaan"
+
+msgid "Event type prices"
+msgstr "Hinnat tapahtumatyypin mukaan"
+
+msgid "user group"
+msgstr "käyttäjäryhmä"
+
+msgid "User group price"
+msgstr "Hinta käyttäjäryhmän mukaan"
+
+msgid "User group prices"
+msgstr "Hinnat käyttäjäryhmän mukaan"
+
+msgid "Price before tax"
+msgstr "Hinta ennen veroja"
