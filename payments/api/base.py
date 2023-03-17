@@ -20,10 +20,12 @@ class ProductSerializer(TranslatedModelSerializer):
 class OrderLineSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(queryset=Product.objects.current(), slug_field='product_id')
     price = serializers.CharField(source='get_price', read_only=True)
+    user_group = serializers.CharField(write_only=True)
+    event_type = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = OrderLine
-        fields = ('product', 'quantity', 'unit_price', 'price')
+        fields = ('product', 'quantity', 'unit_price', 'price', 'user_group', 'event_type')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
