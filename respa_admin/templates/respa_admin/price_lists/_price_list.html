@@ -1,0 +1,43 @@
+{% load i18n %}
+
+{#TODO: Fix the classes that are copied from Units#}
+
+<section class="price-lists units">
+  <div class="container">
+    <div class="unit-list container-fluid">
+      <ul class="list-group">
+        <li class="list-group-item sort-bar">
+          <a class="col-4 btn order-by-link" href="?order_by={% if order_by == "name" %}-name{% else %}name{% endif %}">
+            {% trans "Name" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <div class="order-by-link"></div>
+          <div class="order-by-link"></div>
+        </li>
+        {% for pricelist in price_lists %}
+          <li class="list-group-item">
+              <div class="panel panel-default">
+                  <div class="panel-body">
+                      <div class="col-4">
+                            <h4>{{ pricelist.name }}</h4>
+                      </div>
+                      <div class="col-4">
+                        <h6>
+                          <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
+                          <a href="{% url 'respa_admin:edit-price-list' price_list_id=pricelist.id %}">{% trans 'Edit' %}</a>
+                        </h6>
+                      </div>
+                      <div class="col-4">
+                        <h6>
+                          <span class='glyphicon glyphicon-trash icon-left' aria-hidden="true"></span>
+                          <a href="{% url 'respa_admin:delete-price-list' price_list_id=pricelist.id %}">{% trans 'Delete' %}</a>
+                        </h6>
+                      </div>
+                  </div>
+              </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% include "respa_admin/common/_pagination.html" %}
+    </div>
+  </div>
+</section>

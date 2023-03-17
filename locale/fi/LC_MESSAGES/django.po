@@ -1837,3 +1837,25 @@ msgstr "Hinnat käyttäjäryhmän mukaan"
 
 msgid "Price before tax"
 msgstr "Hinta ennen veroja"
+
+msgid "Create a new price list"
+msgstr "Luo uusi hinnasto"
+
+msgid "Edit price list"
+msgstr "Muokkaa hinnastoa"
+
+msgid "Delete price list"
+msgstr "Poista hinnasto"
+
+#, python-format
+msgid ""
+"\n"
+"            Are you sure you want to delete price list \"%(object)s\"?\n"
+"            "
+msgstr ""
+"\n"
+"            Haluatko varmasti poistaa hinnaston \"%(object)s\"?\n"
+"            "
+
+msgid "The following priced products will be deleted (resources are not deleted):"
+msgstr "Samalla poistetaan seuraavat hinnoitellut tuotteet (resursseja ei poisteta):"
