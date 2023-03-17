@@ -11,6 +11,13 @@ from resources.models.unit import UnitAuthorization
 from resources.tests.conftest import resource_in_unit, user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
 
+from respa_pricing.tests.factories import (
+    PricedProductFactory,
+    PriceListFactory,
+    UserGroupFactory,
+    UserGroupPriceListItemFactory,
+)
+
 from ..factories import ProductFactory
 from ..models import Order, Product
 from ..providers.base import PaymentProvider
@@ -35,11 +42,25 @@ def build_reservation_data(resource):
 
 def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
     unit_price = 10.00
+    price_list = PriceListFactory()
+    user_group = UserGroupFactory()
+    UserGroupPriceListItemFactory(
+        price_list=price_list,
+        user_group=user_group,
+        price=10.0
+    )
+    PricedProductFactory(product=product, price_list=price_list)
+    if product_2 and product_2 != product:
+        PricedProductFactory(
+            product=product_2,
+            price_list=price_list
+        )
     data = {
         "order_lines": [
             {
                 "product": product.product_id,
-                "unit_price": unit_price
+                "unit_price": unit_price,
+                "user_group": user_group.id,
             }
         ],
         "return_url": "https://varauspalvelu.com/payment_return_url/",
@@ -51,7 +72,8 @@ def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
     if product_2:
         order_line_data = {
             'product': product_2.product_id,
-            'unit_price': unit_price
+            'unit_price': unit_price,
+            'user_group': user_group.id,
         }
         if quantity_2:
             order_line_data['quantity'] = quantity_2
@@ -229,11 +251,27 @@ def test_order_line_products_are_unique(user_api_client, resource_in_unit, produ
 def test_rent_product_makes_order_required_(user_api_client, resource_in_unit, has_rent):
     reservation_data = build_reservation_data(resource_in_unit)
     if has_rent:
-        ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+        prod = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+        prod.resources.update(free_to_use=False)
 
     response = user_api_client.post(LIST_URL, reservation_data)
 
     if has_rent:
+        assert response.status_code == 400
+        assert 'order' in response.data
+    else:
+        assert response.status_code == 201
+
+
+@pytest.mark.parametrize('free_to_use', (True, False))
+def test_not_free_to_use_makes_order_required(user_api_client, resource_in_unit, free_to_use):
+    reservation_data = build_reservation_data(resource_in_unit)
+    prod = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+    prod.resources.update(free_to_use=free_to_use)
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    if not free_to_use:
         assert response.status_code == 400
         assert 'order' in response.data
     else:
@@ -284,6 +322,8 @@ def test_order_must_include_rent_if_one_exists(user_api_client, resource_in_unit
 
 def test_unit_admin_and_unit_manager_may_bypass_payment(user_api_client, resource_in_unit, user):
     reservation_data = build_reservation_data(resource_in_unit)
+    resource_in_unit.free_to_use=False
+    resource_in_unit.save()
     ProductFactory(type=Product.RENT, resources=[resource_in_unit])
 
     # Order required for normal user
