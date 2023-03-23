@@ -1,4 +1,6 @@
+from django.db.models import FieldDoesNotExist
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
@@ -20,11 +22,13 @@ class PriceListView(ExtraContextMixin, ListView):
     def get(self, request, *args, **kwargs):
         get_params = request.GET
         self.search_query = get_params.get('search_query')
+        self.order_by = get_params.get('order_by', 'name')
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
         context['search_query'] = self.search_query or ''
+        context['order_by'] = self.order_by
         return context
 
     def get_queryset(self):
@@ -32,6 +36,13 @@ class PriceListView(ExtraContextMixin, ListView):
 
         if self.search_query:
             qs = qs.filter(name__icontains=self.search_query)
+        if self.order_by:
+            order_by_param = self.order_by.strip('-')
+            try:
+                if PriceList._meta.get_field(order_by_param):
+                    qs = qs.order_by(self.order_by)
+            except FieldDoesNotExist:
+                pass
         return qs
 
 
