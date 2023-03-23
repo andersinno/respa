@@ -195,6 +195,7 @@ def _find_exchange_user_by_mailbox(ex_resource, mailbox, last_updated_at=None):
                     exchange=ex_resource.exchange,
                     x500_addresses__address__iexact=addr
                 )
+                log.info(f"Found user {ex_user} with id {ex_user.id}")
                 break
             except ExchangeUser.DoesNotExist:
                 pass
@@ -204,6 +205,7 @@ def _find_exchange_user_by_mailbox(ex_resource, mailbox, last_updated_at=None):
 
     # If no matches based on any identifiers are found, it is a new user.
     if ex_user is None:
+        log.info(f"Creating new ex user with email {props.get('email_address')}")
         ex_user = ExchangeUser(exchange=ex_resource.exchange)
 
     for k, v in props.items():
@@ -214,11 +216,16 @@ def _find_exchange_user_by_mailbox(ex_resource, mailbox, last_updated_at=None):
     existing_x500_addresses = set([x.upper() for x in ex_user.x500_addresses.values_list('address', flat=True)])
     new_x500_addresses = set(x500_addresses) - existing_x500_addresses
     for addr in new_x500_addresses:
-        ExchangeUserX500Address.objects.create(
-            exchange=ex_resource.exchange,
-            user=ex_user,
-            address=addr
-        )
+        try:
+            ExchangeUserX500Address.objects.get(exchange=ex_resource.exchange, user=ex_user, address=addr)
+        except ExchangeUserX500Address.DoesNotExist:
+            log.info(f"Creating address for: {addr}")
+            log.info(f"Exchange user name: {ex_user} email: {ex_user.email_address} surname: {ex_user.surname})")
+            ExchangeUserX500Address.objects.create(
+                exchange=ex_resource.exchange,
+                user=ex_user,
+                address=addr
+            )
 
     return ex_user
 

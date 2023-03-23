@@ -84,7 +84,7 @@ env = environ.Env(
     DISABLE_SERVER_SIDE_CURSORS=(bool, False),
     PRODUCTION_MODE=(str, 'production'),
 )
-environ.Env.read_env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # used for generating links to images, when no request context is available
 # reservation confirmation emails use this
@@ -429,3 +429,10 @@ if 'SECRET_KEY' not in locals():
 #
 if DATABASES['default']['ENGINE'] != 'django.contrib.gis.db.backends.postgis':
     raise ImproperlyConfigured("Only postgis database backend is supported")
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# CeePos payment provider settings
+RESPA_PAYMENTS_PROVIDER_CLASS='payments.providers.CPUCeeposProvider'
+RESPA_PAYMENTS_CEEPOS_API_URL="https://verkkomaksutesti.cpu.fi/maksu.html" # test env
+RESPA_PAYMENTS_CEEPOS_API_KEY="varaamo"
+RESPA_PAYMENTS_CEEPOS_API_SECRET="VARAAMO_TEST_SECRET"

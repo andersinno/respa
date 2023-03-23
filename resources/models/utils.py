@@ -292,3 +292,20 @@ def build_ical_feed_url(ical_token, request):
 
     url = reverse('ical-feed', kwargs={'ical_token': ical_token}, request=request)
     return url[:url.find('?')]
+
+
+def get_varaamo_payment_return_url():
+    if settings.PRODUCTION_MODE == 'production':
+        protocol = 'https:'
+        hostname = 'varaamo.tampere.fi'
+        port = 80
+    elif settings.DEBUG:
+        protocol = 'http:'
+        hostname = 'localhost'
+        port = 3000
+    else:
+        protocol = 'https:'
+        hostname = 'dev-varaamo.tampere.fi'
+        port = 80
+
+    return f'{protocol}//{hostname}:{port}/reservation-payment-return'

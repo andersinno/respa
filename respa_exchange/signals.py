@@ -35,16 +35,16 @@ def handle_reservation_save(instance, **kwargs):
             # we don't want to upload changes made to it.
             managed_in_exchange=False
         ).first()
-        if not exchange_reservation:  # First sync? How exciting!
-            exchange_reservation = ExchangeReservation(
-                reservation=instance,
-                exchange=exchange_resource.exchange,
-                principal_email=exchange_resource.principal_email
-            )
-
-            create_on_remote(exchange_reservation)
-        else:
-            update_on_remote(exchange_reservation)
+        # if not exchange_reservation:  # First sync? How exciting!
+        #     exchange_reservation = ExchangeReservation(
+        #         reservation=instance,
+        #         exchange=exchange_resource.exchange,
+        #         principal_email=exchange_resource.principal_email
+        #     )
+        #
+        #     create_on_remote(exchange_reservation)
+        # else:
+        #     update_on_remote(exchange_reservation)
 
 
 def handle_reservation_delete(instance, **kwargs):
