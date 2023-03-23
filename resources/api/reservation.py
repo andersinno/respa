@@ -149,7 +149,12 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             return value
 
         if instance.resource.can_approve_reservations(request_user):
-            allowed_states = (Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED)
+            allowed_states = (
+                Reservation.REQUESTED,
+                Reservation.CONFIRMED,
+                Reservation.DENIED,
+                Reservation.CONFIRMED_BUT_NOT_PAID,
+            )
             if instance.state in allowed_states and value in allowed_states:
                 return value
 
@@ -750,7 +755,7 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
 
         resource = serializer.validated_data['resource']
 
-        if resource.need_manual_confirmation and not resource.can_bypass_manual_confirmation(self.request.user):
+        if instance.need_manual_confirmation and not resource.can_bypass_manual_confirmation(self.request.user):
             new_state = Reservation.REQUESTED
         else:
             if instance.get_order():
@@ -765,7 +770,11 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
         old_instance = self.get_object()
         new_state = serializer.validated_data.pop('state', old_instance.state)
         new_instance = serializer.save(modified_by=self.request.user)
-        new_instance.set_state(new_state, self.request.user)
+        new_instance.set_state(
+            new_state,
+            self.request.user,
+            request=self.request,
+        )
 
     def perform_destroy(self, instance):
         instance.set_state(Reservation.CANCELLED, self.request.user)
