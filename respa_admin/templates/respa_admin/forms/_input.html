@@ -1,10 +1,12 @@
 <div class="form-group">
+    {% if not skip_label %}
     <label
         class="control-label input-label"
         for="{{ field.id_for_label }}"
     >
         {{ field.label }}{% if field.field.required %}*{% endif %}
     </label>
+    {% endif %}
     {% if prefix_icon or prefix_text %}
         <div class="input-unit-wrapper">
     {% endif %}

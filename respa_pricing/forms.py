@@ -8,6 +8,8 @@ from payments.models import Product, Resource
 from .models import (
     PriceList,
     PricedProduct,
+    EventTypePriceListItem,
+    UserGroupPriceListItem,
 )
 
 
@@ -77,3 +79,17 @@ class PriceListForm(forms.ModelForm):
     class Meta:
         model = PriceList
         fields = ("name",)
+
+UserGroupPriceListItemFormset = forms.inlineformset_factory(
+    PriceList,
+    UserGroupPriceListItem,
+    fields=("user_group", "price", "tax_percentage", "price_period", "price_type"),
+    extra=1,
+)
+
+EventTypePriceListItemFormset = forms.inlineformset_factory(
+    PriceList,
+    EventTypePriceListItem,
+    fields=("event_type", "price", "tax_percentage", "price_period", "price_type"),
+    extra=1,
+)

@@ -3,7 +3,11 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from respa_pricing.models import PriceList
-from respa_admin.forms import PriceListForm
+from respa_pricing.forms import (
+    PriceListForm,
+    EventTypePriceListItemFormset,
+    UserGroupPriceListItemFormset,
+)
 from respa_admin.views.base import ExtraContextMixin
 
 
@@ -36,6 +40,60 @@ class PriceListCreateView(ExtraContextMixin, CreateView):
     pk_url_kwarg = 'price_list_id'
     form_class = PriceListForm
     template_name = 'respa_admin/price_lists/price_list_form.html'
+    success_url = reverse_lazy("respa_admin:price-list")
+
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        user_group_item_formset = UserGroupPriceListItemFormset(instance=self.object)
+        event_type_item_formset = EventTypePriceListItemFormset(instance=self.object)
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                user_group_item_formset=user_group_item_formset,
+                event_type_item_formset=event_type_item_formset,
+            )
+        )
+
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        user_group_item_formset = UserGroupPriceListItemFormset(self.request.POST)
+        event_type_item_formset = EventTypePriceListItemFormset(self.request.POST)
+
+        if (form.is_valid() and user_group_item_formset.is_valid() and
+            event_type_item_formset.is_valid()):
+            return self.form_valid(
+                form,
+                user_group_item_formset,
+                event_type_item_formset,
+            )
+        else:
+            return self.form_invalid(
+                form,
+                user_group_item_formset,
+                event_type_item_formset
+            )
+
+    def form_valid(self, form, user_group_item_formset, event_type_item_formset):
+        self.object = form.save()
+        user_group_item_formset.instance = self.object
+        user_group_item_formset.save()
+        event_type_item_formset.instance = self.object
+        event_type_item_formset.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, user_group_item_formset, event_type_item_formset):
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                user_group_item_formset=user_group_item_formset,
+                event_type_item_formset=event_type_item_formset,
+            )
+        )
 
 
 class PriceListEditView(ExtraContextMixin, UpdateView):
@@ -43,6 +101,62 @@ class PriceListEditView(ExtraContextMixin, UpdateView):
     pk_url_kwarg = 'price_list_id'
     form_class = PriceListForm
     template_name = 'respa_admin/price_lists/price_list_form.html'
+    success_url = reverse_lazy("respa_admin:price-list")
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        user_group_item_formset = UserGroupPriceListItemFormset(instance=self.object)
+        event_type_item_formset = EventTypePriceListItemFormset(instance=self.object)
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                user_group_item_formset=user_group_item_formset,
+                event_type_item_formset=event_type_item_formset,
+            )
+        )
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        user_group_item_formset = UserGroupPriceListItemFormset(self.request.POST, instance=self.object)
+        event_type_item_formset = EventTypePriceListItemFormset(self.request.POST, instance=self.object)
+
+        if (form.is_valid() and user_group_item_formset.is_valid() and
+            event_type_item_formset.is_valid()):
+            return self.form_valid(
+                form,
+                user_group_item_formset,
+                event_type_item_formset,
+            )
+        else:
+            return self.form_invalid(
+                form,
+                user_group_item_formset,
+                event_type_item_formset
+            )
+
+    def form_valid(self, form, user_group_item_formset, event_type_item_formset):
+        print("form_valid")
+        self.object = form.save()
+        user_group_item_formset.instance = self.object
+        user_group_item_formset.save()
+        event_type_item_formset.instance = self.object
+        event_type_item_formset.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def form_invalid(self, form, user_group_item_formset, event_type_item_formset):
+        print("form_invalid")
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                user_group_item_formset=user_group_item_formset,
+                event_type_item_formset=event_type_item_formset,
+            )
+        )
 
 
 class PriceListDeleteView(ExtraContextMixin, DeleteView):

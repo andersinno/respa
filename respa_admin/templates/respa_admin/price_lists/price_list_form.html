@@ -6,7 +6,7 @@
   <div class="panel panel-default form-nav-wrapper">
     <div class='container form-header-wrapper'>
       <div class="container-fluid row form-header">
-        <div class='form-title col-sm-6'>
+        <div class='form-title col-sm-6' style="margin-bottom: 1.5em;">
           <h2>
             <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
             {% if object.pk %}
@@ -25,119 +25,112 @@
   <div class="container form-container">
     <form method="post">
       {% csrf_token %}
-      {% include "respa_admin/forms/_form_errors.html" %}
+      {% if form.errors or user_group_item_formset.errors or event_type_item_formset.errors %}
+        <div class="alert alert-danger">
+          <strong>{% trans "Tarkista lomakkeen virheet" %}</strong>
+        </div>
+      {% endif %}
 
       <div>
+        <h4 style="margin-bottom: 0.5em;">{% trans "Name" %}</h4>
         <div class="description">
-          {% include "respa_admin/forms/_input.html" with field=form.name %}
+          {% include "respa_admin/forms/_input.html" with field=form.name skip_label=True %}
         </div>
-{#      <div class="accordion-item" id="price-list">#}
-{#        <div class="card">#}
-{#          <div class="card-header" id="user-group-price">#}
-{#            <h2 class="mb-0">#}
-{#              <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">#}
-{#                {{ form.user_group_price.label }}#}
-{#              </button>#}
-{#            </h2>#}
-{#          </div>#}
-{#          <div id="collapseOne" class="collapse" aria-labelledby="user-group-price" data-parent="#price-list">#}
-{#            <div class="card-body">#}
-{#              {{ form.user_group_price }}#}
-{#            </div>#}
-{#          </div>#}
-{#        </div>#}
-{##}
-{#        <div class="card">#}
-{#          <div class="card-header" id="event-price">#}
-{#            <h2 class="mb-0">#}
-{#              <button#}
-{#                class="btn btn-link btn-block text-left"#}
-{#                type="button"#}
-{#                data-toggle="collapse"#}
-{#                data-target="#event-price-collapse"#}
-{#                aria-expanded="true"#}
-{#                aria-controls="event-price-collapse"#}
-{#              >#}
-{#                {{ form.event_price.label }}#}
-{#              </button>#}
-{#            </h2>#}
-{#          </div>#}
-{#          <div#}
-{#            id="event-price-collapse"#}
-{#            class="collapse"#}
-{#            aria-labelledby="event-price"#}
-{#            data-parent="#price-list"#}
-{#          >#}
-{#            <div class="card-body">#}
-{#              {{ form.event_price }}#}
-{#            </div>#}
-{#          </div>#}
-{#        </div>#}
-{#      </div>#}
-{#    </form>#}
-    <div class="accordion-item" id="accordion-item-1">
-      <div
-        class="dropdown-time panel-group input-row"
-        id="accordion1"
-        role="tablist"
-        aria-multiselectable="true"
-      >
-        <a
-          class="btn"
-          role="button"
-          data-toggle="collapse"
-          data-parent="#accordion1"
-          href="#collapse1"
-          aria-expanded="true"
-          aria-controls="#collapse1"
-        >
-          <span class="glyphicon glyphicon-edit icon-left"></span>
-          {% trans "User group" %}
-          <span class="glyphicon glyphicon-chevron-down icon-right"></span>
-        </a>
+
+        <hr>
+
+        <h4 style="margin-bottom: 0.5em;">{% trans "Resources" %}</h4>
+        <div class="resurces">
+          {{ form.resources }}
+        </div>
+
+        <hr>
+
+        <h4 style="margin-bottom: 0.5em;">{% trans "Prices by user group" %}</h4>
+        <table class="full-width-table">
+          <thead>
+            <tr>
+              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.user_group.label }}</th>
+              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.price.label }}</th>
+              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.tax_percentage.label }}</th>
+              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.price_period.label }}</th>
+              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.price_type.label }}</th>
+            </tr>
+            <tr class="spacer" style="height: 0.5em;">
+              <td></td>
+            </tr>
+          </thead>
+          <tbody>
+            {{ user_group_item_formset.management_form }}
+            {% for form in user_group_item_formset.forms %}
+              {{ form.id }}
+              <tr>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.user_group skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.tax_percentage skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price_period skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.price_type skip_label=True %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <button class="btn" type="button" style="margin: 1em 0;">
+          <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+          {% trans "Add item" %}
+        </button>
+
+        <hr>
+
+        <h4 style="margin-bottom: 0.5em;">{% trans "Prices by event type" %}</h4>
+        <table class="full-width-table">
+          <thead>
+            <tr>
+              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.event_type.label }}</th>
+              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.price.label }}</th>
+              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.tax_percentage.label }}</th>
+              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.price_period.label }}</th>
+              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.price_type.label }}</th>
+            </tr>
+            <tr class="spacer" style="height: 0.5em;">
+              <td></td>
+            </tr>
+          </thead>
+          <tbody>
+            {{ event_type_item_formset.management_form }}
+            {% for form in event_type_item_formset.forms %}
+              {{ form.id }}
+              <tr>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.event_type skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.tax_percentage skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price_period skip_label=True %}</td>
+                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.price_type skip_label=True %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <button class="btn" type="button" style="margin: 1em 0;">
+          <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+          {% trans "Add item" %}
+        </button>
       </div>
-      <div
-        class="panel-collapse collapse show"
-        role="tabpanel"
-        id="collapse1"
-        aria-labelledby="heading1"
-      >
-        <div class="container-fluid">
-          {{ form.user_group_price }}
+      
+      <div class="navbar-fixed-bottom">
+        <div class="panel panel-default form-toolbar-wrapper">
+          <div class='container form-toolbar'>
+            <span class="toolbar-label" style="padding-top: 12px;">{% trans "Functions" %}</span>
+            <a href="{% url 'respa_admin:price-list' %}" rel="noopener noreferrer" style="text-decoration:none">
+              <button class="btn cancel-button" type="button">
+                {% trans "Cancel" %}
+              </button>
+            </a>
+            <button class="btn resources-button" type="submit" style="margin-left: 1em;">
+              {% trans "Save" %}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div
-        class="dropdown-time panel-group input-row"
-        id="accordion2"
-        role="tablist"
-        aria-multiselectable="true"
-      >
-        <a
-          class="btn"
-          role="button"
-          data-toggle="collapse"
-          data-parent="#accordion2"
-          href="#collapse2"
-          aria-expanded="true"
-          aria-controls="#collapse2"
-        >
-          <span class="glyphicon glyphicon-edit icon-left"></span>
-          {% trans "Reservation event type" %}
-          <span class="glyphicon glyphicon-chevron-down icon-right"></span>
-        </a>
-      </div>
-      <div
-          class="panel-collapse collapse show"
-          role="tabpanel"
-          id="collapse2"
-          aria-labelledby="heading2"
-        >
-          <div class="container-fluid">
-            {{ form.event_price }}
-          </div>
-        </div>
-    </div>
     </form>
   </div>
 {% endblock body %}
