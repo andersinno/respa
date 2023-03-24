@@ -1,0 +1,27 @@
+{% load i18n %}
+
+<div class="row">
+    {{ form.id }}
+    <div class="col-sm-2">
+        {% include "respa_admin/forms/_select.html" with field=form.user_group skip_label=True %}
+    </div>
+    <div class="col-sm-2">
+        {% include "respa_admin/forms/_input.html" with field=form.price skip_label=True %}
+    </div>
+    <div class="col-sm-2">
+        {% include "respa_admin/forms/_select.html" with field=form.tax_percentage skip_label=True %}
+    </div>
+    <div class="col-sm-2">
+        {% include "respa_admin/forms/_input.html" with field=form.price_period skip_label=True %}
+    </div>
+    <div class="col-sm-2">
+        {% include "respa_admin/forms/_select.html" with field=form.price_type skip_label=True %}
+    </div>
+    <div class="col-sm-2">
+        <button class="btn remove-item" type="button">
+            <span class="glyphicon glyphicon-remove icon-left" aria-hidden="true"></span>
+            {% trans "Delete" %}
+        </button>
+        <span class="hidden-delete-checkbox">{{ form.DELETE }}</span>
+    </div>
+</div>

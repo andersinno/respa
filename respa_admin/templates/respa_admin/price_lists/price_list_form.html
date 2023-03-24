@@ -22,7 +22,7 @@
 {% endblock form_nav %}
 
 {% block body %}
-  <div class="container form-container">
+  <div class="container form-container price-list-form">
     <form method="post">
       {% csrf_token %}
       {% if form.errors or user_group_item_formset.errors or event_type_item_formset.errors %}
@@ -32,99 +32,90 @@
       {% endif %}
 
       <div>
-        <h4 style="margin-bottom: 0.5em;">{% trans "Name" %}</h4>
+        <!-- Name -->
+        <h4>{% trans "Name" %}</h4>
         <div class="description">
           {% include "respa_admin/forms/_input.html" with field=form.name skip_label=True %}
         </div>
 
         <hr>
 
-        <h4 style="margin-bottom: 0.5em;">{% trans "Resources" %}</h4>
-        <div class="resurces">
-          {{ form.resources }}
+        <!-- Resource -->
+        <h4>{% trans "Resource" %}</h4>
+        <div class="resources">
+          {% include "respa_admin/forms/_select.html" with field=form.resource skip_label=True %}
         </div>
 
         <hr>
 
-        <h4 style="margin-bottom: 0.5em;">{% trans "Prices by user group" %}</h4>
-        <table class="full-width-table">
-          <thead>
-            <tr>
-              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.user_group.label }}</th>
-              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.price.label }}</th>
-              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.tax_percentage.label }}</th>
-              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.price_period.label }}</th>
-              <th style="padding-right: 1em;">{{ user_group_item_formset.forms.0.price_type.label }}</th>
-            </tr>
-            <tr class="spacer" style="height: 0.5em;">
-              <td></td>
-            </tr>
-          </thead>
-          <tbody>
-            {{ user_group_item_formset.management_form }}
-            {% for form in user_group_item_formset.forms %}
-              {{ form.id }}
-              <tr>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.user_group skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.tax_percentage skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price_period skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.price_type skip_label=True %}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        <button class="btn" type="button" style="margin: 1em 0;">
+        <!-- Prices by user group-->
+        <h4>{% trans "Prices by user group" %}</h4>
+        <div id="user-group-prices" class="user-group-prices">
+          <div class="row header">
+            <div class="col-sm-2">{{ user_group_item_formset.forms.0.user_group.label }}</div>
+            <div class="col-sm-2">{{ user_group_item_formset.forms.0.price.label }}</div>
+            <div class="col-sm-2">{{ user_group_item_formset.forms.0.tax_percentage.label }}</div>
+            <div class="col-sm-2">{{ user_group_item_formset.forms.0.price_period.label }}</div>
+            <div class="col-sm-2">{{ user_group_item_formset.forms.0.price_type.label }}</div>
+            <div class="col-sm-2"></div>
+          </div>
+          {{ user_group_item_formset.management_form }}
+          {% for form in user_group_item_formset.forms %}
+            {% include "respa_admin/price_lists/_user_group_item_form.html" with form=form %}
+          {% endfor %}
+
+          <!-- Empty form set item -->
+          <div id="empty-user-group-item" style="display:none;">
+            {% include "respa_admin/price_lists/_user_group_item_form.html" with form=user_group_item_formset.empty_form %}
+          </div>
+        </div>
+
+        <button id="user-group-item-add-more" class="btn add-more" type="button">
           <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
           {% trans "Add item" %}
         </button>
 
         <hr>
 
-        <h4 style="margin-bottom: 0.5em;">{% trans "Prices by event type" %}</h4>
-        <table class="full-width-table">
-          <thead>
-            <tr>
-              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.event_type.label }}</th>
-              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.price.label }}</th>
-              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.tax_percentage.label }}</th>
-              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.price_period.label }}</th>
-              <th style="padding-right: 1em;">{{ event_type_item_formset.forms.0.price_type.label }}</th>
-            </tr>
-            <tr class="spacer" style="height: 0.5em;">
-              <td></td>
-            </tr>
-          </thead>
-          <tbody>
-            {{ event_type_item_formset.management_form }}
-            {% for form in event_type_item_formset.forms %}
-              {{ form.id }}
-              <tr>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.event_type skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.tax_percentage skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_input.html" with field=form.price_period skip_label=True %}</td>
-                <td style="padding-right: 1em;">{% include "respa_admin/forms/_select.html" with field=form.price_type skip_label=True %}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        <button class="btn" type="button" style="margin: 1em 0;">
+        <!-- Prices by event type -->
+        <h4>{% trans "Prices by event type" %}</h4>
+        <div id="event-type-prices" class="event-type-prices">
+          <div class="row header">
+            <div class="col-sm-2">{{ event_type_item_formset.forms.0.event_type.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.forms.0.price.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.forms.0.tax_percentage.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.forms.0.price_period.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.forms.0.price_type.label }}</div>
+            <div class="col-sm-2"></div>
+          </div>
+          {{ event_type_item_formset.management_form }}
+          {% for form in event_type_item_formset.forms %}
+            {% include "respa_admin/price_lists/_event_type_item_form.html" with form=form %}
+          {% endfor %}
+
+          <!-- Empty form set item -->
+          <div id="empty-event-type-item" style="display:none;">
+            {% include "respa_admin/price_lists/_event_type_item_form.html" with form=event_type_item_formset.empty_form %}
+          </div>
+        </div>
+
+        <button id="event-type-item-add-more" class="btn add-more" type="button">
           <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
           {% trans "Add item" %}
         </button>
       </div>
       
+      <!-- Function buttons -->
       <div class="navbar-fixed-bottom">
         <div class="panel panel-default form-toolbar-wrapper">
           <div class='container form-toolbar'>
-            <span class="toolbar-label" style="padding-top: 12px;">{% trans "Functions" %}</span>
-            <a href="{% url 'respa_admin:price-list' %}" rel="noopener noreferrer" style="text-decoration:none">
+            <span class="toolbar-label">{% trans "Functions" %}</span>
+            <a href="{% url 'respa_admin:price-list' %}" rel="noopener noreferrer">
               <button class="btn cancel-button" type="button">
                 {% trans "Cancel" %}
               </button>
             </a>
-            <button class="btn resources-button" type="submit" style="margin-left: 1em;">
+            <button class="btn resources-button" type="submit">
               {% trans "Save" %}
             </button>
           </div>
@@ -134,3 +125,7 @@
     </form>
   </div>
 {% endblock body %}
+
+{% block js_extra %}
+  <script type="text/javascript" src="{% static 'respa_admin/priceListForm-bundle.js' %}"></script>
+{% endblock js_extra %}

@@ -15,6 +15,7 @@ module.exports = {
     resourceForm: './static_src/js/resourceFormIndex.js',
     userForm: './static_src/js/userFormIndex.js',
     unitForm: './static_src/js/unitFormIndex.js',
+    priceListForm: './static_src/js/priceListFormIndex.js',
     base: './static_src/js/baseIndex.js',
   },
   output: {

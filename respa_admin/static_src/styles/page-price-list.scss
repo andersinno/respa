@@ -1,0 +1,36 @@
+.price-list-form {
+  h4 {
+    margin-bottom: 0.5em;
+  }
+
+  .btn.add-more {
+    margin: 1em 0;
+  }
+
+  .btn.remove-item {
+    background: none;
+    color: #d21220;
+  }
+
+  .user-group-prices,
+  .event-type-prices {
+    .header {
+      margin-bottom: 0.5em;
+      font-weight: bold;
+    }
+  }
+
+  .form-toolbar {
+    .toolbar-label {
+      padding-top: 12px !important;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    button {
+      margin-left: 1em;
+    }
+  }
+}

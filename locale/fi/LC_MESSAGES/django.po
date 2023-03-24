@@ -374,7 +374,7 @@ msgstr "tuotteet"
 
 msgid "This field requires a non-zero value when price type is \"per period\"."
 msgstr ""
-"Tällä kentällä tulee oll arvo silloin kun hinnan tyyppi on \"ajanjaksoa kohti"
+"Tällä kentällä tulee olla arvo silloin kun hinnan tyyppi on \"ajanjaksoa kohti"
 "\"."
 
 msgid "waiting"

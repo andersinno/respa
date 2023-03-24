@@ -151,7 +151,6 @@ class PriceListEditView(ExtraContextMixin, UpdateView):
             )
 
     def form_valid(self, form, user_group_item_formset, event_type_item_formset):
-        print("form_valid")
         self.object = form.save()
         user_group_item_formset.instance = self.object
         user_group_item_formset.save()
@@ -160,7 +159,6 @@ class PriceListEditView(ExtraContextMixin, UpdateView):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, user_group_item_formset, event_type_item_formset):
-        print("form_invalid")
         return self.render_to_response(
             self.get_context_data(
                 form=form,
