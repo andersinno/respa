@@ -14,14 +14,14 @@ from .models import (
 
 
 class PriceListForm(forms.ModelForm):
-    resources = forms.ModelMultipleChoiceField(
-        queryset=None, required=False, label=_("Resources")
+    resource = forms.ModelChoiceField(
+        queryset=None, required=False, label=_("Resource")
     )
 
     def __init__(self, *args, **kwargs):
         """
         Allow selecting resources that are not linked to any other price list.
-        Initially select the resources linked to the price list instance.
+        Initially select the resource linked to the price list instance.
         """
         super().__init__(*args, **kwargs)
 
@@ -36,49 +36,43 @@ class PriceListForm(forms.ModelForm):
                 products__pricedproduct__price_list=self.instance
             )
             queryset = queryset | linked_resources
-            self.fields["resources"].initial = linked_resources
+            if linked_resources:
+                self.fields["resource"].initial = linked_resources.first()
 
-        self.fields["resources"].queryset = queryset.distinct().order_by("name")
+        self.fields["resource"].queryset = queryset.distinct().order_by("name")
 
     def save(self, commit=True):
         """
-        Create or archive the products (and handle the priced products)
-        based on the selected resources.
+        Create or archive the product (and handle the priced product)
+        based on the selected resource.
         """
         saved_form = super().save(commit=False)
-        selected_resources = self.cleaned_data["resources"]
-        priced_prod_ids = []
+        current_resource = None
+        selected_resource = self.cleaned_data["resource"]
+
+        if self.instance.pk and hasattr(self.instance, "priced_product"):
+            current_resource = self.instance.priced_product.product.resources.first()
+
         saved_form.save()
 
-        for resource in selected_resources:
-            # Archive existing products linked to the resource
-            existing_products = Product.objects.current().filter(
-                resources__in=[resource]
-            )
-            existing_products.update(archived_at=now())
-            existing_products_ids = existing_products.values_list("id")
-            PricedProduct.objects.filter(pk__in=existing_products_ids).delete()
+        if current_resource and selected_resource != current_resource:
+            # Archive existing products linked to the price list
+            self.instance.priced_product.product.archived_at = now()
+            self.instance.priced_product.product.save()
+            self.instance.priced_product.delete()
 
+        if selected_resource and selected_resource != current_resource:
             # Create new product
-            prod = Product.objects.create(name=resource.name)
-            prod.resources.add(resource)
-            priced_prod = PricedProduct.objects.create(
-                product=prod, price_list=self.instance
-            )
-            priced_prod_ids.append(priced_prod.pk)
-
-        if self.instance.pk:
-            # Archive products that are not selected anymore
-            Product.objects.current().exclude(
-                pricedproduct__pk__in=priced_prod_ids
-            ).filter(pricedproduct__price_list=self.instance).update(archived_at=now())
-            self.instance.priced_products.all().exclude(pk__in=priced_prod_ids).delete()
+            prod = Product.objects.create(name=selected_resource.name)
+            prod.resources.add(selected_resource)
+            PricedProduct.objects.create(product=prod, price_list=self.instance)
 
         return saved_form
 
     class Meta:
         model = PriceList
         fields = ("name",)
+
 
 UserGroupPriceListItemFormset = forms.inlineformset_factory(
     PriceList,

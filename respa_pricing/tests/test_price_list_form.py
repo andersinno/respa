@@ -1,46 +1,43 @@
 import pytest
 
 from payments.models import Product
-from resources.models import Resource
 
 from ..forms import PriceListForm
+from ..models import PricedProduct
 
 
 @pytest.mark.django_db
-def test_priced_products_are_created_from_selected_resources(
-    price_list, resource, resource_2
-):
+def test_priced_products_are_created_from_selected_resources(price_list, resource):
     """
-    Test that, when a price list form is saved, products and
-    priced products are created from any new selected resources.
+    Test that, when a price list form is saved, product and
+    priced product are created from any new selected resource.
     """
     assert Product.objects.current().count() == 0
-    assert price_list.priced_products.count() == 0
+    assert PricedProduct.objects.count() == 0
 
-    resources = Resource.objects.filter(pk__in=[resource.pk, resource_2.pk])
     form = PriceListForm(
-        {"name": price_list.name, "resources": resources}, instance=price_list
+        {"name": price_list.name, "resource": resource.pk}, instance=price_list
     )
     form.save()
 
-    assert Product.objects.current().count() == 2
-    assert price_list.priced_products.count() == 2
+    assert Product.objects.current().count() == 1
+    assert PricedProduct.objects.count() == 1
 
 
 @pytest.mark.django_db
-def test_removed_resource_products_are_archived(price_list_with_products):
+def test_removed_resource_products_are_archived(price_list_with_product):
     """
-    Test that, when a price list form is saved, the priced products
-    for the unselected resources are deleted and the products archived.
+    Test that, when a price list form is saved, the priced product
+    for the unselected resource is deleted and the product is archived.
     """
-    assert Product.objects.current().count() == 2
-    assert price_list_with_products.priced_products.count() == 2
+    assert Product.objects.current().count() == 1
+    assert PricedProduct.objects.count() == 1
 
     form = PriceListForm(
-        {"name": price_list_with_products.name, "resources": Resource.objects.none()},
-        instance=price_list_with_products,
+        {"name": price_list_with_product.name, "resource": None},
+        instance=price_list_with_product,
     )
     form.save()
 
     assert Product.objects.current().count() == 0
-    assert price_list_with_products.priced_products.count() == 0
+    assert PricedProduct.objects.count() == 0

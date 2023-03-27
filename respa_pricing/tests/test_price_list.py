@@ -10,7 +10,7 @@ from ..models import PriceList
 
 @pytest.mark.django_db
 def test_get_price_info_returns_highest_price_and_lowest_tax_pct(
-    price_list_with_products, user_group, event_type
+    price_list_with_product, user_group, event_type
 ):
     """
     Test that PriceList.get_price_info() returns the highest price (before tax) and
@@ -25,19 +25,19 @@ def test_get_price_info_returns_highest_price_and_lowest_tax_pct(
     """
 
     user_group_price_list_item = UserGroupPriceListItemFactory(
-        price_list=price_list_with_products,
+        price_list=price_list_with_product,
         price=Decimal("24.80"),
         tax_percentage=Decimal("24.00"),
         user_group=user_group,
     )
     event_type_price_list_item = EventTypePriceListItemFactory(
-        price_list=price_list_with_products,
+        price_list=price_list_with_product,
         price=Decimal("17.10"),
         tax_percentage=Decimal("14.00"),
         event_type=event_type,
     )
 
-    product = price_list_with_products.priced_products.first().product
+    product = price_list_with_product.priced_product.product
     begin = datetime.datetime(2119, 5, 5, 10, 0, 0, tzinfo=UTC)
     end = datetime.datetime(2119, 5, 5, 12, 0, 0, tzinfo=UTC)
     price_info = PriceList.get_price_info(

@@ -43,17 +43,22 @@ def build_reservation_data(resource):
 def build_order_data(product, quantity=None, product_2=None, quantity_2=None):
     unit_price = 10.00
     price_list = PriceListFactory()
+    price_list_2 = PriceListFactory()
     user_group = UserGroupFactory()
-    UserGroupPriceListItemFactory(
-        price_list=price_list,
-        user_group=user_group,
-        price=10.0
-    )
+
+    for pl in [price_list, price_list_2]:
+        UserGroupPriceListItemFactory(
+            price_list=pl,
+            user_group=user_group,
+            price=10.0
+        )
+
     PricedProductFactory(product=product, price_list=price_list)
+
     if product_2 and product_2 != product:
         PricedProductFactory(
             product=product_2,
-            price_list=price_list
+            price_list=price_list_2
         )
     data = {
         "order_lines": [

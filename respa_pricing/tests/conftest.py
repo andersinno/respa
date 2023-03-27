@@ -23,12 +23,10 @@ def price_list():
 
 
 @pytest.fixture
-def price_list_with_products(resource, resource_2):
+def price_list_with_product(resource):
     price_list = PriceListFactory()
     prod = ProductFactory(resources=[resource])
-    prod2 = ProductFactory(resources=[resource_2])
     PricedProductFactory(product=prod, price_list=price_list)
-    PricedProductFactory(product=prod2, price_list=price_list)
     return price_list
 
 

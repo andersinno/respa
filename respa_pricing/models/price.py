@@ -158,11 +158,8 @@ class PriceList(models.Model):
 
 class PricedProduct(models.Model):
     product = models.OneToOneField("payments.Product", on_delete=models.CASCADE)
-    price_list = models.ForeignKey(
-        PriceList,
-        related_name="priced_products",
-        on_delete=models.CASCADE,
-        verbose_name=_("price list"),
+    price_list = models.OneToOneField(
+        PriceList, on_delete=models.CASCADE, related_name="priced_product"
     )
 
     class Meta:
