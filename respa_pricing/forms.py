@@ -73,11 +73,26 @@ class PriceListForm(forms.ModelForm):
         fields = ("name",)
 
 
+class AtLeastOneRequiredInlineFormSet(forms.models.BaseInlineFormSet):
+    def clean(self):
+        """Check that at least one item has been entered."""
+        super(AtLeastOneRequiredInlineFormSet, self).clean()
+        if any(self.errors):
+            return
+        if not any(
+            cleaned_data and not cleaned_data.get("DELETE", False)
+            for cleaned_data in self.cleaned_data
+        ):
+            raise forms.ValidationError(_("At least one item required."))
+
+
 UserGroupPriceListItemFormset = forms.inlineformset_factory(
     PriceList,
     UserGroupPriceListItem,
+    formset=AtLeastOneRequiredInlineFormSet,
     fields=("user_group", "price", "tax_percentage", "price_period", "price_type"),
     can_delete=True,
+    min_num=1,
     extra=0,
 )
 

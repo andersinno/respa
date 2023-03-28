@@ -26,6 +26,13 @@ function removePriceItem(e) {
     let formId = e.data.formId;
     let priceItemValue = $(this).closest('.row').find('[type="hidden"]').first().val();
     var total = $(`#${formId}-TOTAL_FORMS`).val();
+    var min = $(`#${formId}-MIN_NUM_FORMS`).val();
+
+    // There should always be at least one user group specific price item
+    if (formId == "id_usergroup_prices" && total-1 < min) {
+        return;
+    }
+
     if (priceItemValue) {
         $(this).next('span.hidden-delete-checkbox').find('input').prop("checked", true);
         $(this).closest('.row').hide();

@@ -1868,3 +1868,6 @@ msgstr "Hinnat tapahtumatyypin mukaan"
 
 msgid "Add item"
 msgstr "Lisää rivi"
+
+msgid "At least one item required."
+msgstr "Vähintään yksi rivi vaaditaan."

@@ -6,7 +6,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from payments.models import Product
 from resources.admin.base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
-from .forms import PriceListForm
+from .forms import (
+    PriceListForm,
+    UserGroupPriceListItemFormset,
+    EventTypePriceListItemFormset,
+)
 from .models import (
     EventType,
     PriceList,
@@ -57,6 +61,8 @@ class UserGroupPriceListItemInline(
         "price_list",
     )
     extra = 0
+    formset = UserGroupPriceListItemFormset
+    min_num = 1
 
 
 class EventTypePriceListItemInline(
@@ -76,6 +82,7 @@ class EventTypePriceListItemInline(
         "price_list",
     )
     extra = 0
+    formset = EventTypePriceListItemFormset
 
 
 class PriceListAdmin(admin.ModelAdmin):
