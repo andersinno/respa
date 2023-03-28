@@ -1,13 +1,16 @@
 from django.contrib import admin
 from django.conf import settings
 from django.contrib.admin import site as admin_site
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from payments.models import Product
 from resources.admin.base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from .forms import PriceListForm
 from .models import (
     EventType,
     PriceList,
+    PricedProduct,
     EventTypePriceListItem,
     UserGroup,
     UserGroupPriceListItem,
@@ -43,7 +46,6 @@ class UserGroupPriceListItemInline(
     CommonExcludeMixin,
     admin.TabularInline,
 ):
-    # form = UserGroupPriceListItemForm
     model = UserGroupPriceListItem
     fields = (
         "user_group",
@@ -82,6 +84,26 @@ class PriceListAdmin(admin.ModelAdmin):
         UserGroupPriceListItemInline,
         EventTypePriceListItemInline,
     ]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        current_resource = None
+        selected_resource = form.cleaned_data["resource"]
+
+        if change and hasattr(obj, "priced_product"):
+            current_resource = obj.priced_product.product.resources.first()
+
+        if current_resource and selected_resource != current_resource:
+            # Archive existing products linked to the price list
+            obj.priced_product.product.archived_at = now()
+            obj.priced_product.product.save()
+            obj.priced_product.delete()
+
+        if selected_resource and selected_resource != current_resource:
+            # Create new product
+            prod = Product.objects.create(name=selected_resource.name)
+            prod.resources.add(selected_resource)
+            PricedProduct.objects.create(product=prod, price_list=obj)
 
 
 if settings.RESPA_PAYMENTS_ENABLED:
