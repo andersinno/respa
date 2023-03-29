@@ -333,21 +333,6 @@ class UnitForm(forms.ModelForm):
             ),
         }
 
-class PriceListForm(forms.ModelForm):
-    user_group_price = forms.ModelMultipleChoiceField(
-        queryset=UserGroup.objects.all(),
-        widget=RespaCheckboxSelect,
-        required=True
-    )
-    event_price = forms.ModelMultipleChoiceField(
-        queryset=EventType.objects.all(),
-        widget=RespaCheckboxSelect,
-        required=False,
-    )
-
-    class Meta:
-        model = PriceList
-        fields = ['name', 'user_group_price', 'event_price']
 
 class PeriodFormset(forms.BaseInlineFormSet):
 

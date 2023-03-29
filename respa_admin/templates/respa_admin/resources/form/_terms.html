@@ -27,8 +27,20 @@
           {% include "respa_admin/forms/_errors.html" with field=form.free_to_use %}
         </div>
         <div class="price-range">
-            <div class="input-row">
-                {% include "respa_admin/forms/_select.html" with field=form.price_list %}
+            <div class="price-list-link" style="margin-top: 1em;">
+                {% if not form.instance.id %}
+                {% trans "Save the resource first to manage prices" %}
+                {% elif price_list_id %}
+                <a href="{% url 'respa_admin:edit-price-list' price_list_id=price_list_id %}" target="_blank">
+                    {% trans 'Manage prices' %}
+                    <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
+                </a>
+                {% else %}
+                <a href="{% url 'respa_admin:new-price-list' %}?resource_id={{ form.instance.id }}" target="_blank">
+                    {% trans 'Add price list' %}
+                    <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

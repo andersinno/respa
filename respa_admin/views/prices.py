@@ -68,6 +68,12 @@ class PriceListCreateView(ExtraContextMixin, CreateView):
             )
         )
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        resource_id = self.request.GET.get("resource_id")
+        form.fields["resource"].initial = resource_id
+        return form
+
     def post(self, request, *args, **kwargs):
         self.object = None
         form_class = self.get_form_class()

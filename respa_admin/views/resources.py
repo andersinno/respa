@@ -268,6 +268,8 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super(SaveResourceView, self).get_context_data(**kwargs)
 
+        context['price_list_id'] = self._get_price_list_id()
+
         if self.object:
             context['used_period_templates'] = self.object.periods.exclude(
                 template_src__isnull=True
@@ -348,6 +350,13 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             secret,
             location_id=location_id
         )
+    
+    def _get_price_list_id(self):
+        if self.object:
+            product = self.object.products.current().first()
+            if product and hasattr(product, "pricedproduct"):
+                return product.pricedproduct.price_list.pk
+        return None
 
     def post(self, request, *args, **kwargs):
         if self.pk_url_kwarg in kwargs:

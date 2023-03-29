@@ -1871,3 +1871,12 @@ msgstr "Lisää rivi"
 
 msgid "At least one item required."
 msgstr "Vähintään yksi rivi vaaditaan."
+
+msgid "Manage prices"
+msgstr "Hallitse hintoja"
+
+msgid "Add price list"
+msgstr "Lisää hinnasto"
+
+msgid "Save the resource first to manage prices"
+msgstr "Tallenna resurssi ensin hallitaksesi hintoja"
