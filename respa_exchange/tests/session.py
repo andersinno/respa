@@ -34,6 +34,7 @@ class SoapSeller(ExchangeSession):
         """
         super(SoapSeller, self).__init__("http://example.com", "CONTOSO\\dummy", "dummy")
         self.handler_delegate = handler_delegate
+        self.skip_auth = True
 
     def send(self, request, **kwargs):
         """
