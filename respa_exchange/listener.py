@@ -63,6 +63,7 @@ class EventAwaiterThread(threading.Thread):
                 event_req = GetStreamingEventsRequest(
                     subscription_ids=self.subscription_ids,
                     timeout_minutes=self.timeout_minutes,
+                    impersonation=self.exchange.username,
                 )
                 try:
                     # Make sure we don't overwhelm the server with requests.
