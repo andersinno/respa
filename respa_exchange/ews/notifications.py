@@ -138,7 +138,7 @@ class GetStreamingEventsRequest(EWSRequest):
     """
     version = 'Exchange2013'
 
-    def __init__(self, subscription_ids, timeout_minutes=30):
+    def __init__(self, subscription_ids, timeout_minutes=30, impersonation=None):
         """
         Initialize the request.
 
@@ -150,7 +150,7 @@ class GetStreamingEventsRequest(EWSRequest):
             M.SubscriptionIds(*[T.SubscriptionId(x) for x in subscription_ids]),
             M.ConnectionTimeout(str(timeout_minutes)),
         )
-        super(GetStreamingEventsRequest, self).__init__(root)
+        super(GetStreamingEventsRequest, self).__init__(root, impersonation)
 
     def process_response(self, resp):
         gserm = resp.find('*//m:GetStreamingEventsResponseMessage', namespaces=NAMESPACES)
