@@ -32,4 +32,8 @@
         {% include "respa_admin/forms/_input.html" with field=form.www_url_sv %}
         {% include "respa_admin/forms/_input.html" with field=form.phone %}
     </div>
+    <div class="accounting">
+        <h4>{% trans "Accounting" %}</h4>
+        {% include "respa_admin/forms/_input.html" with field=form.cost_center_code %}
+    </div>
 </div>

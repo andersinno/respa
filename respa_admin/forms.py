@@ -324,7 +324,8 @@ class UnitForm(forms.ModelForm):
             'address_zip',
             'municipality',
             'phone',
-            'disallow_overlapping_reservations'
+            'disallow_overlapping_reservations',
+            'cost_center_code',
         ] + translated_fields
 
         widgets = {
