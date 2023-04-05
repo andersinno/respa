@@ -98,30 +98,35 @@ class CPUCeeposProvider(PaymentProvider):
 
         Order lines that contain bought products are retrieved through order"""
 
-        def get_product_taxcode(product: Product) -> str:
-            tax = product.tax_percentage
-            taxcode = {
+        def _get_ceepos_product_code(order: Order) -> str:
+            resource = order.reservation.resource
+            return resource.unit.cost_center_code
+
+        def _get_ceepos_tax_code(order_line: OrderLine) -> str:
+            # TODO: Map tax values too Ceepos tax classes
+            tax_pct = order_line.tax_percentage
+            tax_code = {
                 24_000_000: "24",
                 14_000_000: "14",
                 10_000_000: "10",
                 0: "0",
-            }.get(int(tax * 1_000_000))
-            if not taxcode:
+            }.get(int(tax_pct * 1_000_000))
+            if not tax_code:
                 raise ValueError(
-                    f"Unsupported tax percentage {tax} for product {product}"
+                    f"Unsupported tax percentage {tax_pct} for order line {order_line}"
                 )
-            return taxcode
+            return tax_code
 
         order_lines = OrderLine.objects.filter(order=order.id)
         items = []
         for order_line in order_lines:
-            product = order_line.product
             items.append(
                 {
-                    "Code": product.sku,
+                    "Code": _get_ceepos_product_code(order),
                     "Amount": order_line.quantity,
                     "Price": price_as_sub_units(order_line.total_price),
-                    "Description": product.name,
+                    "Description": order_line.product.name,
+                    "Taxcode": _get_ceepos_tax_code(order_line)
                 }
             )
             payload["Products"] = items
