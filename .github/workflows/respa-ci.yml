@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - tre-varaamo
+      - tre-varaamo-qa
 jobs:
   build:
     runs-on: ubuntu-latest
