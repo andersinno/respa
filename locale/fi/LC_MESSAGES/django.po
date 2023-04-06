@@ -1880,3 +1880,9 @@ msgstr "Lisää hinnasto"
 
 msgid "Save the resource first to manage prices"
 msgstr "Tallenna resurssi ensin hallitaksesi hintoja"
+
+msgid "Accounting"
+msgstr "Kirjanpito"
+
+msgid "Cost center code"
+msgstr "Kustannuspaikkakoodi"

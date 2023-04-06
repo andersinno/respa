@@ -177,6 +177,7 @@ def test_unit_form_data(test_unit, empty_unit_form_data, empty_period_form_data,
         'phone': test_unit.phone or '',
         'street_address': test_unit.street_address or '',
         'www_url': test_unit.www_url or '',
+        'cost_center_code': test_unit.cost_center_code or '',
     })
     empty_unit_form_data.update(empty_period_form_data)
     return empty_unit_form_data

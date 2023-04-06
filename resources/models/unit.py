@@ -76,6 +76,7 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
                                  default=_get_default_timezone)
 
     manager_email = models.EmailField(verbose_name=_('Manager email'), max_length=100, null=True, blank=True)
+    cost_center_code = models.CharField(verbose_name=_('Cost center code'), max_length=100, blank=True, default="")
 
     street_address = models.CharField(verbose_name=_('Street address'), max_length=100, null=True)
     address_zip = models.CharField(verbose_name=_('Postal code'), max_length=10, null=True, blank=True)

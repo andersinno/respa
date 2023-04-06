@@ -20,6 +20,7 @@ class ProductSerializer(TranslatedModelSerializer):
 class OrderLineSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(queryset=Product.objects.current(), slug_field='product_id')
     price = serializers.CharField(source='get_price', read_only=True)
+    unit_price = serializers.CharField(read_only=True)
     user_group = serializers.CharField(write_only=True)
     event_type = serializers.CharField(write_only=True, required=False)
 
