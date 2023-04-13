@@ -81,11 +81,11 @@
         <h4>{% trans "Prices by event type" %}</h4>
         <div id="event-type-prices" class="event-type-prices">
           <div class="row header">
-            <div class="col-sm-2">{{ event_type_item_formset.forms.0.event_type.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.forms.0.price.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.forms.0.tax_percentage.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.forms.0.price_period.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.forms.0.price_type.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.empty_form.event_type.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.empty_form.price.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.empty_form.tax_percentage.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.empty_form.price_period.label }}</div>
+            <div class="col-sm-2">{{ event_type_item_formset.empty_form.price_type.label }}</div>
             <div class="col-sm-2"></div>
           </div>
           {{ event_type_item_formset.management_form }}
