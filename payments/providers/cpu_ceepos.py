@@ -103,14 +103,22 @@ class CPUCeeposProvider(PaymentProvider):
             return resource.unit.cost_center_code
 
         def _get_ceepos_tax_code(order_line: OrderLine) -> str:
-            # TODO: Map tax values too Ceepos tax classes
             tax_pct = order_line.tax_percentage
-            tax_code = {
+            ceepos_tax_codes = {
                 24_000_000: "24",
                 14_000_000: "14",
                 10_000_000: "10",
                 0: "0",
-            }.get(int(tax_pct * 1_000_000))
+            }
+            # Tampere specific Ceepos tax codes in the production environment
+            if self.url_payment_api == "https://shop.tampere.fi/maksu.html":
+                ceepos_tax_codes = {
+                    24_000_000: "15",
+                    14_000_000: "14",
+                    10_000_000: "13",
+                    0: "18",
+                }
+            tax_code = ceepos_tax_codes.get(int(tax_pct * 1_000_000))
             if not tax_code:
                 raise ValueError(
                     f"Unsupported tax percentage {tax_pct} for order line {order_line}"
