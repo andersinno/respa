@@ -30,9 +30,7 @@
             {% trans "Samalla poistetaan seuraavat hinnoitellut tuotteet (resursseja ei poisteta):" %}
         </p>
         <ul>
-            {% for pp in object.priced_products.all %}
-                <li>{{ pp.product }}</li>
-            {% endfor %}
+            <li>{{ object.priced_product.product }}</li>
         </ul>
         <hr>
         <a href="{% url 'respa_admin:price-list' %}" rel="noopener noreferrer">
