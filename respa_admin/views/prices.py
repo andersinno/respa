@@ -32,7 +32,7 @@ class PriceListView(ExtraContextMixin, ListView):
         return context
 
     def get_queryset(self):
-        qs = PriceList.objects.all()
+        qs = PriceList.objects.modifiable_by(self.request.user)
 
         if self.search_query:
             qs = qs.filter(name__icontains=self.search_query)
@@ -71,8 +71,15 @@ class PriceListCreateView(ExtraContextMixin, CreateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         resource_id = self.request.GET.get("resource_id")
+        form.fields["resource"].queryset = form.fields["resource"].queryset.modifiable_by(
+            self.request.user
+        )
         form.fields["resource"].initial = resource_id
         return form
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.modifiable_by(self.request.user)
 
     def post(self, request, *args, **kwargs):
         self.object = None
@@ -135,6 +142,17 @@ class PriceListEditView(ExtraContextMixin, UpdateView):
             )
         )
 
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields["resource"].queryset = form.fields["resource"].queryset.modifiable_by(
+            self.request.user
+        )
+        return form
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.modifiable_by(self.request.user)
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form_class = self.get_form_class()
@@ -182,11 +200,6 @@ class PriceListDeleteView(ExtraContextMixin, DeleteView):
     pk_url_kwarg = "price_list_id"
     success_url = reverse_lazy("respa_admin:price-list")
 
-    def get_object(self, *args, **kwargs):
-        """ Check that the user has permissions to the object before passing to the view. """
-        price_list = super().get_object(*args, **kwargs)
-        if True:
-            # TODO
-            return price_list
-        else:
-            raise PermissionDenied()
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.modifiable_by(self.request.user)
