@@ -12,6 +12,8 @@ from payments.utils import (
     convert_aftertax_to_pretax,
     convert_pretax_to_aftertax,
 )
+from resources.models import Resource
+
 from .utils import generate_id
 
 
@@ -72,11 +74,21 @@ class EventType(AutoIdentifiedModelMixin, models.Model):
         return self.name
 
 
+class PriceListQuerySet(models.QuerySet):
+    def modifiable_by(self, user):
+        modifiable_resources_by_user = Resource.objects.modifiable_by(user)
+        return self.filter(
+            priced_product__product__resources__pk__in=modifiable_resources_by_user
+        )
+
+
 class PriceList(models.Model):
     name = models.CharField(
         verbose_name=_("Name"),
         max_length=100,
     )
+
+    objects = PriceListQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("Price list")
