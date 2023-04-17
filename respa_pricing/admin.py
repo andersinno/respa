@@ -16,6 +16,7 @@ from .models import (
     PriceList,
     PricedProduct,
     EventTypePriceListItem,
+    RespaPaymentTerm,
     UserGroup,
     UserGroupPriceListItem,
 )
@@ -117,3 +118,4 @@ if settings.RESPA_PAYMENTS_ENABLED:
     admin_site.register(EventType, EventTypeAdmin)
     admin.site.register(UserGroup, UserGroupAdmin)
     admin.site.register(PriceList, PriceListAdmin)
+    admin.site.register(RespaPaymentTerm)

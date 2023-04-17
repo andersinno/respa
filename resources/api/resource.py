@@ -26,7 +26,7 @@ from guardian.core import ObjectPermissionChecker
 
 from munigeo import api as munigeo_api
 from payments.models import Product
-from respa_pricing.models import PriceList, PricedProduct
+from respa_pricing.models import PriceList, PricedProduct, RespaPaymentTerm
 from resources.models import (
     AccessibilityValue, AccessibilityViewpoint, Purpose, Reservation, Resource, ResourceAccessibility,
     ResourceImage, ResourceType, ResourceEquipment, TermsOfUse, Equipment, ReservationMetadataSet,
@@ -154,6 +154,12 @@ class ResourceEquipmentSerializer(TranslatedModelSerializer):
 class TermsOfUseSerializer(TranslatedModelSerializer):
     class Meta:
         model = TermsOfUse
+        fields = ('text',)
+
+
+class RespaPaymentTermsSerializer(TranslatedModelSerializer):
+    class Meta:
+        model = RespaPaymentTerm
         fields = ('text',)
 
 
@@ -291,7 +297,7 @@ class ResourceSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_api.
         return data['text']
 
     def get_payment_terms(self, obj):
-        data = TermsOfUseSerializer(obj.payment_terms).data
+        data = RespaPaymentTermsSerializer(obj.payment_terms).data
         return data['text']
 
     def get_reservable_before(self, obj):

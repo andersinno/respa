@@ -16,6 +16,8 @@ class PaymentProvider:
             self.config = kwargs.get('config')
         self.request = kwargs.get('request')
         self.ui_return_url = kwargs.get('ui_return_url')
+        self.is_refund = False
+        self.refund_amount = 0.0
 
     def initiate_payment(self, order: Order) -> str:
         """Create a payment to the provider.

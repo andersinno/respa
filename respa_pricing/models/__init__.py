@@ -6,12 +6,14 @@ from .price import (
     UserGroup,
     UserGroupPriceListItem,
 )
+from .payment_terms import RespaPaymentTerm
 
 __all__ = [
     "EventType",
     "EventTypePriceListItem",
     "PriceList",
     "PricedProduct",
+    "RespaPaymentTerm",
     "UserGroup",
     "UserGroupPriceListItem",
 ]

@@ -107,6 +107,7 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
 
 class PaymentsReservationSerializer(ReservationSerializer):
     order = serializers.SlugRelatedField('order_number', read_only=True)
+    can_cancel_paid_reservation = serializers.BooleanField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -129,7 +130,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
             self.fields['order'] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ['order']
+        fields = ReservationSerializer.Meta.fields + ['order', 'can_cancel_paid_reservation']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -170,3 +171,9 @@ class PaymentsReservationSerializer(ReservationSerializer):
         data = super().validate(data)
         data['order'] = order_data
         return data
+
+    def get_refund_text(self, obj):
+        payment_terms = self.resouce.payment_terms
+        if payment_terms:
+            return payment_terms.text
+        return ''

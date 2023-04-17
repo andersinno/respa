@@ -240,7 +240,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     responsible_contact_info = models.TextField(verbose_name=_('Responsible contact info'), blank=True)
     generic_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Generic terms'), null=True, blank=True,
                                       on_delete=models.SET_NULL, related_name='resources_where_generic_terms')
-    payment_terms = models.ForeignKey(TermsOfUse, verbose_name=_('Payment terms'), null=True, blank=True,
+    payment_terms = models.ForeignKey('respa_pricing.RespaPaymentTerm', verbose_name=_('Payment terms'), null=True, blank=True,
                                       on_delete=models.SET_NULL, related_name='resources_where_payment_terms')
     specific_terms = models.TextField(verbose_name=_('Specific terms'), blank=True)
     reservation_requested_notification_extra = models.TextField(verbose_name=_(
