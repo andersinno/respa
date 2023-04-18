@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import FieldDoesNotExist, Q
 from django.forms import model_to_dict
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
@@ -610,3 +610,20 @@ def to_int(string):
     if not string or not string.isdigit():
         return None
     return int(string)
+
+
+def check_cost_center_code(request):
+    """View for checking whether the resource's unit has a cost center code"""
+
+    print("check_cost_center_code")
+    has_cost_center_code = False
+    resource_id = request.GET.get("resource_id", None)
+    print("resource id:", resource_id)
+    if resource_id:
+        resource = Resource.objects.filter(id=resource_id).first()
+        if resource:
+            has_cost_center_code = bool(resource.unit.cost_center_code)
+    response = {
+        "cost_center_code": has_cost_center_code
+    }
+    return JsonResponse(response)

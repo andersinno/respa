@@ -4,6 +4,7 @@ from django.urls import include
 from . import views
 from .auth import admin_url as url
 from .views.resources import (
+    check_cost_center_code,
     copy_resource,
     ManageUserPermissionsListView,
     ManageUserPermissionsSearchView,
@@ -12,7 +13,12 @@ from .views.resources import (
     SaveResourceView,
 )
 from .views.units import UnitEditView, UnitListView
-from .views.prices import PriceListView, PriceListCreateView, PriceListEditView, PriceListDeleteView
+from .views.prices import (
+    PriceListView,
+    PriceListCreateView,
+    PriceListEditView,
+    PriceListDeleteView,
+)
 
 app_name = 'respa_admin'
 urlpatterns = [
@@ -25,6 +31,7 @@ urlpatterns = [
     url(r'^resource/new/$', SaveResourceView.as_view(), name='new-resource'),
     url(r'^resource/edit/(?P<resource_id>\w+)/$', SaveResourceView.as_view(), name='edit-resource'),
     url(r'^resource/copy/(?P<resource_id>\w+)/$', copy_resource, name='copy-resource'),
+    url(r'^resource/check_cost_center_code/$', check_cost_center_code, name='check-cost-center-code'),
     url(r'^units/$', UnitListView.as_view(), name='units'),
     url(r'^units/edit/(?P<unit_id>[\w\d:]+)/$', UnitEditView.as_view(), name='edit-unit'),
     url(r'^price_list/$', PriceListView.as_view(), name='price-list'),
