@@ -29,17 +29,22 @@
         <div class="price-range">
             <div class="price-list-link" style="margin-top: 1em;">
                 {% if not form.instance.id %}
-                {% trans "Save the resource first to manage prices" %}
+                    {% trans "Save the resource first to manage prices" %}
                 {% elif price_list_id %}
-                <a href="{% url 'respa_admin:edit-price-list' price_list_id=price_list_id %}" target="_blank">
-                    {% trans 'Manage prices' %}
-                    <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
-                </a>
+                    <a href="{% url 'respa_admin:edit-price-list' price_list_id=price_list_id %}" target="_blank">
+                        {% trans 'Manage prices' %}
+                        <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
+                    </a>
+                    {% if not object.unit.cost_center_code %}
+                        <div class="alert alert-warning no-cost-center-code">
+                            {% trans "This resource's unit doesn't have a cost center code set. Please set one in the unit settings to ensure payments go through." %}
+                        </div>
+                    {% endif %}
                 {% else %}
-                <a href="{% url 'respa_admin:new-price-list' %}?resource_id={{ form.instance.id }}" target="_blank">
-                    {% trans 'Add price list' %}
-                    <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
-                </a>
+                    <a href="{% url 'respa_admin:new-price-list' %}?resource_id={{ form.instance.id }}" target="_blank">
+                        {% trans 'Add price list' %}
+                        <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
+                    </a>
                 {% endif %}
             </div>
         </div>
