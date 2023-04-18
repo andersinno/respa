@@ -29,6 +29,7 @@ class UserGroupFactory(factory.django.DjangoModelFactory):
     """Mock UserGroup objects"""
 
     name = factory.Faker("catch_phrase")
+    tax_percentage = Decimal("24.00")
 
     class Meta:
         model = UserGroup
@@ -38,6 +39,7 @@ class EventTypeFactory(factory.django.DjangoModelFactory):
     """Mock EventType objects"""
 
     name = factory.Faker("catch_phrase")
+    tax_percentage = Decimal("14.00")
 
     class Meta:
         model = EventType
@@ -49,7 +51,6 @@ class UserGroupPriceListItemFactory(factory.django.DjangoModelFactory):
     price_list = factory.SubFactory(PriceListFactory)
     user_group = factory.SubFactory(UserGroupFactory)
     price = Decimal("10.0")
-    tax_percentage = Decimal("14.0")
 
     class Meta:
         model = UserGroupPriceListItem
@@ -61,7 +62,6 @@ class EventTypePriceListItemFactory(factory.django.DjangoModelFactory):
     price_list = factory.SubFactory(PriceListFactory)
     event_type = factory.SubFactory(EventTypeFactory)
     price = Decimal("20.0")
-    tax_percentage = Decimal("24.0")
 
     class Meta:
         model = EventTypePriceListItem

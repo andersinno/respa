@@ -27,13 +27,11 @@ def test_get_price_info_returns_highest_price_and_lowest_tax_pct(
     user_group_price_list_item = UserGroupPriceListItemFactory(
         price_list=price_list_with_product,
         price=Decimal("24.80"),
-        tax_percentage=Decimal("24.00"),
         user_group=user_group,
     )
     event_type_price_list_item = EventTypePriceListItemFactory(
         price_list=price_list_with_product,
         price=Decimal("17.10"),
-        tax_percentage=Decimal("14.00"),
         event_type=event_type,
     )
 
@@ -45,8 +43,6 @@ def test_get_price_info_returns_highest_price_and_lowest_tax_pct(
     )
 
     assert price_info["price_source"] == user_group_price_list_item
-    assert price_info["tax_percentage"] == str(
-        event_type_price_list_item.tax_percentage
-    )
+    assert price_info["tax_percentage"] == str(Decimal("14.00"))
     assert price_info["amount"] == str(Decimal("22.80"))
     assert price_info["total_price"] == str(Decimal("45.60"))

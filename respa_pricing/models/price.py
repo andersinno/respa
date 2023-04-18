@@ -53,6 +53,13 @@ class AutoIdentifiedModelMixin:
 class UserGroup(AutoIdentifiedModelMixin, models.Model):
     id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(verbose_name=_("Name"), max_length=200)
+    tax_percentage = models.DecimalField(
+        verbose_name=_("tax percentage"),
+        max_digits=5,
+        decimal_places=2,
+        default=DEFAULT_TAX_PERCENTAGE,
+        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES],
+    )
 
     class Meta:
         verbose_name = _("User group")
@@ -65,6 +72,13 @@ class UserGroup(AutoIdentifiedModelMixin, models.Model):
 class EventType(AutoIdentifiedModelMixin, models.Model):
     id = models.CharField(primary_key=True, max_length=100)
     name = models.CharField(verbose_name=_("Name"), max_length=200)
+    tax_percentage = models.DecimalField(
+        verbose_name=_("tax percentage"),
+        max_digits=5,
+        decimal_places=2,
+        default=DEFAULT_TAX_PERCENTAGE,
+        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES],
+    )
 
     class Meta:
         verbose_name = _("Event type")
@@ -186,13 +200,6 @@ class GeneralPriceListItem(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0.00"))],
     )
-    tax_percentage = models.DecimalField(
-        verbose_name=_("tax percentage"),
-        max_digits=5,
-        decimal_places=2,
-        default=DEFAULT_TAX_PERCENTAGE,
-        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES],
-    )
     price_period = models.DurationField(
         verbose_name=_("price period"),
         null=True,
@@ -224,6 +231,11 @@ class GeneralPriceListItem(models.Model):
 
     def get_price_for_reservation(self, begin, end):
         return self.get_price_for_time_range(begin, end)
+
+    @property
+    def tax_percentage(self):
+        """Implement this the subclass"""
+        raise NotImplementedError
 
     @rounded
     def get_price_for_time_range(self, begin, end):
@@ -287,6 +299,10 @@ class EventTypePriceListItem(GeneralPriceListItem):
         verbose_name = _("Event type price")
         verbose_name_plural = _("Event type prices")
 
+    @property
+    def tax_percentage(self):
+        return self.event_type.tax_percentage
+
     def __str__(self):
         return f"{self.price}:{self.event_type.name}"
 
@@ -308,6 +324,10 @@ class UserGroupPriceListItem(GeneralPriceListItem):
     class Meta:
         verbose_name = _("User group price")
         verbose_name_plural = _("User group prices")
+
+    @property
+    def tax_percentage(self):
+        return self.user_group.tax_percentage
 
     def __str__(self):
         return f"{self.price}:{self.user_group.name}"

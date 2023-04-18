@@ -54,7 +54,6 @@ class UserGroupPriceListItemInline(
     fields = (
         "user_group",
         "price",
-        "tax_percentage",
         "get_pretax_price",
         "price_type",
         "price_period",
@@ -75,7 +74,6 @@ class EventTypePriceListItemInline(
     fields = (
         "event_type",
         "price",
-        "tax_percentage",
         "get_pretax_price",
         "price_type",
         "price_period",
