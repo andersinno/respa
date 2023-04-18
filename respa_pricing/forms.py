@@ -90,7 +90,7 @@ UserGroupPriceListItemFormset = forms.inlineformset_factory(
     PriceList,
     UserGroupPriceListItem,
     formset=AtLeastOneRequiredInlineFormSet,
-    fields=("user_group", "price", "tax_percentage", "price_period", "price_type"),
+    fields=("user_group", "price", "price_period", "price_type"),
     can_delete=True,
     min_num=1,
     extra=0,
@@ -99,7 +99,7 @@ UserGroupPriceListItemFormset = forms.inlineformset_factory(
 EventTypePriceListItemFormset = forms.inlineformset_factory(
     PriceList,
     EventTypePriceListItem,
-    fields=("event_type", "price", "tax_percentage", "price_period", "price_type"),
+    fields=("event_type", "price", "price_period", "price_type"),
     can_delete=True,
     extra=0,
 )
