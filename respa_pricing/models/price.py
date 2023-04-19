@@ -66,7 +66,7 @@ class UserGroup(AutoIdentifiedModelMixin, models.Model):
         verbose_name_plural = _("User groups")
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (ALV {self.tax_percentage}%)"
 
 
 class EventType(AutoIdentifiedModelMixin, models.Model):
@@ -85,7 +85,7 @@ class EventType(AutoIdentifiedModelMixin, models.Model):
         verbose_name_plural = _("Event types")
 
     def __str__(self):
-        return self.name
+        return f"{self.name} (ALV {self.tax_percentage}%)"
 
 
 class PriceListQuerySet(models.QuerySet):

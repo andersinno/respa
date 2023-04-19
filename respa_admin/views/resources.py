@@ -615,10 +615,8 @@ def to_int(string):
 def check_cost_center_code(request):
     """View for checking whether the resource's unit has a cost center code"""
 
-    print("check_cost_center_code")
     has_cost_center_code = False
     resource_id = request.GET.get("resource_id", None)
-    print("resource id:", resource_id)
     if resource_id:
         resource = Resource.objects.filter(id=resource_id).first()
         if resource:
