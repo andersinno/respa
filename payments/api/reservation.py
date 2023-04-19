@@ -146,10 +146,15 @@ class PaymentsReservationSerializer(ReservationSerializer):
                 order_line = order_lines.first()
                 data['price_info'] = {}
                 data['price_info']['amount'] = str(order_line.unit_price)
-                data['price_info']['period'] = duration_string(order_line.price_period)
                 data['price_info']['tax_percentage'] = str(order_line.tax_percentage)
                 data['price_info']['total_price'] = str(order_line.total_price)
                 data['price_info']['type'] = order_line.price_type
+                data['price_info']['period'] = (
+                    duration_string(order_line.price_period)
+                    if order_line.price_period
+                    else None
+                )
+
         return data
 
     def create(self, validated_data):
