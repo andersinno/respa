@@ -1886,3 +1886,10 @@ msgstr "Kirjanpito"
 
 msgid "Cost center code"
 msgstr "Kustannuspaikkakoodi"
+
+msgid ""
+"This resource's unit doesn't have a cost center code set. "
+"Please set one in the unit settings to ensure payments go through."
+msgstr ""
+"Tämän resurssin yksikölle ei ole määritelty kustannuspaikkakoodia. "
+"Aseta kustannuspaikkakoodi yksikön asetuksissa, jotta maksut menevät läpi."

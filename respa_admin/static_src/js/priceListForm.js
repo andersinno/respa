@@ -42,3 +42,28 @@ function removePriceItem(e) {
         $(`#${formId}-TOTAL_FORMS`).val(parseInt(total) - 1);
     }
 }
+
+function onResourceChange(e) {
+    const resourceId = this.value;
+    const url = $(this).closest('.resource').attr("data-select-ajax-target");
+
+    $.ajax({
+        data: { 'resource_id': this.value },
+        url: url,
+        success: function (response) {
+            const hasCostCenterCode = response.cost_center_code == true
+            if (hasCostCenterCode || !resourceId) {
+                $('.no-cost-center-code').hide();
+            } else {
+                $('.no-cost-center-code').show();
+            }
+        },
+        error: function (response) {
+            console.error('Failed to check resource cost center code');
+        }
+    });
+}
+
+$(document).ready(function () {
+    $('.price-list-form .resource select').on('change', onResourceChange).change();
+});

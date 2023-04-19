@@ -42,8 +42,11 @@
 
         <!-- Resource -->
         <h4>{% trans "Resource" %}</h4>
-        <div class="resources">
+        <div class="resource" data-select-ajax-target="{% url 'respa_admin:check-cost-center-code' %}">
           {% include "respa_admin/forms/_select.html" with field=form.resource skip_label=True %}
+        </div>
+        <div class="alert alert-warning no-cost-center-code" style='display:none'>
+          {% trans "This resource's unit doesn't have a cost center code set. Please set one in the unit settings to ensure payments go through." %}
         </div>
 
         <hr>
