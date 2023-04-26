@@ -142,7 +142,7 @@ class PriceList(models.Model):
         price_source = tax_source = user_group_item
 
         pre_tax_price_by_user_group = user_group_item.get_pretax_price_for_time_range(
-            begin, end
+            begin, end, rounded=False
         )
         pre_tax_price = pre_tax_price_by_user_group
 
@@ -152,7 +152,7 @@ class PriceList(models.Model):
 
         if event_item and pre_tax_price_by_user_group != 0:
             pre_tax_price_by_event = event_item.get_pretax_price_for_time_range(
-                begin, end
+                begin, end, rounded=False
             )
             tax_source = (
                 user_group_item
