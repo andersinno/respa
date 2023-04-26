@@ -1,12 +1,6 @@
 import pytest
 from munigeo.models import Municipality
 
-from respa_pricing.tests.conftest import (
-    price_list,
-    event_type,
-    user_group,
-)
-
 from resources.tests.conftest import (
     equipment,
     equipment_category,
@@ -20,6 +14,7 @@ from resources.tests.conftest import (
     test_unit,
     test_unit2,
 )
+from respa_pricing.tests.conftest import event_type, price_list, user_group
 
 __all__ = [
     "empty_period_form_data",
@@ -44,6 +39,23 @@ __all__ = [
     "valid_resource_form_data",
 ]
 
+EMPTY_PRICE_LIST_FORM_DATA = {
+    "name": "",
+    "resource": "",
+    "usergroup_prices-TOTAL_FORMS": "1",
+    "usergroup_prices-INITIAL_FORMS": "0",
+    "usergroup_prices-MIN_NUM_FORMS": "1",
+    "usergroup_prices-MAX_NUM_FORMS": "1000",
+    "usergroup_prices-0-id": "",
+    "usergroup_prices-0-user_group": "",
+    "usergroup_prices-0-price": "",
+    "usergroup_prices-0-price_period": "01:00:00",
+    "usergroup_prices-0-price_type": "per_period",
+    "event_prices-TOTAL_FORMS": "0",
+    "event_prices-INITIAL_FORMS": "0",
+    "event_prices-MIN_NUM_FORMS": "0",
+    "event_prices-MAX_NUM_FORMS": "1000",
+}
 
 EMPTY_RESOURCE_FORM_DATA = {
     "images-TOTAL_FORMS": ["1"],
@@ -152,6 +164,28 @@ def empty_unit_form_data():
 @pytest.fixture
 def empty_period_form_data():
     return EMPTY_PERIOD_FORM_DATA.copy()
+
+
+@pytest.fixture
+def empty_price_list_form_data():
+    return EMPTY_PRICE_LIST_FORM_DATA.copy()
+
+
+@pytest.fixture
+def valid_price_list_form_data(empty_price_list_form_data, user_group):
+    # TBD: add event type fields
+    data = empty_price_list_form_data.copy()
+    data.update(
+        {
+            "name": "test name",
+            "usergroup_prices-0-id": "",
+            "usergroup_prices-0-user_group": user_group.pk,
+            "usergroup_prices-0-price": "100.00",
+            "usergroup_prices-0-price_period": "01:00:00",
+            "usergroup_prices-0-price_type": "per_period",
+        }
+    )
+    return data
 
 
 @pytest.fixture
