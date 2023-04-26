@@ -1,6 +1,12 @@
 import pytest
 from munigeo.models import Municipality
 
+from respa_pricing.tests.conftest import (
+    price_list,
+    event_type,
+    user_group,
+)
+
 from resources.tests.conftest import (
     equipment,
     equipment_category,
@@ -16,12 +22,17 @@ from resources.tests.conftest import (
 )
 
 __all__ = [
+    "empty_period_form_data",
+    "empty_resource_form_data",
+    "empty_unit_form_data",
     "equipment",
     "equipment_category",
+    "event_type",
     "general_admin",
     "generic_terms",
     "municipality",
     "payment_terms",
+    "price_list",
     "purpose",
     "resource_in_unit",
     "resource_in_unit2",
@@ -29,6 +40,8 @@ __all__ = [
     "test_unit",
     "test_unit2",
     "test_unit_form_data",
+    "user_group",
+    "valid_resource_form_data",
 ]
 
 
