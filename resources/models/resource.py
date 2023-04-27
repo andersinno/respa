@@ -327,22 +327,22 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         blank=True,
         default=True,
     )
-    min_price = models.DecimalField(
-        verbose_name=_("Min price"),
-        max_digits=8,
-        decimal_places=2,
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(Decimal("0.00"))],
-    )
-    max_price = models.DecimalField(
-        verbose_name=_("Max price"),
-        max_digits=8,
-        decimal_places=2,
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(Decimal("0.00"))],
-    )
+    # min_price = models.DecimalField(
+    # verbose_name=_("Min price"),
+    # max_digits=8,
+    # decimal_places=2,
+    # blank=True,
+    # null=True,
+    # validators=[MinValueValidator(Decimal("0.00"))],
+    # )
+    # max_price = models.DecimalField(
+    # verbose_name=_("Max price"),
+    # max_digits=8,
+    # decimal_places=2,
+    # blank=True,
+    # null=True,
+    # validators=[MinValueValidator(Decimal("0.00"))],
+    # )
 
     price_type = models.CharField(
         max_length=32,
@@ -438,9 +438,12 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return resource_image.image if resource_image else None
 
+    @property
+    def max_price(self):
+        # we're going to replace this with an annotated value
+        return self.get_max_price()
+
     def get_max_price(self):
-        # this is going to be refactored into `max_price` property, replacing
-        # the field.
         """Returns the maximum price based on the aggregate price list item prices."""
 
         # prevent circular import
@@ -461,6 +464,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         ).aggregate(models.Max("price"))["price__max"] or Decimal("0.00")
 
         return max(max_user_group_price, max_event_type_price)
+
+    @property
+    def min_price(self):
+        # we're going to replace this with an annotated value
+        return self.get_min_price()
 
     def get_min_price(self):
         # this is going to be refactored into `min_price` property, replacing

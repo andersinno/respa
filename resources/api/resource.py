@@ -843,7 +843,6 @@ class ResourceFilterSet(django_filters.FilterSet):
             "is_favorite",
             "unit",
             "available_between",
-            "min_price",
         ]
 
 
