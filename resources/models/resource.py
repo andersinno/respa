@@ -465,7 +465,38 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def get_min_price(self):
         # this is going to be refactored into `min_price` property, replacing
         # the field.
-        return self.min_price
+        """Returns the minimum price based on the aggregate price list item prices."""
+
+        # prevent circular import
+        from respa_pricing.models import UserGroupPriceListItem, EventTypePriceListItem
+
+        product_ids = set(self.products.current().values_list("pk", flat=True))
+
+        # if no products associated with this Resource, just return zero
+        if not product_ids:
+            return Decimal("0.00")
+
+        min_user_group_price = (
+            UserGroupPriceListItem.objects.filter(
+                price_list__priced_product__product__pk__in=product_ids
+            ).aggregate(models.Min("price"))["price__min"]
+            or None
+        )
+
+        min_event_type_price = (
+            EventTypePriceListItem.objects.filter(
+                price_list__priced_product__product__pk__in=product_ids
+            ).aggregate(models.Min("price"))["price__min"]
+            or None
+        )
+
+        # make sure we only compare prices if available
+
+        values = [
+            value for value in (min_user_group_price, min_event_type_price) if value
+        ]
+
+        return min(values) if values else Decimal("0.00")
 
     def validate_reservation_period(self, reservation, user, data=None):
         """
