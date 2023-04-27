@@ -992,18 +992,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         return [x.field_name for x in metadata_set.required_fields.all()]
 
     def clean(self):
-        if self.free_to_use and (self.min_price or self.max_price):
-            raise ValidationError(
-                {"free_to_use": _("Free resources can't have a price.")}
-            )
-        if (
-            self.min_price is not None
-            and self.max_price is not None
-            and self.min_price > self.max_price
-        ):
-            raise ValidationError(
-                {"min_price": _("This value cannot be greater than max price")}
-            )
         if self.min_period % self.slot_size != datetime.timedelta(0):
             raise ValidationError(
                 {"min_period": _("This value must be a multiple of slot_size")}
