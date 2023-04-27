@@ -34,7 +34,7 @@ def space_resource_with_product(priced_product, space_resource):
 
 
 @pytest.mark.django_db
-def test_max_price_no_user_group_or_event_type(space_resource):
+def test_max_price_no_pricing_info(space_resource):
     """If no user group or event type pricing, max price should be zero."""
     assert space_resource.get_max_price() == Decimal("0.00")
 
@@ -62,6 +62,37 @@ def test_max_price_mixed_user_group_and_event_type(
     EventTypePriceListItemFactory(price_list=priced_product.price_list, price="120.00")
     EventTypePriceListItemFactory(price_list=priced_product.price_list, price="200.00")
     assert space_resource_with_product.get_max_price() == Decimal("200.00")
+
+
+@pytest.mark.django_db
+def test_min_price_no_pricing_info(space_resource):
+    """If no user group or event type pricing, min price should be zero."""
+    assert space_resource.get_min_price() == Decimal("0.00")
+
+
+@pytest.mark.django_db
+def test_min_price_user_groups_only(space_resource_with_product, priced_product):
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="200.00")
+    assert space_resource_with_product.get_min_price() == Decimal("100.00")
+
+
+@pytest.mark.django_db
+def test_min_price_event_type_price_only(space_resource_with_product, priced_product):
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="200.00")
+    assert space_resource_with_product.get_min_price() == Decimal("100.00")
+
+
+@pytest.mark.django_db
+def test_min_price_mixed_user_group_and_event_type(
+    space_resource_with_product, priced_product
+):
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="150.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="120.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="200.00")
+    assert space_resource_with_product.get_min_price() == Decimal("100.00")
 
 
 @pytest.mark.django_db
