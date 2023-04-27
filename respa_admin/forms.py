@@ -18,7 +18,6 @@ from resources.models import (
     UnitAuthorization,
 )
 from respa.settings import LANGUAGES
-from respa_pricing.models import EventType, PriceList, UserGroup
 from users.models import User
 
 from .widgets import (
@@ -267,8 +266,6 @@ class ResourceForm(forms.ModelForm):
             "authentication",
             "access_code_type",
             "free_to_use",
-            "max_price",
-            "min_price",
             "generic_terms",
             "payment_terms",
             "public",
