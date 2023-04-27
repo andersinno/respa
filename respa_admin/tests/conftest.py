@@ -17,10 +17,10 @@ from resources.tests.conftest import (
 from respa_pricing.tests.conftest import (
     event_type,
     price_list,
+    price_list_with_product,
     resource,
     resource_type,
     user_group,
-    price_list_with_product,
 )
 
 __all__ = [

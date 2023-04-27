@@ -1,9 +1,9 @@
-from django.db.models import FieldDoesNotExist
 from django.contrib import messages
+from django.db.models import FieldDoesNotExist
 from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy, reverse
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from respa_admin.views.base import ExtraContextMixin
 from respa_pricing.forms import (

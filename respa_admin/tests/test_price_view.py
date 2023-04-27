@@ -1,9 +1,11 @@
 import pytest
-from django.utils import translation
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.urls import reverse
-from ..views.prices import PriceListCreateView, PriceListEditView
+from django.utils import translation
+
 from respa_pricing.models import PriceList
+
+from ..views.prices import PriceListCreateView, PriceListEditView
 
 
 @pytest.mark.django_db
