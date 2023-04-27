@@ -1,7 +1,6 @@
-from django.core.exceptions import PermissionDenied
 from django.db.models import FieldDoesNotExist
 from django.http import HttpResponseRedirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from respa_admin.views.base import ExtraContextMixin
@@ -51,7 +50,11 @@ class PriceListCreateView(ExtraContextMixin, CreateView):
     pk_url_kwarg = "price_list_id"
     form_class = PriceListForm
     template_name = "respa_admin/price_lists/price_list_form.html"
-    success_url = reverse_lazy("respa_admin:price-list")
+
+    def get_success_url(self):
+        return reverse(
+            "respa_admin:edit-price-list", kwargs={"price_list_id": self.object.pk}
+        )
 
     def get(self, request, *args, **kwargs):
         self.object = None
