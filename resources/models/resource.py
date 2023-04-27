@@ -441,7 +441,26 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     def get_max_price(self):
         # this is going to be refactored into `max_price` property, replacing
         # the field.
-        return self.max_price
+        """Returns the maximum price based on the aggregate price list item prices."""
+
+        # prevent circular import
+        from respa_pricing.models import UserGroupPriceListItem, EventTypePriceListItem
+
+        product_ids = set(self.products.current().values_list("pk", flat=True))
+
+        # if no products associated with this Resource, just return zero
+        if not product_ids:
+            return Decimal("0.00")
+
+        max_user_group_price = UserGroupPriceListItem.objects.filter(
+            price_list__priced_product__product__pk__in=product_ids
+        ).aggregate(models.Max("price"))["price__max"] or Decimal("0.00")
+
+        max_event_type_price = EventTypePriceListItem.objects.filter(
+            price_list__priced_product__product__pk__in=product_ids
+        ).aggregate(models.Max("price"))["price__max"] or Decimal("0.00")
+
+        return max(max_user_group_price, max_event_type_price)
 
     def get_min_price(self):
         # this is going to be refactored into `min_price` property, replacing
