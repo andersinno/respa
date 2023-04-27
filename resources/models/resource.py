@@ -438,6 +438,16 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return resource_image.image if resource_image else None
 
+    def get_max_price(self):
+        # this is going to be refactored into `max_price` property, replacing
+        # the field.
+        return self.max_price
+
+    def get_min_price(self):
+        # this is going to be refactored into `min_price` property, replacing
+        # the field.
+        return self.min_price
+
     def validate_reservation_period(self, reservation, user, data=None):
         """
         Check that given reservation if valid for given user.
