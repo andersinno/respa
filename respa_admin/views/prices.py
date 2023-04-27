@@ -129,7 +129,11 @@ class PriceListEditView(ExtraContextMixin, UpdateView):
     pk_url_kwarg = "price_list_id"
     form_class = PriceListForm
     template_name = "respa_admin/price_lists/price_list_form.html"
-    success_url = reverse_lazy("respa_admin:price-list")
+
+    def get_success_url(self):
+        return reverse(
+            "respa_admin:edit-price-list", kwargs={"price_list_id": self.object.pk}
+        )
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
