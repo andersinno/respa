@@ -16,6 +16,52 @@ from resources.tests.utils import (
     get_field_errors,
     get_test_image_data,
 )
+from respa_pricing.tests.factories import (
+    PricedProductFactory,
+    UserGroupPriceListItemFactory,
+    EventTypePriceListItemFactory,
+)
+
+
+@pytest.fixture
+def priced_product(space_resource):
+    return PricedProductFactory(product__resources=[space_resource])
+
+
+@pytest.fixture
+def space_resource_with_product(priced_product, space_resource):
+    return space_resource
+
+
+@pytest.mark.django_db
+def test_max_price_no_user_group_or_event_type(space_resource):
+    """If no user group or event type pricing, max price should be None."""
+    assert space_resource.get_max_price() is None
+
+
+@pytest.mark.django_db
+def test_max_price_user_groups_only(space_resource_with_product, priced_product):
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="200.00")
+    assert space_resource_with_product.get_max_price() == Decimal("200.00")
+
+
+@pytest.mark.django_db
+def test_max_price_event_type_price_only(space_resource_with_product, priced_product):
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="200.00")
+    assert space_resource_with_product.get_max_price() == Decimal("200.00")
+
+
+@pytest.mark.django_db
+def test_max_price_mixed_user_group_and_event_type(
+    space_resource_with_product, priced_product
+):
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="150.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="120.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="200.00")
+    assert space_resource_with_product.get_max_price() == Decimal("200.00")
 
 
 @pytest.mark.django_db
