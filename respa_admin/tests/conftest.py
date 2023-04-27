@@ -14,7 +14,14 @@ from resources.tests.conftest import (
     test_unit,
     test_unit2,
 )
-from respa_pricing.tests.conftest import event_type, price_list, user_group
+from respa_pricing.tests.conftest import (
+    event_type,
+    price_list,
+    resource,
+    resource_type,
+    user_group,
+    price_list_with_product,
+)
 
 __all__ = [
     "empty_period_form_data",
@@ -28,9 +35,12 @@ __all__ = [
     "municipality",
     "payment_terms",
     "price_list",
+    "price_list_with_product",
     "purpose",
+    "resource",
     "resource_in_unit",
     "resource_in_unit2",
+    "resource_type",
     "space_resource_type",
     "test_unit",
     "test_unit2",
