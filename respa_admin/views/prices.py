@@ -1,7 +1,9 @@
 from django.db.models import FieldDoesNotExist
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.utils.translation import gettext as _
 
 from respa_admin.views.base import ExtraContextMixin
 from respa_pricing.forms import (
@@ -112,6 +114,9 @@ class PriceListCreateView(ExtraContextMixin, CreateView):
         user_group_item_formset.save()
         event_type_item_formset.instance = self.object
         event_type_item_formset.save()
+
+        messages.success(self.request, _("Price list saved"))
+
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, user_group_item_formset, event_type_item_formset):
@@ -193,6 +198,9 @@ class PriceListEditView(ExtraContextMixin, UpdateView):
         user_group_item_formset.save()
         event_type_item_formset.instance = self.object
         event_type_item_formset.save()
+
+        messages.success(self.request, _("Price list saved"))
+
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, user_group_item_formset, event_type_item_formset):

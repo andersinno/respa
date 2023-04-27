@@ -1,5 +1,6 @@
 import pytest
 from django.utils import translation
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.urls import reverse
 from ..views.prices import PriceListCreateView, PriceListEditView
 from respa_pricing.models import PriceList
@@ -35,6 +36,12 @@ def test_price_list_create_invalid_post(empty_price_list_form_data, general_admi
 def test_price_list_create_valid_post(valid_price_list_form_data, general_admin, rf):
     request = rf.post("/", valid_price_list_form_data)
     request.user = general_admin
+
+    # mock session/messages middleware
+    # https://code.djangoproject.com/ticket/17971
+    request.session = "session"
+    request._messages = FallbackStorage(request)
+
     with translation.override("fi"):
         response = PriceListCreateView.as_view()(request)
 
@@ -84,6 +91,12 @@ def test_price_list_edit_valid_post(
 ):
     request = rf.post("/", valid_price_list_form_data)
     request.user = general_admin
+
+    # mock session/messages middleware
+    # https://code.djangoproject.com/ticket/17971
+    request.session = "session"
+    request._messages = FallbackStorage(request)
+
     with translation.override("fi"):
         response = PriceListEditView.as_view()(
             request, price_list_id=price_list_with_product.pk
