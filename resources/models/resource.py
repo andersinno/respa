@@ -189,6 +189,37 @@ class ResourceQuerySet(models.QuerySet):
             | Q(groups__in=resource_groups)
         ).distinct()
 
+    def with_pricing(self):
+        """Annotates `max_price` and `min_price` attributes to instances based on
+        the associated price list items.
+        """
+        # prevent circular import
+        from respa_pricing.models import UserGroupPriceListItem, EventTypePriceListItem
+
+        user_group_items = models.Subquery(
+            UserGroupPriceListItem.objects.filter(
+                price_list__priced_product__product__resources=models.OuterRef("pk")
+            )
+        )
+        event_type_items = models.Subquery(
+            EventTypePriceListItem.objects.filter(
+                price_list__priced_product__product__resources=models.OuterRef("pk")
+            )
+        )
+
+        return self.annotate(
+            min_user_group_price=models.Max(user_group_items),
+            min_event_type_price=models.Max(event_type_items),
+            max_user_group_price=models.Max(user_group_items),
+            max_event_type_price=models.Max(event_type_items),
+            min_price=min(
+                models.F("min_user_group_price"), models.F("min_event_type_price")
+            ),
+            max_price=max(
+                models.F("max_user_group_price"), models.F("max_event_type_price")
+            ),
+        )
+
 
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
