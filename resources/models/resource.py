@@ -375,7 +375,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     )
     cancellation_min_days_in_advance = models.PositiveIntegerField(
         verbose_name=_(
-            "The customer can cancel the reservation (days) before the reservation starts."
+            "The customer can cancel the reservation (days) before the reservation starts."  # noqa
         ),
         default=0,
         blank=True,
@@ -395,7 +395,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     external_reservation_url = models.URLField(
         verbose_name=_("External reservation URL"),
         help_text=_(
-            "A link to an external reservation system if this resource is managed elsewhere"
+            "A link to an external reservation system if this resource is managed elsewhere"  # noqa
         ),
         null=True,
         blank=True,
@@ -521,7 +521,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             if reservation_count >= max_count:
                 raise ValidationError(
                     _(
-                        "Maximum number of active reservations for this resource exceeded."
+                        "Maximum number of active reservations for this resource exceeded."  # noqa
                     )
                 )
 
@@ -542,7 +542,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         """
         Returns hours that the resource is not reserved for a given date range
 
-        If include_closed=True, will also return hours when the resource is closed, if it is not reserved.
+        If include_closed=True, will also return hours when the resource is closed,
+        if it is not reserved.
+
         This is so that admins can book resources during closing hours. Returns
         the available hours as a list of dicts. The optional reservation argument
         is for disregarding a given reservation during checking, if we wish to
@@ -581,7 +583,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                         # if the start or end straddle opening hours
                         opens = period["opens"] if period["opens"] > start else start
                         closes = period["closes"] if period["closes"] < end else end
-                        # include_closed to prevent recursion, opening hours need not be rechecked
+                        # include_closed to prevent recursion, opening hours need
+                        # not be rechecked
                         hours_list.extend(
                             self.get_available_hours(
                                 start=opens,
@@ -621,7 +624,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             if res.end > end:
                 return hours_list
             hours_list.append({"starts": timezone.localtime(res.end)})
-        # after the last reservation, we must check if the remaining free period is too short
+        # after the last reservation, we must check if the
+        # remaining free period is too short
         if duration:
             if end - hours_list[-1]["starts"] < duration:
                 hours_list.pop()
@@ -732,7 +736,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         :type user: users.models.User
         :rtype: bool
         """
-        # UserFilterBackend and ReservationFilterSet in resources.api.reservation assume the same behaviour,
+        # UserFilterBackend and ReservationFilterSet in resources.api.reservation
+        # assume the same behaviour,
         # so if this is changed those need to be changed as well.
         if not self.unit:
             return is_general_admin(user)
@@ -956,7 +961,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
             raise ValidationError(
                 {
                     "should_be_reserved_whole_day": _(
-                        "Whole day reservation should have empty maximum reservation time."
+                        "Whole day reservation should have empty maximum reservation time."  # noqa
                     )
                 }
             )
@@ -1071,7 +1076,8 @@ class ResourceEquipment(ModifiableModel):
     """This model represents equipment instances in resources.
 
     Contains data and description related to a specific equipment instance.
-    Data field can be used to set custom attributes for more flexible and fast filtering.
+    Data field can be used to set custom attributes for more flexible
+    and fast filtering.
     """
 
     resource = models.ForeignKey(
