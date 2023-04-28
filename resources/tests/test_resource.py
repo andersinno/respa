@@ -71,10 +71,53 @@ def test_free_of_charge_free_to_use_true_with_pricing_info(
 
 
 @pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_with_pricing_info(
+def test_free_of_charge_free_to_use_false_with_pricing_info_zero(
+    space_resource_with_product, priced_product
+):
+    """If pricing is available but is zero, then should still be free of charge."""
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="00.00")
+
+    space_resource_with_product.free_to_use = False
+    space_resource_with_product.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_with_user_group_pricing_info(
     space_resource_with_product, priced_product
 ):
     UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+
+    space_resource_with_product.free_to_use = False
+    space_resource_with_product.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 0
+    assert Resource.objects.free_of_charge(False).count() == 1
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_with_event_type_pricing_info(
+    space_resource_with_product, priced_product
+):
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+
+    space_resource_with_product.free_to_use = False
+    space_resource_with_product.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 0
+    assert Resource.objects.free_of_charge(False).count() == 1
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_with_mixed_pricing_info(
+    space_resource_with_product, priced_product
+):
+    """Check combination of different prices"""
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="0.00")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="5.00")
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="100.00")
 
     space_resource_with_product.free_to_use = False
     space_resource_with_product.save()
