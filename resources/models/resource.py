@@ -379,22 +379,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         blank=True,
         default=True,
     )
-    # min_price = models.DecimalField(
-    # verbose_name=_("Min price"),
-    # max_digits=8,
-    # decimal_places=2,
-    # blank=True,
-    # null=True,
-    # validators=[MinValueValidator(Decimal("0.00"))],
-    # )
-    # max_price = models.DecimalField(
-    # verbose_name=_("Max price"),
-    # max_digits=8,
-    # decimal_places=2,
-    # blank=True,
-    # null=True,
-    # validators=[MinValueValidator(Decimal("0.00"))],
-    # )
 
     price_type = models.CharField(
         max_length=32,
