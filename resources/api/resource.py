@@ -223,12 +223,28 @@ class ResourceSerializer(
         source="get_reservable_min_days_in_advance"
     )
     reservable_after = serializers.SerializerMethodField()
+
+    min_price = serializers.SerializerMethodField()
+    max_price = serializers.SerializerMethodField()
+
     max_price_per_hour = serializers.SerializerMethodField()
     min_price_per_hour = serializers.SerializerMethodField()
+
     accessibility_summaries = ResourceAccessibilitySerializer(many=True, read_only=True)
+
     can_only_be_reserved_externally = serializers.SerializerMethodField()
+
     pricing_user_groups = serializers.SerializerMethodField()
     pricing_event_types = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Resource
+        exclude = (
+            "reservation_requested_notification_extra",
+            "reservation_confirmed_notification_extra",
+            "access_code_type",
+            "reservation_metadata_set",
+        )
 
     def get_can_only_be_reserved_externally(self, obj):
         today = datetime.datetime.today()
@@ -280,15 +296,31 @@ class ResourceSerializer(
             data.append({"id": event_type.id, "name": event_type.name})
         return data
 
+    def get_max_price(self, obj):
+        """Return max_price if pricing available, otherwise return None."""
+        return getattr(obj, "max_price", None)
+
+    def get_min_price(self, obj):
+        """Return min_price if pricing available, otherwise return None."""
+        return getattr(obj, "min_price", None)
+
     def get_max_price_per_hour(self, obj):
         """Backwards compatibility for 'max_price_per_hour' field that
         is now deprecated"""
-        return obj.max_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
+        return (
+            self.get_max_price(obj)
+            if obj.price_type == Resource.PRICE_TYPE_HOURLY
+            else None
+        )
 
     def get_min_price_per_hour(self, obj):
         """Backwards compatibility for 'min_price_per_hour' field that
         is now deprecated"""
-        return obj.min_price if obj.price_type == Resource.PRICE_TYPE_HOURLY else None
+        return (
+            self.get_min_price(obj)
+            if obj.price_type == Resource.PRICE_TYPE_HOURLY
+            else None
+        )
 
     def get_extra_fields(self, includes, context):
         """Define extra fields that can be included via query parameters.
@@ -482,15 +514,6 @@ class ResourceSerializer(
             rv_list, many=True, context=self.context
         ).data
         return rv_ser_list
-
-    class Meta:
-        model = Resource
-        exclude = (
-            "reservation_requested_notification_extra",
-            "reservation_confirmed_notification_extra",
-            "access_code_type",
-            "reservation_metadata_set",
-        )
 
 
 class ResourceDetailsSerializer(ResourceSerializer):
@@ -989,7 +1012,7 @@ class ResourceListViewSet(
     viewsets.GenericViewSet,
     ResourceCacheMixin,
 ):
-    queryset = Resource.objects.select_related(
+    queryset = Resource.objects.with_pricing().select_related(
         "generic_terms", "payment_terms", "unit", "type", "reservation_metadata_set"
     )
     queryset = queryset.prefetch_related(
@@ -1002,7 +1025,8 @@ class ResourceListViewSet(
         "groups",
     )
     if settings.RESPA_PAYMENTS_ENABLED:
-        queryset = queryset.prefetch_related("products")  # .with_pricing()
+        queryset = queryset.prefetch_related("products")
+
     filter_backends = (
         filters.SearchFilter,
         ResourceFilterBackend,
