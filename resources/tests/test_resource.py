@@ -35,11 +35,11 @@ def space_resource_with_product(priced_product, space_resource):
 
 @pytest.mark.django_db
 def test_with_pricing_no_pricing_info(space_resource):
-    """If no user group or event type pricing, max price should be zero."""
+    """If no user group or event type pricing, max/min price should be None."""
     resource = Resource.objects.with_pricing().first()
 
-    assert resource.min_price == Decimal("0.00")
-    assert resource.max_price == Decimal("0.00")
+    assert resource.min_price is None
+    assert resource.max_price is None
 
 
 @pytest.mark.django_db

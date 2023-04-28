@@ -3,6 +3,7 @@ import os
 import re
 from collections import OrderedDict
 from decimal import Decimal
+from django.db.models.functions import Greatest, Least
 
 import arrow
 import pytz
@@ -193,30 +194,26 @@ class ResourceQuerySet(models.QuerySet):
         """Annotates `max_price` and `min_price` attributes to instances based on
         the associated price list items.
         """
-        # prevent circular import
-        from respa_pricing.models import UserGroupPriceListItem, EventTypePriceListItem
-
-        user_group_items = models.Subquery(
-            UserGroupPriceListItem.objects.filter(
-                price_list__priced_product__product__resources=models.OuterRef("pk")
-            )
-        )
-        event_type_items = models.Subquery(
-            EventTypePriceListItem.objects.filter(
-                price_list__priced_product__product__resources=models.OuterRef("pk")
-            )
-        )
-
         return self.annotate(
-            min_user_group_price=models.Max(user_group_items),
-            min_event_type_price=models.Max(event_type_items),
-            max_user_group_price=models.Max(user_group_items),
-            max_event_type_price=models.Max(event_type_items),
-            min_price=min(
-                models.F("min_user_group_price"), models.F("min_event_type_price")
+            min_user_group_price=models.Min(
+                "products__pricedproduct__price_list__usergroup_prices__price"
             ),
-            max_price=max(
-                models.F("max_user_group_price"), models.F("max_event_type_price")
+            min_event_type_price=models.Min(
+                "products__pricedproduct__price_list__event_prices__price"
+            ),
+            max_user_group_price=models.Max(
+                "products__pricedproduct__price_list__usergroup_prices__price"
+            ),
+            max_event_type_price=models.Max(
+                "products__pricedproduct__price_list__event_prices__price"
+            ),
+            min_price=Least(
+                models.F("min_user_group_price"),
+                models.F("min_event_type_price"),
+            ),
+            max_price=Greatest(
+                models.F("max_user_group_price"),
+                models.F("max_event_type_price"),
             ),
         )
 
@@ -468,74 +465,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
         return resource_image.image if resource_image else None
-
-    @property
-    def max_price(self):
-        # we're going to replace this with an annotated value
-        return self.get_max_price()
-
-    def get_max_price(self):
-        """Returns the maximum price based on the aggregate price list item prices."""
-
-        # prevent circular import
-        from respa_pricing.models import UserGroupPriceListItem, EventTypePriceListItem
-
-        product_ids = set(self.products.current().values_list("pk", flat=True))
-
-        # if no products associated with this Resource, just return zero
-        if not product_ids:
-            return Decimal("0.00")
-
-        max_user_group_price = UserGroupPriceListItem.objects.filter(
-            price_list__priced_product__product__pk__in=product_ids
-        ).aggregate(models.Max("price"))["price__max"] or Decimal("0.00")
-
-        max_event_type_price = EventTypePriceListItem.objects.filter(
-            price_list__priced_product__product__pk__in=product_ids
-        ).aggregate(models.Max("price"))["price__max"] or Decimal("0.00")
-
-        return max(max_user_group_price, max_event_type_price)
-
-    @property
-    def min_price(self):
-        # we're going to replace this with an annotated value
-        return self.get_min_price()
-
-    def get_min_price(self):
-        # this is going to be refactored into `min_price` property, replacing
-        # the field.
-        """Returns the minimum price based on the aggregate price list item prices."""
-
-        # prevent circular import
-        from respa_pricing.models import UserGroupPriceListItem, EventTypePriceListItem
-
-        product_ids = set(self.products.current().values_list("pk", flat=True))
-
-        # if no products associated with this Resource, just return zero
-        if not product_ids:
-            return Decimal("0.00")
-
-        min_user_group_price = (
-            UserGroupPriceListItem.objects.filter(
-                price_list__priced_product__product__pk__in=product_ids
-            ).aggregate(models.Min("price"))["price__min"]
-            or None
-        )
-
-        min_event_type_price = (
-            EventTypePriceListItem.objects.filter(
-                price_list__priced_product__product__pk__in=product_ids
-            ).aggregate(models.Min("price"))["price__min"]
-            or None
-        )
-
-        # make sure we only compare prices if available
-
-        values = [
-            value for value in (min_user_group_price, min_event_type_price) if value
-        ]
-
-        return min(values) if values else Decimal("0.00")
 
     def validate_reservation_period(self, reservation, user, data=None):
         """

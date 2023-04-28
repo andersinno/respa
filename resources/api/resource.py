@@ -1002,7 +1002,7 @@ class ResourceListViewSet(
         "groups",
     )
     if settings.RESPA_PAYMENTS_ENABLED:
-        queryset = queryset.prefetch_related("products")
+        queryset = queryset.prefetch_related("products")  # .with_pricing()
     filter_backends = (
         filters.SearchFilter,
         ResourceFilterBackend,
