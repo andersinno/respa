@@ -223,30 +223,23 @@ class ResourceQuerySet(models.QuerySet):
         and `free_to_use` is False.
         """
         queryset = self.annotate(
-            has_user_group_prices=models.Exists(
+            has_pricing=models.Exists(
                 self.filter(
-                    products__pricedproduct__price_list__usergroup_prices__price__gt=0,
+                    Q(
+                        products__pricedproduct__price_list__usergroup_prices__price__gt=0,
+                    )
+                    | Q(
+                        products__pricedproduct__price_list__event_prices__price__gt=0,
+                    ),
                     pk=models.OuterRef("pk"),
                 )
-            ),
-            has_event_type_prices=models.Exists(
-                self.filter(
-                    products__pricedproduct__price_list__event_prices__price__gt=0,
-                    pk=models.OuterRef("pk"),
-                )
-            ),
+            )
         )
 
         if is_free:
-            return queryset.filter(
-                Q(free_to_use=True)
-                | Q(has_user_group_prices=False, has_event_type_prices=False)
-            )
+            return queryset.filter(Q(free_to_use=True) | Q(has_pricing=False))
         else:
-            return queryset.filter(
-                Q(Q(has_user_group_prices=True) | Q(has_event_type_prices=True)),
-                free_to_use=False,
-            )
+            return queryset.filter(free_to_use=False, has_pricing=True)
 
 
 class Resource(ModifiableModel, AutoIdentifiedModel):
