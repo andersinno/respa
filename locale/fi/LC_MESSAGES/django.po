@@ -1878,6 +1878,9 @@ msgstr "Hallitse hintoja"
 msgid "Add price list"
 msgstr "Lisää hinnasto"
 
+msgid "Price list saved"
+msgstr "Hinnasto tallennettu"
+
 msgid "Save the resource first to manage prices"
 msgstr "Tallenna resurssi ensin hallitaksesi hintoja"
 
