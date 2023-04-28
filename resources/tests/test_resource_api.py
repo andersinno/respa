@@ -2,11 +2,19 @@ import datetime
 from copy import deepcopy
 
 import pytest
+from decimal import Decimal
 from django.contrib.gis.geos import Point
 from django.urls import reverse
 from django.utils import timezone
 from freezegun import freeze_time
 from guardian.shortcuts import assign_perm, remove_perm
+
+from respa_pricing.tests.factories import (
+    PricedProductFactory,
+    UserGroupPriceListItemFactory,
+    EventTypePriceListItemFactory,
+)
+
 
 from resources.models import (
     Day,
@@ -32,6 +40,16 @@ from .utils import (
 @pytest.fixture
 def list_url():
     return reverse("resource-list")
+
+
+@pytest.fixture
+def priced_product(resource_in_unit):
+    return PricedProductFactory(product__resources=[resource_in_unit])
+
+
+@pytest.fixture
+def resource_in_unit_with_product(priced_product, resource_in_unit):
+    return resource_in_unit
 
 
 def get_detail_url(resource):
@@ -528,19 +546,25 @@ def test_api_resource_terms_of_use(api_client, resource_in_unit, detail_url):
 
 
 @pytest.mark.django_db
-def test_price_fields(api_client, resource_in_unit, detail_url):
-    resource_in_unit.min_price = "5.05"
-    resource_in_unit.max_price = None
-    resource_in_unit.price_type = resource_in_unit.PRICE_TYPE_HOURLY
+def test_price_fields(
+    api_client, priced_product, resource_in_unit_with_product, detail_url
+):
+    resource_in_unit_with_product.price_type = (
+        resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+    resource_in_unit_with_product.save()
 
-    resource_in_unit.save()
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="5.05")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="10.00")
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
 
-    assert response.data["min_price"] == "5.05"
-    assert response.data["max_price"] is None
-    assert response.data["price_type"] == resource_in_unit.PRICE_TYPE_HOURLY
+    assert response.data["min_price"] == Decimal("5.05")
+    assert response.data["max_price"] == Decimal("10.00")
+    assert (
+        response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
 
 
 @freeze_time("2016-10-25")
@@ -1095,15 +1119,20 @@ def test_available_between_with_period(
 
 @pytest.mark.django_db
 def test_filtering_free_of_charge(
-    list_url, api_client, resource_in_unit, resource_in_unit2, resource_in_unit3
+    list_url,
+    api_client,
+    resource_in_unit2,
+    resource_in_unit3,
+    priced_product,
+    resource_in_unit_with_product,
 ):
-    free_resource = resource_in_unit
-    free_resource2 = resource_in_unit2
-    not_free_resource = resource_in_unit3
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="5.05")
 
-    free_resource.min_price = 0
-    free_resource.save()
-    not_free_resource.min_price = 9001
+    free_resource = resource_in_unit2
+    free_resource2 = resource_in_unit3
+
+    not_free_resource = resource_in_unit_with_product
+    not_free_resource.free_to_use = False
     not_free_resource.save()
 
     response = api_client.get("{0}?free_of_charge=true".format(list_url))

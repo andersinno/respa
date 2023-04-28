@@ -34,6 +34,56 @@ def space_resource_with_product(priced_product, space_resource):
 
 
 @pytest.mark.django_db
+def test_free_of_charge_free_to_use_true_no_pricing_info(space_resource):
+    space_resource.free_to_use = True
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_no_pricing_info(space_resource):
+    """Even if free_to_use is False, is still free of charge as there is
+    no pricing info attached."""
+
+    space_resource.free_to_use = False
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_true_with_pricing_info(
+    space_resource_with_product, priced_product
+):
+    """Even if resource has pricing info attached, if free_to_use is True
+    then will assume free of charge."""
+
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+
+    space_resource_with_product.free_to_use = True
+    space_resource_with_product.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_with_pricing_info(
+    space_resource_with_product, priced_product
+):
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+
+    space_resource_with_product.free_to_use = False
+    space_resource_with_product.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 0
+    assert Resource.objects.free_of_charge(False).count() == 1
+
+
+@pytest.mark.django_db
 def test_with_pricing_no_pricing_info(space_resource):
     """If no user group or event type pricing, max/min price should be None."""
     resource = Resource.objects.with_pricing().first()

@@ -2,7 +2,6 @@ import datetime
 import os
 import re
 from collections import OrderedDict
-from decimal import Decimal
 from django.db.models.functions import Greatest, Least
 
 import arrow
@@ -12,7 +11,6 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import DateTimeRangeField, HStoreField
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.core.validators import MinValueValidator
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
@@ -216,6 +214,39 @@ class ResourceQuerySet(models.QuerySet):
                 models.F("max_event_type_price"),
             ),
         )
+
+    def free_of_charge(self, is_free):
+        """if `is_free` is True, returns any resources that either have
+        `free_to_use=True` or have no associated price lists with amounts > zero.
+
+        Otherwise returns any resources that have prices attached
+        and `free_to_use` is False.
+        """
+        queryset = self.annotate(
+            has_user_group_prices=models.Exists(
+                self.filter(
+                    products__pricedproduct__price_list__usergroup_prices__price__gt=0,
+                    pk=models.OuterRef("pk"),
+                )
+            ),
+            has_event_type_prices=models.Exists(
+                self.filter(
+                    products__pricedproduct__price_list__event_prices__price__gt=0,
+                    pk=models.OuterRef("pk"),
+                )
+            ),
+        )
+
+        if is_free:
+            return queryset.filter(
+                Q(free_to_use=True)
+                | Q(has_user_group_prices=False, has_event_type_prices=False)
+            )
+        else:
+            return queryset.filter(
+                Q(Q(has_user_group_prices=True) | Q(has_event_type_prices=True)),
+                free_to_use=False,
+            )
 
 
 class Resource(ModifiableModel, AutoIdentifiedModel):
