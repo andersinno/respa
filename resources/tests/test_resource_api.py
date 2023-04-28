@@ -546,12 +546,13 @@ def test_api_resource_terms_of_use(api_client, resource_in_unit, detail_url):
 
 
 @pytest.mark.django_db
-def test_price_fields(
+def test_price_fields_with_pricing_info(
     api_client, priced_product, resource_in_unit_with_product, detail_url
 ):
     resource_in_unit_with_product.price_type = (
         resource_in_unit_with_product.PRICE_TYPE_HOURLY
     )
+    resource_in_unit_with_product.free_to_use = False
     resource_in_unit_with_product.save()
 
     EventTypePriceListItemFactory(price_list=priced_product.price_list, price="5.05")
@@ -562,6 +563,54 @@ def test_price_fields(
 
     assert response.data["min_price"] == Decimal("5.05")
     assert response.data["max_price"] == Decimal("10.00")
+    assert response.data["free_to_use"] is False
+    assert (
+        response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+
+
+@pytest.mark.django_db
+def test_price_fields_with_no_pricing_info(
+    api_client, priced_product, resource_in_unit_with_product, detail_url
+):
+    resource_in_unit_with_product.price_type = (
+        resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+    resource_in_unit_with_product.free_to_use = False
+    resource_in_unit_with_product.save()
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+
+    assert response.data["min_price"] is None
+    assert response.data["max_price"] is None
+    assert response.data["free_to_use"] is False
+    assert (
+        response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+
+
+@pytest.mark.django_db
+def test_price_fields_with_pricing_info_free_to_use_true(
+    api_client, priced_product, resource_in_unit_with_product, detail_url
+):
+    """If free_to_use flag is True, min_price and max_price should be
+    resolved to None even if pricing info."""
+    resource_in_unit_with_product.price_type = (
+        resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+    resource_in_unit_with_product.free_to_use = True
+    resource_in_unit_with_product.save()
+
+    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="5.05")
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="10.00")
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+
+    assert response.data["min_price"] is None
+    assert response.data["max_price"] is None
+    assert response.data["free_to_use"] is True
     assert (
         response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
     )

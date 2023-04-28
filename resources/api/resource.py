@@ -297,11 +297,21 @@ class ResourceSerializer(
         return data
 
     def get_max_price(self, obj):
-        """Return max_price if pricing available, otherwise return None."""
+        """Return max_price if pricing available, otherwise return None.
+
+        Will always return None if free_to_use=True.
+        """
+        if obj.free_to_use:
+            return None
         return getattr(obj, "max_price", None)
 
     def get_min_price(self, obj):
-        """Return min_price if pricing available, otherwise return None."""
+        """Return min_price if pricing available, otherwise return None.
+
+        Will always return None if free_to_use=True.
+        """
+        if obj.free_to_use:
+            return None
         return getattr(obj, "min_price", None)
 
     def get_max_price_per_hour(self, obj):
