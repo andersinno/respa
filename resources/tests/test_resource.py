@@ -17,9 +17,9 @@ from resources.tests.utils import (
     get_test_image_data,
 )
 from respa_pricing.tests.factories import (
+    EventTypePriceListItemFactory,
     PricedProductFactory,
     UserGroupPriceListItemFactory,
-    EventTypePriceListItemFactory,
 )
 
 

@@ -2,7 +2,6 @@ import datetime
 import os
 import re
 from collections import OrderedDict
-from django.db.models.functions import Greatest, Least
 
 import arrow
 import pytz
@@ -12,6 +11,7 @@ from django.contrib.postgres.fields import DateTimeRangeField, HStoreField
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db.models import Q
+from django.db.models.functions import Greatest, Least
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -28,7 +28,6 @@ from ..auth import is_authenticated_user, is_general_admin
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
 from ..errors import InvalidImage
 from ..fields import EquipmentField
-
 from .availability import get_opening_hours
 from .base import AutoIdentifiedModel, ModifiableModel, NameIdentifiedModel
 from .equipment import Equipment
