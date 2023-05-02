@@ -41,6 +41,7 @@ def get_git_revision_hash():
 
 env = environ.Env(
     DEBUG=(bool, False),
+    DEBUG_TOOLBAR=(bool, False),
     SECRET_KEY=(str, ''),
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
@@ -90,10 +91,8 @@ environ.Env.read_env()
 # reservation confirmation emails use this
 RESPA_IMAGE_BASE_URL = env('RESPA_IMAGE_BASE_URL')
 
-DEBUG_TOOLBAR_CONFIG = {
-    'RESULTS_CACHE_SIZE': 100,
-}
 DEBUG = env('DEBUG')
+DEBUG_TOOLBAR = env('DEBUG_TOOLBAR')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
 INTERNAL_IPS = env.list('INTERNAL_IPS',
@@ -291,6 +290,12 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_ADAPTER = 'tamusers.adapter.SocialAccountAdapter'
 
+if DEBUG and DEBUG_TOOLBAR:
+    INSTALLED_APPS += ['debug_toolbar']
+    MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware'] + MIDDLEWARE
+    DEBUG_TOOLBAR_CONFIG = {
+        'RESULTS_CACHE_SIZE': 100,
+    }
 
 # REST Framework
 # http://www.django-rest-framework.org
