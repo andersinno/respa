@@ -31,7 +31,8 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
     def create(self, validated_data):
         order_lines_data = validated_data.pop("order_lines", [])
         return_url = validated_data.pop("return_url", "")
-        order = super().create(validated_data)
+
+        processed_order_lines = []
 
         for order_line_data in order_lines_data:
             order_line_price_info = PriceList.get_price_info(
@@ -41,15 +42,36 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
                 validated_data["reservation"].begin,
                 validated_data["reservation"].end,
             )
+
+            total_price = Decimal(order_line_price_info["total_price"])
+
+            # do not add any order lines if price is zero
+            if not total_price:
+                continue
+
+            order_line_data["total_price"] = total_price
             order_line_data["unit_price"] = Decimal(order_line_price_info["amount"])
-            order_line_data["total_price"] = Decimal(
-                order_line_price_info["total_price"]
-            )
+
             price_source = order_line_price_info["price_source"]
+
             order_line_data["tax_percentage"] = price_source.tax_percentage
             order_line_data["price_period"] = price_source.price_period
             order_line_data["price_type"] = price_source.price_type
-            OrderLine.objects.create(order=order, **order_line_data)
+
+            processed_order_lines.append(order_line_data)
+
+        # nothing to pay, so we can skip order and payment generation
+        if not processed_order_lines:
+            return None
+
+        order = super().create(validated_data)
+
+        OrderLine.objects.bulk_create(
+            [
+                OrderLine(order=order, **order_line_data)
+                for order_line_data in processed_order_lines
+            ]
+        )
 
         payments = get_payment_provider(
             request=self.context["request"], ui_return_url=return_url
