@@ -134,6 +134,24 @@ def test_reservation_creation_state(
     assert new_reservation.state == expected_state
 
 
+def test_reservation_creation_state_total_price_zero(user_api_client, resource_in_unit):
+    """If total price of order is zero, no payment is required.
+
+    Reservation should be CONFIRMED and no orders should be created.
+    """
+    reservation_data = build_reservation_data(resource_in_unit)
+    product = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+    reservation_data["order"] = build_order_data(product, unit_price=0)
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.last()
+
+    assert new_reservation.state == Reservation.CONFIRMED
+    assert Order.objects.count() == 0
+
+
 @pytest.mark.parametrize("endpoint", ("list", "detail"))
 @pytest.mark.parametrize(
     "include",
