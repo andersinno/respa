@@ -16,7 +16,10 @@ from rest_framework import serializers
 from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
-from .exceptions import OrderStateTransitionError
+from .exceptions import (
+    OrderStateTransitionError,
+    PaymentCancellationFailedError,
+)
 from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
 
 # The best way for representing non existing archived_at would be using None for it,
@@ -203,6 +206,23 @@ class Order(models.Model):
             )
 
         self.state = new_state
+
+        if new_state in (Order.EXPIRED, Order.CANCELLED):
+            if self.reservation.state == Reservation.WAITING_FOR_PAYMENT:
+                # Cancel any open payments to make sure the order cannot
+                # be paid after it's been cancelled in Respa.
+                from .providers import get_payment_provider
+
+                payment_provider = get_payment_provider(request=None)
+                try:
+                    payment_provider.cancel_payment(self)
+                    self.create_log_entry(message="Payment cancelled")
+                except NotImplementedError:
+                    pass
+                except PaymentCancellationFailedError as error:
+                    self.create_log_entry(
+                        message=f"Failed to cancel payment: {error}"
+                    )
 
         if new_state == Order.CONFIRMED:
             self.reservation.set_state(Reservation.CONFIRMED, None)
