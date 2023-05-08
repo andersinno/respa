@@ -164,9 +164,9 @@ class PaymentsReservationSerializer(ReservationSerializer):
             else:
                 order_required = True
 
-            self.fields["order"] = ReservationEndpointOrderSerializer(
-                required=order_required
-            )
+            if order_required:
+                self.fields["order"] = ReservationEndpointOrderSerializer(required=True)
+
         elif "order_detail" in self.context["includes"]:
             self.fields["order"] = ReservationEndpointOrderSerializer(read_only=True)
 

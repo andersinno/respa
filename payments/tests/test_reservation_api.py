@@ -100,6 +100,13 @@ def product_2(resource_in_unit):
     return ProductFactory(resources=[resource_in_unit])
 
 
+@pytest.fixture
+def paid_resource(resource_in_unit):
+    resource_in_unit.free_to_use = False
+    resource_in_unit.save(update_fields=["free_to_use"])
+    return resource_in_unit
+
+
 @pytest.fixture(autouse=True)
 def mock_provider():
     mocked_provider = create_autospec(PaymentProvider)
@@ -113,15 +120,25 @@ def mock_provider():
 
 
 @pytest.mark.parametrize(
-    "has_order, expected_state",
+    "has_order, free_to_use, expected_state, new_orders",
     (
-        (False, Reservation.CONFIRMED),
-        (True, Reservation.WAITING_FOR_PAYMENT),
+        (False, False, Reservation.CONFIRMED, 0),
+        (False, True, Reservation.CONFIRMED, 0),
+        (True, False, Reservation.WAITING_FOR_PAYMENT, 1),
+        (True, True, Reservation.CONFIRMED, 0),
     ),
 )
 def test_reservation_creation_state(
-    user_api_client, resource_in_unit, has_order, expected_state
+    user_api_client,
+    resource_in_unit,
+    has_order,
+    free_to_use,
+    expected_state,
+    new_orders,
 ):
+    resource_in_unit.free_to_use = free_to_use
+    resource_in_unit.save()
+
     reservation_data = build_reservation_data(resource_in_unit)
     if has_order:
         product = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
@@ -132,6 +149,8 @@ def test_reservation_creation_state(
     assert response.status_code == 201
     new_reservation = Reservation.objects.last()
     assert new_reservation.state == expected_state
+
+    assert Order.objects.count() == new_orders
 
 
 def test_reservation_creation_state_total_price_zero(user_api_client, resource_in_unit):
@@ -266,10 +285,8 @@ def test_reservation_that_has_order_cannot_be_modified_without_permission(
     assert response.status_code == 204 if has_perm else 403
 
 
-def test_order_post(
-    user_api_client, resource_in_unit, product, product_2, mock_provider
-):
-    reservation_data = build_reservation_data(resource_in_unit)
+def test_order_post(user_api_client, paid_resource, product, product_2, mock_provider):
+    reservation_data = build_reservation_data(paid_resource)
     reservation_data["order"] = build_order_data(
         product=product, product_2=product_2, quantity_2=5
     )
@@ -299,10 +316,10 @@ def test_order_post(
 
 
 def test_order_product_must_match_resource(
-    user_api_client, product, resource_in_unit, resource_in_unit2
+    user_api_client, product, paid_resource, resource_in_unit2
 ):
     product_with_another_resource = ProductFactory(resources=[resource_in_unit2])
-    data = build_reservation_data(resource_in_unit)
+    data = build_reservation_data(paid_resource)
     data["order"] = build_order_data(
         product=product, product_2=product_with_another_resource
     )
@@ -313,9 +330,10 @@ def test_order_product_must_match_resource(
     assert "product" in response.data["order"]["order_lines"][1]
 
 
-def test_order_line_products_are_unique(user_api_client, resource_in_unit, product):
+def test_order_line_products_are_unique(user_api_client, paid_resource, product):
     """Test order validator enforces that order lines cannot contain duplicates of the same product"""
-    reservation_data = build_reservation_data(resource_in_unit)
+
+    reservation_data = build_reservation_data(paid_resource)
     reservation_data["order"] = build_order_data(
         product, quantity=2, product_2=product, quantity_2=2
     )
@@ -325,12 +343,10 @@ def test_order_line_products_are_unique(user_api_client, resource_in_unit, produ
 
 
 @pytest.mark.parametrize("has_rent", (True, False))
-def test_rent_product_makes_order_required_(
-    user_api_client, resource_in_unit, has_rent
-):
-    reservation_data = build_reservation_data(resource_in_unit)
+def test_rent_product_makes_order_required_(user_api_client, paid_resource, has_rent):
+    reservation_data = build_reservation_data(paid_resource)
     if has_rent:
-        prod = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+        prod = ProductFactory(type=Product.RENT, resources=[paid_resource])
         prod.resources.update(free_to_use=False)
 
     response = user_api_client.post(LIST_URL, reservation_data)
@@ -385,58 +401,84 @@ def test_order_cannot_be_modified(user_api_client, order_with_products, user):
     assert order_with_products.order_lines.count() > 1
 
 
-def test_extra_product_doesnt_make_order_required(user_api_client, resource_in_unit):
-    reservation_data = build_reservation_data(resource_in_unit)
-    ProductFactory(type=Product.EXTRA, resources=[resource_in_unit])
+def test_extra_product_doesnt_make_order_required(user_api_client, paid_resource):
+    reservation_data = build_reservation_data(paid_resource)
+    ProductFactory(type=Product.EXTRA, resources=[paid_resource])
 
     response = user_api_client.post(LIST_URL, reservation_data)
 
     assert response.status_code == 201
 
 
-def test_order_must_include_rent_if_one_exists(user_api_client, resource_in_unit):
-    reservation_data = build_reservation_data(resource_in_unit)
-    ProductFactory(type=Product.RENT, resources=[resource_in_unit])
-    extra = ProductFactory(type=Product.EXTRA, resources=[resource_in_unit])
+def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
+    reservation_data = build_reservation_data(paid_resource)
+    ProductFactory(type=Product.RENT, resources=[paid_resource])
+    extra = ProductFactory(type=Product.EXTRA, resources=[paid_resource])
     reservation_data["order"] = build_order_data(product=extra)
 
     response = user_api_client.post(LIST_URL, reservation_data)
     assert response.status_code == 400
 
 
-def test_unit_admin_and_unit_manager_may_bypass_payment(
-    user_api_client, resource_in_unit, user
+@pytest.mark.parametrize(
+    "level,has_order,success,new_state,num_orders",
+    (
+        # no authorization, has order, OK+payment
+        (None, True, True, Reservation.WAITING_FOR_PAYMENT, 1),
+        # no authorization, no order, FAIL
+        (None, False, False, None, 0),
+        # viewer, has order, OK+payment
+        (UnitAuthorizationLevel.viewer, True, True, Reservation.WAITING_FOR_PAYMENT, 1),
+        # viewer, no order, FAIL
+        (UnitAuthorizationLevel.viewer, False, False, None, 0),
+        # manager, has order, OK+confirmed
+        (UnitAuthorizationLevel.manager, True, True, Reservation.CONFIRMED, 0),
+        # manager, no order, OK+confirmed
+        (UnitAuthorizationLevel.manager, False, True, Reservation.CONFIRMED, 0),
+        # manager, has order, OK+confirmed
+        (UnitAuthorizationLevel.admin, True, True, Reservation.CONFIRMED, 0),
+        # manager, no order, OK+confirmed
+        (UnitAuthorizationLevel.admin, False, True, Reservation.CONFIRMED, 0),
+    ),
+)
+def test_user_may_bypass_payment_on_paid_resource(
+    user_api_client,
+    paid_resource,
+    mock_provider,
+    user,
+    level,
+    has_order,
+    success,
+    new_state,
+    num_orders,
 ):
-    reservation_data = build_reservation_data(resource_in_unit)
-    resource_in_unit.free_to_use = False
-    resource_in_unit.save()
-    ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+    """Checks that certain users bypass order processing and payment
+    if granted specific authorizations on the resource.
+    """
+    reservation_data = build_reservation_data(paid_resource)
+    product = ProductFactory(type=Product.RENT, resources=[paid_resource])
 
-    # Order required for normal user
-    response = user_api_client.post(LIST_URL, reservation_data)
-    assert response.status_code == 400
-    assert "order" in response.data
+    if has_order:
+        reservation_data["order"] = build_order_data(product)
 
-    # Order not required for admin user
-    UnitAuthorization.objects.create(
-        subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.admin,
-        authorized=user,
-    )
+    if level:
+        UnitAuthorization.objects.create(
+            subject=paid_resource.unit,
+            level=level,
+            authorized=user,
+        )
     response = user_api_client.post(LIST_URL, reservation_data)
-    assert response.status_code == 201
-    new_reservation = Reservation.objects.last()
-    assert new_reservation.state == Reservation.CONFIRMED
-    UnitAuthorization.objects.all().delete()
-    Reservation.objects.all().delete()
 
-    # Order not required for manager user
-    UnitAuthorization.objects.create(
-        subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.manager,
-        authorized=user,
-    )
-    response = user_api_client.post(LIST_URL, reservation_data)
-    assert response.status_code == 201
-    new_reservation = Reservation.objects.last()
-    assert new_reservation.state == Reservation.CONFIRMED
+    if success:
+        assert response.status_code == 201
+        new_reservation = Reservation.objects.last()
+        assert new_reservation.state == new_state
+
+    else:
+        assert response.status_code == 400
+        assert Reservation.objects.count() == 0
+
+    assert Order.objects.count() == num_orders
+
+    if num_orders:
+        mock_provider.initiate_payment.assert_called()
