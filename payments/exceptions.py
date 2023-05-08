@@ -26,3 +26,7 @@ class UnknownReturnCodeError(RespaPaymentError):
 
 class PaymentCreationFailedError(RespaPaymentError):
     """When payment creation fails or is cancelled by the payment service"""
+
+
+class PaymentCancellationFailedError(RespaPaymentError):
+    """When the payment cancellation fails"""

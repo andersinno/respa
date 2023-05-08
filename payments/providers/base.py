@@ -23,6 +23,13 @@ class PaymentProvider:
         Implement this in your subclass. Should return a URL to which the user
         is redirected to actually pay the order."""
 
+    def cancel_payment(self, order: Order) -> bool:
+        """Cancel an open payment.
+
+        Implement this in your subclass. Should return True if the cancellation
+        is succesful."""
+        raise NotImplementedError
+
     def handle_success_request(self) -> HttpResponse:
         """Handle incoming payment success request from the payment provider.
 

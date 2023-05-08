@@ -13,6 +13,7 @@ from payments.providers.cpu_ceepos import (
     CPUCeeposProvider,
     DuplicateOrderError,
     PayloadValidationError,
+    PaymentCancellationFailedError,
     ServiceUnavailableError,
     UnknownReturnCodeError,
 )
@@ -194,6 +195,112 @@ def test_handle_initiate_payment_error_unknown_code(payment_provider):
     )
     with pytest.raises(UnknownReturnCodeError):
         payment_provider.handle_initiate_payment_response(response)
+
+
+def test_handle_cancel_payment_success(payment_provider):
+    """Test the response handler recognizes success and returns True"""
+    response = json.loads(
+        """{
+        "Id": "12345",
+        "Status": 1,
+        "Reference": "10456",
+        "Action": "delete payment",
+        "PaymentAddress": "https://www.example.com/checkout",
+        "Hash": "640f21ee6d90fad77b417399dd09560ae59fb4e9cb48e9d806b1d8232c0e41e5"
+    }"""
+    )
+    assert payment_provider.handle_cancel_payment_response(response)
+
+
+def test_handle_cancel_payment_error_already_paid(payment_provider):
+    """
+    Test the response handler raises PaymentCancellationFailedError as expected
+    when the payment has already been made.
+    """
+    response = json.loads(
+        """{
+        "Id": "12345",
+        "Status": 3,
+        "Reference": "10456",
+        "Action": "delete payment",
+        "PaymentAddress": "https://www.example.com/checkout",
+        "Hash": "640f21ee6d90fad77b417399dd09560ae59fb4e9cb48e9d806b1d8232c0e41e5"
+    }"""
+    )
+    with pytest.raises(PaymentCancellationFailedError):
+        assert payment_provider.handle_cancel_payment_response(response)
+
+
+def test_handle_cancel_payment_error_already_deleted(payment_provider):
+    """
+    Test the response handler raises PaymentCancellationFailedError as expected
+    when the payment has already been cancelled.
+    """
+    response = json.loads(
+        """{
+        "Id": "12345",
+        "Status": 4,
+        "Reference": "10456",
+        "Action": "delete payment",
+        "PaymentAddress": "https://www.example.com/checkout",
+        "Hash": "640f21ee6d90fad77b417399dd09560ae59fb4e9cb48e9d806b1d8232c0e41e5"
+    }"""
+    )
+    with pytest.raises(PaymentCancellationFailedError):
+        assert payment_provider.handle_cancel_payment_response(response)
+
+
+def test_handle_cancel_payment_error_invalid_request_payload(payment_provider):
+    """
+    Test the response handler raises PayloadValidationError as expected.
+    """
+    response = json.loads(
+        """{
+        "Id": "12345",
+        "Status": 99,
+        "Reference": "10456",
+        "Action": "delete payment",
+        "PaymentAddress": "https://www.example.com/checkout",
+        "Hash": "640f21ee6d90fad77b417399dd09560ae59fb4e9cb48e9d806b1d8232c0e41e5"
+    }"""
+    )
+    with pytest.raises(PayloadValidationError):
+        assert payment_provider.handle_cancel_payment_response(response)
+
+
+def test_handle_cancel_payment_error_invalid_response_checksum(payment_provider):
+    """
+    Test the response handler raises PayloadValidationError when the response
+    checksum is invalid.
+    """
+    response = json.loads(
+        """{
+        "Id": "12345",
+        "Status": 1,
+        "Reference": "10456",
+        "Action": "delete payment",
+        "PaymentAddress": "https://www.example.com/checkout",
+        "Hash": "invalid"
+    }"""
+    )
+    with pytest.raises(PayloadValidationError):
+        assert payment_provider.handle_cancel_payment_response(response)
+
+
+def test_handle_cancel_payment_error_unknown_code(payment_provider):
+    """Test the response handler raises UnknownReturnCodeError as expected"""
+    response = json.loads(
+        """{
+        "Id": "12345",
+        "Status": 123,
+        "Reference": "10456",
+        "Action": "delete payment",
+        "PaymentAddress": "https://www.example.com/checkout",
+        "Hash": "640f21ee6d90fad77b417399dd09560ae59fb4e9cb48e9d806b1d8232c0e41e5"
+    }"""
+    )
+    with pytest.raises(UnknownReturnCodeError):
+        payment_provider.handle_cancel_payment_response(response)
 
 
 def test_payload_add_products_success(payment_provider, order_with_products):

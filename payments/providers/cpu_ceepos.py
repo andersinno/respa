@@ -12,6 +12,7 @@ from ..exceptions import (
     DuplicateOrderError,
     OrderStateTransitionError,
     PayloadValidationError,
+    PaymentCancellationFailedError,
     PaymentCreationFailedError,
     ServiceUnavailableError,
     UnknownReturnCodeError,
@@ -92,6 +93,32 @@ class CPUCeeposProvider(PaymentProvider):
             return self.handle_initiate_payment_response(r.json())
         except RequestException as e:
             raise ServiceUnavailableError("Payment service is unreachable") from e
+
+    def cancel_payment(self, order: Order) -> bool:
+        """
+        Sends a request for cancelling a payment that was previously created.
+
+        Returns True if the payment is succesfully cancelled.
+        """
+
+        payload = {
+            "ApiVersion": "3.0.0",
+            "Source": self.config.get(RESPA_PAYMENTS_CEEPOS_API_KEY),
+            "Id": str(order.order_number),
+            "Mode": 3,
+            "Action": "delete payment",
+        }
+        secret = self.config.get(RESPA_PAYMENTS_CEEPOS_API_SECRET)
+
+        self.payload_add_checksum(payload, secret)
+
+        try:
+            r = requests.post(self.url_payment_api, json=payload, timeout=60)
+            r.raise_for_status()
+            return self.handle_cancel_payment_response(r.json())
+        except RequestException as e:
+            raise ServiceUnavailableError("Payment service is unreachable") from e
+
 
     def payload_add_products(self, payload, order):
         """Attaches product data to the payload
@@ -239,6 +266,40 @@ class CPUCeeposProvider(PaymentProvider):
             raise ServiceUnavailableError("Payment service is unavailable")
         elif status_code == 99:
             raise PayloadValidationError("Payment payload data validation failed")
+        else:
+            raise UnknownReturnCodeError(
+                "Status code was not recognized: {}".format(status_code)
+            )
+
+    def handle_cancel_payment_response(self, response) -> bool:
+        """
+        Handles CeePos' response to the cancel payment request.
+        If the payment is succesfully cancelled, returns True.
+
+        Relevant response statuses:
+            0 = Payment cannot be cancelled
+            1 = Payment cancellation complete
+            3 = Payment already completed, cannot delete
+            4 = Payment already deleted
+            98 = System error
+            99 = Faulty action request
+        """
+
+        status_code = response["Status"]  # The status of the payment cancellation action.
+        if status_code == 0:
+            raise PaymentCancellationFailedError("Payment cannot be cancelled")
+        if status_code == 1:
+            if not self.validate_ceepos_response(response):
+                raise PayloadValidationError("Invalid response checksum")
+            return True
+        elif status_code == 3:
+            raise PaymentCancellationFailedError("Payment already completed, cannot delete")
+        elif status_code == 4:
+            raise PaymentCancellationFailedError("Payment already deleted")
+        elif status_code == 98:
+            raise ServiceUnavailableError("Payment service is unavailable")
+        elif status_code == 99:
+            raise PayloadValidationError("Payment cancellation payload data validation failed")
         else:
             raise UnknownReturnCodeError(
                 "Status code was not recognized: {}".format(status_code)
