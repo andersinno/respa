@@ -181,6 +181,12 @@ class Reservation(ModifiableModel):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    approved_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Approved at")
+    )
+    requested_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Requested at")
+    )
     staff_event = models.BooleanField(verbose_name=_("Is staff event"), default=False)
     type = models.CharField(
         blank=False,

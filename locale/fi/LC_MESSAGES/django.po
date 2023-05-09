@@ -836,6 +836,12 @@ msgstr "Tila"
 msgid "Approver"
 msgstr "Hyväksyjä"
 
+msgid "Approved at"
+msgstr "Hyväksytty"
+
+msgid "Requested at"
+msgstr "Hyväksyntää pyydetty"
+
 msgid "Is staff event"
 msgstr "Viraston oma tapahtuma"
 
