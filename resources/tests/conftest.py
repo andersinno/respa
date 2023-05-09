@@ -3,6 +3,7 @@ import datetime
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.utils import timezone
 from munigeo.models import Municipality
 from rest_framework.test import APIClient, APIRequestFactory
 
@@ -16,6 +17,7 @@ from resources.models import (
     EquipmentCategory,
     Period,
     Purpose,
+    Reservation,
     Resource,
     ResourceAccessibility,
     ResourceEquipment,
@@ -494,3 +496,30 @@ def resource_with_accessibility_data3(
         value=accessibility_value_red,
     )
     return resource_in_unit3
+
+
+@pytest.fixture
+def new_reservation(resource_with_opening_hours, user):
+    begin = timezone.now()
+    end = begin + datetime.timedelta(hours=2)
+    return Reservation.objects.create(
+        resource=resource_with_opening_hours,
+        begin=begin,
+        end=end,
+        user=user,
+        state=Reservation.CREATED,
+    )
+
+
+@pytest.fixture
+def requested_reservation(resource_with_opening_hours, user):
+    begin = timezone.now()
+    end = begin + datetime.timedelta(hours=2)
+    return Reservation.objects.create(
+        resource=resource_with_opening_hours,
+        begin=begin,
+        end=end,
+        user=user,
+        state=Reservation.REQUESTED,
+        requested_at=timezone.now(),
+    )

@@ -4,6 +4,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.translation import activate
 from freezegun import freeze_time
 
@@ -207,3 +208,39 @@ def test_admin_may_bypass_min_period(resource_with_opening_hours, user):
     with pytest.raises(ValidationError) as error:
         reservation.clean()
     assert error.value.code == "invalid_time_slot"
+
+
+@freeze_time("2023-01-01T11:00:00+02:00")
+@pytest.mark.django_db
+def test_state_change_to_requested_sets_request_time(new_reservation, user):
+    assert new_reservation.requested_at is None
+    new_reservation.set_state(Reservation.REQUESTED, user)
+    assert new_reservation.requested_at == parse_datetime("2023-01-01T11:00:00+02:00")
+
+
+@freeze_time("2023-01-01T11:00:00+02:00")
+@pytest.mark.django_db
+def test_state_change_from_requested_to_confirmed_sets_approval_time(
+    requested_reservation, user
+):
+    assert requested_reservation.state == Reservation.REQUESTED
+    assert requested_reservation.approved_at is None
+    requested_reservation.set_state(Reservation.CONFIRMED, user)
+    assert requested_reservation.approver == user
+    assert requested_reservation.approved_at == parse_datetime(
+        "2023-01-01T11:00:00+02:00"
+    )
+
+
+@freeze_time("2023-01-01T11:00:00+02:00")
+@pytest.mark.django_db
+def test_state_change_from_requested_to_waiting_for_payment_sets_approval_time(
+    requested_reservation, user
+):
+    assert requested_reservation.state == Reservation.REQUESTED
+    assert requested_reservation.approved_at is None
+    requested_reservation.set_state(Reservation.WAITING_FOR_PAYMENT, user)
+    assert requested_reservation.approver == user
+    assert requested_reservation.approved_at == parse_datetime(
+        "2023-01-01T11:00:00+02:00"
+    )
