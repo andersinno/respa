@@ -421,24 +421,99 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
 
 
 @pytest.mark.parametrize(
-    "level,has_order,success,new_state,num_orders",
+    "reservation_type,level,has_order,success,new_state,num_orders",
     (
-        # no authorization, has order, OK+payment
-        (None, True, True, Reservation.WAITING_FOR_PAYMENT, 1),
-        # no authorization, no order, FAIL
-        (None, False, False, None, 0),
-        # viewer, has order, OK+payment
-        (UnitAuthorizationLevel.viewer, True, True, Reservation.WAITING_FOR_PAYMENT, 1),
-        # viewer, no order, FAIL
-        (UnitAuthorizationLevel.viewer, False, False, None, 0),
-        # manager, has order, OK+confirmed
-        (UnitAuthorizationLevel.manager, True, True, Reservation.CONFIRMED, 0),
-        # manager, no order, OK+confirmed
-        (UnitAuthorizationLevel.manager, False, True, Reservation.CONFIRMED, 0),
-        # manager, has order, OK+confirmed
-        (UnitAuthorizationLevel.admin, True, True, Reservation.CONFIRMED, 0),
-        # manager, no order, OK+confirmed
-        (UnitAuthorizationLevel.admin, False, True, Reservation.CONFIRMED, 0),
+        # NORMAL, no authorization, has order, OK+payment
+        (Reservation.TYPE_NORMAL, None, True, True, Reservation.WAITING_FOR_PAYMENT, 1),
+        # INTERNAL USE, no authorization, has order, FAIL
+        (Reservation.TYPE_INTERNAL_USE, None, True, False, None, 0),
+        # NORMAL, no authorization, no order, FAIL
+        (Reservation.TYPE_NORMAL, None, False, False, None, 0),
+        # INTERNAL USE, no authorization, no order, FAIL
+        (Reservation.TYPE_INTERNAL_USE, None, False, False, None, 0),
+        # NORMAL, viewer, has order, OK+payment
+        (
+            Reservation.TYPE_NORMAL,
+            UnitAuthorizationLevel.viewer,
+            True,
+            True,
+            Reservation.WAITING_FOR_PAYMENT,
+            1,
+        ),
+        # INTERNAL USE, viewer, has order, FAIL
+        (
+            Reservation.TYPE_INTERNAL_USE,
+            UnitAuthorizationLevel.viewer,
+            True,
+            False,
+            None,
+            0,
+        ),
+        # NORMAL, viewer, no order, FAIL
+        (Reservation.TYPE_NORMAL, UnitAuthorizationLevel.viewer, False, False, None, 0),
+        # INTERNAL USE, viewer, no order, FAIL
+        (
+            Reservation.TYPE_INTERNAL_USE,
+            UnitAuthorizationLevel.viewer,
+            False,
+            False,
+            None,
+            0,
+        ),
+        # NORMAL, manager, has order, OK+payment
+        (
+            Reservation.TYPE_NORMAL,
+            UnitAuthorizationLevel.manager,
+            True,
+            True,
+            Reservation.WAITING_FOR_PAYMENT,
+            1,
+        ),
+        # NORMAL, manager, no order, FAIL
+        (
+            Reservation.TYPE_NORMAL,
+            UnitAuthorizationLevel.manager,
+            False,
+            False,
+            None,
+            0,
+        ),
+        # INTERNAL USE, manager, no order, OK+confirmed
+        (
+            Reservation.TYPE_INTERNAL_USE,
+            UnitAuthorizationLevel.manager,
+            False,
+            True,
+            Reservation.CONFIRMED,
+            0,
+        ),
+        # NORMAL, admin, has order, OK+payment
+        (
+            Reservation.TYPE_NORMAL,
+            UnitAuthorizationLevel.admin,
+            True,
+            True,
+            Reservation.WAITING_FOR_PAYMENT,
+            1,
+        ),
+        # NORMAL, admin, no order, FAIL
+        (
+            Reservation.TYPE_NORMAL,
+            UnitAuthorizationLevel.admin,
+            False,
+            False,
+            None,
+            0,
+        ),
+        # INTERNAL USE, admin, no order, OK+confirmed
+        (
+            Reservation.TYPE_INTERNAL_USE,
+            UnitAuthorizationLevel.admin,
+            False,
+            True,
+            Reservation.CONFIRMED,
+            0,
+        ),
     ),
 )
 def test_user_may_bypass_payment_on_paid_resource(
@@ -446,6 +521,7 @@ def test_user_may_bypass_payment_on_paid_resource(
     paid_resource,
     mock_provider,
     user,
+    reservation_type,
     level,
     has_order,
     success,
@@ -456,6 +532,8 @@ def test_user_may_bypass_payment_on_paid_resource(
     if granted specific authorizations on the resource.
     """
     reservation_data = build_reservation_data(paid_resource)
+    reservation_data["type"] = reservation_type
+
     product = ProductFactory(type=Product.RENT, resources=[paid_resource])
 
     if has_order:
@@ -471,7 +549,9 @@ def test_user_may_bypass_payment_on_paid_resource(
 
     if success:
         assert response.status_code == 201
+
         new_reservation = Reservation.objects.last()
+        assert new_reservation.type == reservation_type
         assert new_reservation.state == new_state
 
     else:

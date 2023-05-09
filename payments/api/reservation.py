@@ -12,6 +12,7 @@ from payments.exceptions import (
     ServiceUnavailableError,
     UnknownReturnCodeError,
 )
+from resources.models import Reservation
 from resources.api.reservation import ReservationSerializer
 from respa_pricing.models import PriceList
 
@@ -149,22 +150,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
         super().__init__(*args, **kwargs)
 
         if self.context["view"].action == "create":
-            request = self.context.get("request")
-            resource = self.context.get("resource")
-
-            if resource and resource.free_to_use:
-                order_required = False
-            elif resource and request:
-                order_required = (
-                    resource.has_rent()
-                    and not resource.can_bypass_payment(request.user)
-                )
-            elif resource:
-                order_required = resource.has_rent()
-            else:
-                order_required = True
-
-            if order_required:
+            if self.is_order_required():
                 self.fields["order"] = ReservationEndpointOrderSerializer(required=True)
 
         elif "order_detail" in self.context["includes"]:
@@ -172,6 +158,26 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     class Meta(ReservationSerializer.Meta):
         fields = ReservationSerializer.Meta.fields + ["order"]
+
+    def is_order_required(self):
+        request = self.context.get("request")
+        resource = self.context.get("resource")
+
+        if resource is None:
+            return True
+
+        if resource.free_to_use or not resource.has_rent():
+            return False
+
+        # staff users do not need to include order/payment if any internal reservation
+        if (
+            request
+            and request.data.get("type") in Reservation.RESERVED_STAFF_TYPES
+            and resource.can_bypass_payment(request.user)
+        ):
+            return False
+
+        return True
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
