@@ -143,6 +143,12 @@ class Reservation(ModifiableModel):
         (TYPE_FOR_CUSTOMER, _("Reservation on behalf of a customer")),
     )
 
+    RESERVED_STAFF_TYPES = (
+        TYPE_BLOCKED,
+        TYPE_FOR_CUSTOMER,
+        TYPE_INTERNAL_USE,
+    )
+
     resource = models.ForeignKey(
         "Resource",
         verbose_name=_("Resource"),
