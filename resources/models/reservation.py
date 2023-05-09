@@ -121,6 +121,7 @@ class Reservation(ModifiableModel):
     DENIED = "denied"
     REQUESTED = "requested"
     WAITING_FOR_PAYMENT = "waiting_for_payment"
+
     STATE_CHOICES = (
         (CREATED, _("created")),
         (CANCELLED, _("cancelled")),
@@ -132,9 +133,14 @@ class Reservation(ModifiableModel):
 
     TYPE_NORMAL = "normal"
     TYPE_BLOCKED = "blocked"
+    TYPE_INTERNAL_USE = "internal_use"
+    TYPE_FOR_CUSTOMER = "for_customer"
+
     TYPE_CHOICES = (
         (TYPE_NORMAL, _("Normal reservation")),
         (TYPE_BLOCKED, _("Resource blocked")),
+        (TYPE_INTERNAL_USE, _("Reservation for internal use")),
+        (TYPE_FOR_CUSTOMER, _("Reservation on behalf of a customer")),
     )
 
     resource = models.ForeignKey(

@@ -812,6 +812,12 @@ msgstr "Tavallinen varaus"
 msgid "Resource blocked"
 msgstr "Resurssi suljettu"
 
+msgid "Reservation for internal use"
+msgstr "Varaus sisäiseen käyttöön"
+
+msgid "Reservation on behalf of a customer"
+msgstr "Varaus asiakkaan puolesta"
+
 msgid "Begin time"
 msgstr "Alkuaika"
 
