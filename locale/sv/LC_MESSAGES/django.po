@@ -386,6 +386,9 @@ msgstr "avvisade"
 msgid "expired"
 msgstr "utgånget"
 
+msgid "payment link"
+msgstr "betalningslänk"
+
 msgid "state"
 msgstr "län"
 

@@ -206,12 +206,15 @@ class Order(models.Model):
         (CANCELLED, _("cancelled")),
     )
 
+    payment_link = models.URLField(verbose_name=_('Payment Link'), blank=True)
+
     state = models.CharField(
         max_length=32, verbose_name=_("state"), choices=STATE_CHOICES, default=WAITING
     )
     order_number = models.CharField(
         max_length=64, verbose_name=_("order number"), unique=True, default=generate_id
     )
+
     reservation = models.OneToOneField(
         Reservation,
         verbose_name=_("reservation"),
