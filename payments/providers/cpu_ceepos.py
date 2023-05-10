@@ -71,7 +71,12 @@ class CPUCeeposProvider(PaymentProvider):
         to actually pay the order.
         """
         response = self.post_order_to_ceepos(order)
-        return self.handle_initiate_payment_response(response)
+        payment_url = self.handle_initiate_payment_response(response)
+
+        order.payment_link = payment_url
+        order.save()
+
+        return payment_url
 
     def post_order_to_ceepos(self, order: Order) -> str:
         """
