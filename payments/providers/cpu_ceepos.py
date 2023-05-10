@@ -65,12 +65,19 @@ class CPUCeeposProvider(PaymentProvider):
 
     def initiate_payment(self, order: Order) -> str:
         """
-        Creates a payment to the provider. The insertion order of the
-        fields in the payload data is important here since the values
-        are used for checksum calculations.
+        Initiates a payment to the payment provider.
 
         Returns an URL to which the user is redirected
         to actually pay the order.
+        """
+        response = self.post_order_to_ceepos(order)
+        return self.handle_initiate_payment_response(response)
+
+    def post_order_to_ceepos(self, order: Order) -> str:
+        """
+        Creates a payment to the provider. The insertion order of the
+        fields in the payload data is important here since the values
+        are used for checksum calculations.
         """
 
         payload = {
@@ -90,7 +97,7 @@ class CPUCeeposProvider(PaymentProvider):
         try:
             r = requests.post(self.url_payment_api, json=payload, timeout=60)
             r.raise_for_status()
-            return self.handle_initiate_payment_response(r.json())
+            return r.json()
         except RequestException as e:
             raise ServiceUnavailableError("Payment service is unreachable") from e
 
