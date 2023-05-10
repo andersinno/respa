@@ -81,7 +81,10 @@ def mocked_response_create(*args, **kwargs):
 
 
 def test_initiate_payment_success(provider_base_config, order_with_products):
-    """Test the request creator constructs the payload base and returns an url."""
+    """
+    Test the request creator constructs the payload base and returns an url.
+    The payment url should also be saved to the Order instance.
+    """
     rf = RequestFactory()
     request = rf.post(RESERVATION_LIST_URL)
 
@@ -94,6 +97,7 @@ def test_initiate_payment_success(provider_base_config, order_with_products):
     ):
         url = payment_provider.initiate_payment(order_with_products)
         assert url == "https://ceepos-payment-url"
+        assert order_with_products.payment_link == url
 
 
 def test_initiate_payment_error_unavailable(provider_base_config, order_with_products):
