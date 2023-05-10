@@ -389,6 +389,9 @@ msgstr "hylätty"
 msgid "expired"
 msgstr "vanhentunut"
 
+msgid "payment link"
+msgstr "maksulinkki"
+
 msgid "state"
 msgstr "tila"
 
