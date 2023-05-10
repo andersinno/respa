@@ -181,6 +181,12 @@ class Reservation(ModifiableModel):
         blank=True,
         on_delete=models.SET_NULL,
     )
+    approved_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Approved at")
+    )
+    requested_at = models.DateTimeField(
+        null=True, blank=True, verbose_name=_("Requested at")
+    )
     staff_event = models.BooleanField(verbose_name=_("Is staff event"), default=False)
     type = models.CharField(
         blank=False,
@@ -358,12 +364,20 @@ class Reservation(ModifiableModel):
                 )
             self.send_reservation_changed_mail_to_user()
             return
+        
+        if new_state == Reservation.REQUESTED:
+            self.requested_at = timezone.now()
+
+        if new_state in (Reservation.CONFIRMED, Reservation.WAITING_FOR_PAYMENT):
+            if old_state == Reservation.REQUESTED:
+                self.approver = user
+                self.approved_at = timezone.now()
 
         if new_state == Reservation.CONFIRMED:
-            self.approver = user
             reservation_confirmed.send(sender=self.__class__, instance=self, user=user)
         elif old_state == Reservation.CONFIRMED:
             self.approver = None
+            self.approved_at = None
 
         user_is_staff = self.user is not None and self.user.is_staff
 
