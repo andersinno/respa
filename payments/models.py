@@ -9,7 +9,7 @@ from django.db.models import OuterRef, Q, Subquery
 from django.utils import translation
 from django.utils.formats import localize
 from django.utils.functional import cached_property
-from django.utils.timezone import now, utc
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -22,7 +22,7 @@ from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
 # The best way for representing non existing archived_at would be using None for it,
 # but that would not work with the unique_together constraint, which brings many
 # benefits, so we use this sentinel value instead of None.
-ARCHIVED_AT_NONE = datetime(9999, 12, 31, tzinfo=utc)
+ARCHIVED_AT_NONE = datetime(9999, 12, 31, tzinfo=timezone.utc)
 
 TAX_PERCENTAGES = [
     Decimal(x)
@@ -104,7 +104,7 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if self.id:
             resources = self.resources.all()
-            Product.objects.filter(id=self.id).update(archived_at=now())
+            Product.objects.filter(id=self.id).update(archived_at=timezone.now())
             self.id = None
         else:
             resources = []
@@ -116,7 +116,7 @@ class Product(models.Model):
             self.resources.set(resources)
 
     def delete(self, *args, **kwargs):
-        Product.objects.filter(id=self.id).update(archived_at=now())
+        Product.objects.filter(id=self.id).update(archived_at=timezone.now())
 
 
 class OrderQuerySet(models.QuerySet):
@@ -134,23 +134,61 @@ class OrderQuerySet(models.QuerySet):
         return self.filter(reservation__in=allowed_reservations)
 
     def update_expired(self) -> int:
-        earliest_allowed_timestamp = now() - timedelta(
-            minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME
-        )
-        log_entry_timestamps = (
-            OrderLogEntry.objects.filter(order=OuterRef("pk"))
-            .order_by("id")
-            .values("timestamp")
-        )
-        too_old_waiting_orders = (
-            self.filter(state=Order.WAITING)
-            .annotate(created_at=Subquery(log_entry_timestamps[:1]))
-            .filter(created_at__lt=earliest_allowed_timestamp)
-        )
-        for order in too_old_waiting_orders:
-            order.set_state(Order.EXPIRED)
+        """
+        All WAITING Orders should be automatically expired if:
 
-        return too_old_waiting_orders.count()
+        1. Reservation status is REQUESTED
+           AND approval was requested over 3 days ago (Reservation.requested_at) OR
+
+        2. Reservation status is WAITING_FOR_PAYMENT
+           AND the reservation was approved more than 24 hours ago
+           (Reservation.approved_at) OR
+
+        3. Reservation status is WAITING_FOR_PAYMENT
+           AND reservation didn’t need manual approval (Reservation.approved_at==null)
+           AND order is older than settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME
+
+        Returns:
+            number of orders expired
+        """
+
+        now = timezone.now()
+
+        for_expiry = (
+            self.annotate(
+                created_at=Subquery(
+                    OrderLogEntry.objects.filter(order=OuterRef("pk"))
+                    .order_by("id")
+                    .values("timestamp")[:1]
+                )
+            )
+            .filter(
+                Q(
+                    reservation__requested_at__lt=now - timedelta(days=3),
+                    reservation__state=Reservation.REQUESTED,
+                )
+                | Q(
+                    Q(reservation__approved_at__lt=now - timedelta(hours=24))
+                    | Q(
+                        reservation__approved_at__isnull=True,
+                        created_at__lt=now
+                        - timedelta(
+                            minutes=settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME
+                        ),
+                    ),
+                    reservation__state=Reservation.WAITING_FOR_PAYMENT,
+                ),
+                state=self.model.WAITING,
+            )
+            .distinct()
+        )
+
+        counter = 0
+
+        for counter, order in enumerate(for_expiry, 1):
+            order.set_state(self.model.EXPIRED)
+
+        return counter
 
 
 class Order(models.Model):
@@ -249,6 +287,7 @@ class Order(models.Model):
             if self.reservation.state == Reservation.WAITING_FOR_PAYMENT:
                 # Cancel any open payments to make sure the order cannot
                 # be paid after it's been cancelled in Respa.
+
                 from .providers import get_payment_provider
 
                 payment_provider = get_payment_provider(request=None)
