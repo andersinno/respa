@@ -8,6 +8,7 @@ import pytz
 from arrow.parser import ParserError
 from django import forms
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
@@ -57,6 +58,7 @@ from .base import (
     ExtraDataMixin,
     TranslatedModelSerializer,
     register_view,
+    get_translated_values,
 )
 from .equipment import EquipmentSerializer
 from .reservation import ReservationSerializer
@@ -263,38 +265,51 @@ class ResourceSerializer(
         return False
 
     def get_pricing_user_groups(self, obj):
-        if obj.free_to_use:
-            return
-        product = obj.products.current().first()
-        if not product or not hasattr(product, "pricedproduct"):
-            return
-        price_list = PricedProduct.objects.get(product=product).price_list
-        if not price_list:
-            return
-        user_group_price_items = price_list.usergroup_prices.all()
-        data = []
-        for item in user_group_price_items:
-            user_group = item.user_group
-            data.append({"id": user_group.id, "name": user_group.name})
-        return data
+        price_list = self.get_price_list(obj)
+        return (
+            [
+                {
+                    "id": item.user_group.id,
+                    "name": get_translated_values(item.user_group)["name"],
+                }
+                for item in price_list.usergroup_prices.all()
+            ]
+            if price_list
+            else None
+        )
 
     def get_pricing_event_types(self, obj):
+        price_list = self.get_price_list(obj)
+        return (
+            [
+                {
+                    "id": item.event_type.id,
+                    "name": get_translated_values(item.event_type)["name"],
+                }
+                for item in price_list.event_prices.all()
+            ]
+            if price_list
+            else None
+        )
+
+    def get_price_list(self, obj):
         if obj.free_to_use:
-            return
-        product = obj.products.current().first()
+            return None
+        product = obj.products.select_related("pricedproduct").current().first()
         if not product or not hasattr(product, "pricedproduct"):
-            return
-        price_list = PricedProduct.objects.get(product=product).price_list
-        if not price_list:
-            return
-        event_type_price_items = price_list.event_prices.all()
-        if not event_type_price_items:
-            return
-        data = []
-        for item in event_type_price_items:
-            event_type = item.event_type
-            data.append({"id": event_type.id, "name": event_type.name})
-        return data
+            return None
+        try:
+            return (
+                PricedProduct.objects.select_related("product", "price_list")
+                .prefetch_related(
+                    "price_list__event_prices__event_type",
+                    "price_list__usergroup_prices__user_group",
+                )
+                .get(product=product)
+                .price_list
+            )
+        except ObjectDoesNotExist:
+            return None
 
     def get_max_price(self, obj):
         """Return max_price if pricing available, otherwise return None.

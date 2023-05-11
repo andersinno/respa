@@ -6,6 +6,8 @@ from rest_framework import serializers
 
 all_views = []
 
+LANGUAGES = [x[0] for x in settings.LANGUAGES]
+
 
 def register_view(klass, name, base_name=None):
     entry = {"class": klass, "name": name}
@@ -14,7 +16,39 @@ def register_view(klass, name, base_name=None):
     all_views.append(entry)
 
 
-LANGUAGES = [x[0] for x in settings.LANGUAGES]
+def get_translated_values(obj):
+    """Given a model instance, returns the translated fields
+    in that instance in a dict mapping each field name to its
+    translations in each available language.
+
+    For example:
+
+    {
+        "name": {
+            en: "Pay",
+            fi: "Maksa",
+            sv: "Betala",
+        },
+    }
+    """
+    try:
+        opts = translator.get_options_for_model(obj.__class__)
+    except NotRegistered:
+        return {}
+
+    translations = {}
+
+    for field_name in opts.fields.keys():
+        dct = {}
+
+        for code, _ in settings.LANGUAGES:
+            value = getattr(obj, f"{field_name}_{code}", None)
+            if value:
+                dct[code] = value
+
+        translations[field_name] = dct
+
+    return translations
 
 
 class TranslatedModelSerializer(serializers.ModelSerializer):
