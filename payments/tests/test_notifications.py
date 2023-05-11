@@ -1,5 +1,4 @@
 import pytest
-from django.core import mail
 from django.test import override_settings
 from django.utils import translation
 
@@ -78,22 +77,51 @@ def reservation_cancelled_notification():
         )
 
 
+@pytest.fixture(autouse=True)
+def paid_reservation_approved_notification():
+    NotificationTemplate.objects.filter(type=NotificationType.PAID_RESERVATION_APPROVED).delete()
+    with translation.override('fi'):
+        return NotificationTemplate.objects.create(
+            type=NotificationType.PAID_RESERVATION_APPROVED,
+            short_message='Paid reservation approved short message.',
+            subject='Paid reservation approved subject.',
+            body='Paid reservation approved body. \n' + get_body_with_all_template_vars()
+        )
+
+
 @pytest.mark.django_db
 @override_settings(RESPA_MAILS_ENABLED=True)
-def test_reservation_created_notification(order_with_products):
+def test_reservation_created_notification(mailoutbox, order_with_products):
     user = order_with_products.reservation.user
     user.preferred_language = 'fi'
     user.save()
 
     order_with_products.set_state(Order.CONFIRMED)
 
-    assert len(mail.outbox) == 1
+    assert len(mailoutbox) == 1
     check_received_mail_exists(
         'Reservation created subject.',
         order_with_products.reservation.user.email,
         get_expected_strings(order_with_products),
     )
 
+
+@pytest.mark.django_db
+@override_settings(RESPA_MAILS_ENABLED=True)
+def test_paid_reservation_approved_notification(mailoutbox, requested_reservation_with_order):
+    res = requested_reservation_with_order
+    user = res.user
+    user.preferred_language = 'fi'
+    user.save()
+
+    res.set_state(Reservation.WAITING_FOR_PAYMENT, user)
+
+    assert len(mailoutbox) == 1
+    check_received_mail_exists(
+        'Paid reservation approved subject.',
+        res.user.email,
+        ('Paid reservation approved body.'),
+    )
 
 @pytest.mark.parametrize('order_state, notification_expected', (
     (Order.REJECTED, False),
@@ -102,7 +130,7 @@ def test_reservation_created_notification(order_with_products):
 ))
 @pytest.mark.django_db
 @override_settings(RESPA_MAILS_ENABLED=True)
-def test_reservation_cancelled_notification(order_with_products, order_state, notification_expected):
+def test_reservation_cancelled_notification(mailoutbox, order_with_products, order_state, notification_expected):
     user = order_with_products.reservation.user
     user.preferred_language = 'fi'
     user.save()
@@ -114,11 +142,11 @@ def test_reservation_cancelled_notification(order_with_products, order_state, no
     order_with_products.set_state(order_state)
 
     if notification_expected:
-        assert len(mail.outbox) == 1
+        assert len(mailoutbox) == 1
         check_received_mail_exists(
             'Reservation cancelled subject.',
             order_with_products.reservation.user.email,
             get_expected_strings(order_with_products),
         )
     else:
-        assert len(mail.outbox) == 0
+        assert len(mailoutbox) == 0

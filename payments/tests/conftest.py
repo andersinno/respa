@@ -37,6 +37,36 @@ def two_hour_reservation(resource_in_unit, user):
     )
 
 
+@pytest.fixture
+def requested_reservation_with_order(resource_in_unit, user):
+    begin = timezone.now() + datetime.timedelta(days=2)
+    reservation = Reservation.objects.create(
+        resource=resource_in_unit,
+        begin=begin,
+        end=begin + datetime.timedelta(hours=2),
+        user=user,
+        requested_at=timezone.now(),
+    )
+    order = OrderFactory.create(
+        order_number='def456',
+        state=Order.WAITING,
+        reservation=reservation
+    )
+    OrderLineFactory.create(
+        quantity=1,
+        product__name="Test product",
+        unit_price=Decimal('12.40'),
+        tax_percentage=Decimal('24.00'),
+        price_type=PRICE_PER_PERIOD,
+        price_period=datetime.timedelta(hours=1),
+        total_price=Decimal('24.80'),
+        order=order
+    )
+    reservation.state=Reservation.REQUESTED
+    reservation.save()
+    return reservation
+
+
 @pytest.fixture()
 def order_with_products(two_hour_reservation):
     Reservation.objects.filter(id=two_hour_reservation.id).update(state=Reservation.WAITING_FOR_PAYMENT)

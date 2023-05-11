@@ -384,6 +384,8 @@ class Reservation(ModifiableModel):
             if old_state == Reservation.REQUESTED:
                 self.approver = user
                 self.approved_at = timezone.now()
+                if new_state == Reservation.WAITING_FOR_PAYMENT:
+                    self.send_paid_reservation_approved_mail()
 
         if new_state == Reservation.CONFIRMED:
             reservation_confirmed.send(sender=self.__class__, instance=self, user=user)
@@ -679,7 +681,7 @@ class Reservation(ModifiableModel):
                 if ground_plan_image_url:
                     context["resource_ground_plan_image_url"] = ground_plan_image_url
 
-            order = getattr(self, "order", None)
+            order = self.get_order()
             if order:
                 context["order"] = order.get_notification_context(language_code)
 
@@ -761,6 +763,11 @@ class Reservation(ModifiableModel):
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
+
+    def send_paid_reservation_approved_mail(self):
+        self.send_reservation_mail(
+            NotificationType.PAID_RESERVATION_APPROVED
+        )
 
     def send_reservation_confirmed_mail(self):
         reservations = [self]
