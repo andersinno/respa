@@ -473,6 +473,33 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
 
         return resource_image.image if resource_image else None
 
+    @cached_property
+    def price_list(self):
+        """Returns price list for this resource based on priced product.
+
+        If the resource is free, or no product or price list available, returns None.
+        """
+        if self.free_to_use:
+            return None
+
+        product = (
+            self.products.select_related(
+                "pricedproduct",
+                "pricedproduct__price_list",
+            )
+            .prefetch_related(
+                "pricedproduct__price_list__event_prices__event_type",
+                "pricedproduct__price_list__usergroup_prices__user_group",
+            )
+            .filter(
+                pricedproduct__isnull=False,
+            )
+            .current()
+            .first()
+        )
+
+        return product.pricedproduct.price_list if product else None
+
     def validate_reservation_period(self, reservation, user, data=None):
         """
         Check that given reservation if valid for given user.

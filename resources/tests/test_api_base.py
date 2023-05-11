@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from resources.api.base import TranslatedModelSerializer
+from resources.api.base import TranslatedModelSerializer, get_translated_values
 from resources.models import ResourceEquipment
 
 
@@ -14,6 +14,25 @@ def TMS():
             fields = "__all__"
 
     return TestSerializer
+
+
+@pytest.mark.django_db
+def test_get_translated_values(equipment, space_resource):
+    resource_equipment = ResourceEquipment.objects.create(
+        equipment=equipment,
+        resource=space_resource,
+        description_fi="testiresurssissa olevan testivarusteen kuvaus",
+        description_en="description of test equipment in test resource",
+    )
+
+    values = get_translated_values(resource_equipment)
+
+    assert values == {
+        "description": {
+            "en": "description of test equipment in test resource",
+            "fi": "testiresurssissa olevan testivarusteen kuvaus",
+        }
+    }
 
 
 @pytest.mark.django_db

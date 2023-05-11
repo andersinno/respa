@@ -21,9 +21,11 @@ from resources.models import (
     UnitGroup,
 )
 from respa_pricing.tests.factories import (
+    EventTypeFactory,
     EventTypePriceListItemFactory,
     PricedProductFactory,
     UserGroupPriceListItemFactory,
+    UserGroupFactory,
 )
 
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
@@ -553,8 +555,23 @@ def test_price_fields_with_pricing_info(
     resource_in_unit_with_product.free_to_use = False
     resource_in_unit_with_product.save()
 
-    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="5.05")
-    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="10.00")
+    event_type = EventTypeFactory(
+        name_fi="Juhlat",
+        name_en="Parties",
+    )
+
+    EventTypePriceListItemFactory(
+        price_list=priced_product.price_list, price="5.05", event_type=event_type
+    )
+
+    user_group = UserGroupFactory(
+        name_fi="Opeskilijat",
+        name_en="Students",
+    )
+
+    UserGroupPriceListItemFactory(
+        price_list=priced_product.price_list, price="10.00", user_group=user_group
+    )
 
     response = api_client.get(detail_url)
     assert response.status_code == 200
@@ -565,6 +582,26 @@ def test_price_fields_with_pricing_info(
     assert (
         response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
     )
+
+    assert response.data["pricing_user_groups"] == [
+        {
+            "id": user_group.id,
+            "name": {
+                "en": user_group.name_en,
+                "fi": user_group.name_fi,
+            },
+        }
+    ]
+
+    assert response.data["pricing_event_types"] == [
+        {
+            "id": event_type.id,
+            "name": {
+                "en": event_type.name_en,
+                "fi": event_type.name_fi,
+            },
+        }
+    ]
 
 
 @pytest.mark.django_db
@@ -586,6 +623,9 @@ def test_price_fields_with_no_pricing_info(
     assert (
         response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
     )
+
+    assert response.data["pricing_user_groups"] == []
+    assert response.data["pricing_event_types"] == []
 
 
 @pytest.mark.django_db
@@ -612,6 +652,8 @@ def test_price_fields_with_pricing_info_free_to_use_true(
     assert (
         response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
     )
+    assert response.data["pricing_user_groups"] == []
+    assert response.data["pricing_event_types"] == []
 
 
 @freeze_time("2016-10-25")

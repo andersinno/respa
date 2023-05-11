@@ -16,7 +16,7 @@ def register_view(klass, name, base_name=None):
     all_views.append(entry)
 
 
-def get_translated_values(obj):
+def get_translated_values(obj, *fields):
     """Given a model instance, returns the translated fields
     in that instance in a dict mapping each field name to its
     translations in each available language.
@@ -38,7 +38,7 @@ def get_translated_values(obj):
 
     translations = {}
 
-    for field_name in opts.fields.keys():
+    for field_name in fields or opts.fields.keys():
         dct = {}
 
         for code, _ in settings.LANGUAGES:
