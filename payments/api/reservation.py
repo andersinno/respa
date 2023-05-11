@@ -146,6 +146,7 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
 class PaymentsReservationSerializer(ReservationSerializer):
     order = serializers.SlugRelatedField("order_number", read_only=True)
     payment_link = serializers.SerializerMethodField()
+    payment_return_url = serializers.URLField(required=False, write_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -158,7 +159,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
             self.fields["order"] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ["order", "payment_link"]
+        fields = ReservationSerializer.Meta.fields + ["order", "payment_link", "payment_return_url"]
 
     def get_payment_link(self, obj):
         return obj.get_payment_link()
@@ -211,6 +212,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     def create(self, validated_data):
         order_data = validated_data.pop("order", None)
+        validated_data.pop("payment_return_url", None)
         reservation = super().create(validated_data)
 
         if order_data:
@@ -226,6 +228,8 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     def validate(self, data):
         order_data = data.pop("order", None)
+        payment_return_url = data.pop("payment_return_url", None)
         data = super().validate(data)
         data["order"] = order_data
+        data["payment_return_url"] = payment_return_url
         return data
