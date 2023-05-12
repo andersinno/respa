@@ -473,4 +473,4 @@ class NotificationOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ("id", "order_lines", "price", "created_at")
+        fields = ('id', 'order_lines', 'price', 'created_at', 'payment_link')

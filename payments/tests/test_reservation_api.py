@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 import pytest
 from guardian.shortcuts import assign_perm
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.reverse import reverse
 
 from resources.enums import UnitAuthorizationLevel
@@ -169,6 +170,36 @@ def test_reservation_creation_state_total_price_zero(user_api_client, resource_i
 
     assert new_reservation.state == Reservation.CONFIRMED
     assert Order.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_payment_return_url_is_required_when_updating_state_to_waiting_for_payment(
+    api_client, general_admin, requested_reservation_with_order
+):
+    reservation = requested_reservation_with_order
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    data = build_reservation_data(reservation.resource)
+    data["state"] = Reservation.WAITING_FOR_PAYMENT
+    assign_perm(
+        "unit:can_approve_reservation",
+        general_admin,
+        reservation.resource.unit,
+    )
+    assign_perm(
+        "unit:can_modify_paid_reservations",
+        general_admin,
+        reservation.resource.unit,
+    )
+    api_client.force_authenticate(user=general_admin)
+    expected_error = ErrorDetail(
+        string="Return URL is required to initiate the payment",
+        code='invalid'
+    )
+
+    response = api_client.put(get_detail_url(reservation), data=data)
+    assert response.status_code == 400
+    assert response.data[0] == expected_error
 
 
 @pytest.mark.parametrize("endpoint", ("list", "detail"))

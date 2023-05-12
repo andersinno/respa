@@ -24,6 +24,8 @@ from rest_framework.settings import api_settings as drf_settings
 
 from munigeo import api as munigeo_api
 
+from payments.providers import get_payment_provider
+
 from resources.models import Reservation, Resource, ReservationMetadataSet
 from resources.models.reservation import RESERVATION_EXTRA_FIELDS
 from resources.pagination import ReservationPagination
@@ -149,7 +151,12 @@ class ReservationSerializer(ExtraDataMixin, TranslatedModelSerializer, munigeo_a
             return value
 
         if instance.resource.can_approve_reservations(request_user):
-            allowed_states = (Reservation.REQUESTED, Reservation.CONFIRMED, Reservation.DENIED)
+            allowed_states = (
+                Reservation.REQUESTED,
+                Reservation.CONFIRMED,
+                Reservation.DENIED,
+                Reservation.WAITING_FOR_PAYMENT,
+            )
             if instance.state in allowed_states and value in allowed_states:
                 return value
 
@@ -763,8 +770,25 @@ class ReservationViewSet(munigeo_api.GeoModelAPIView, viewsets.ModelViewSet, Res
 
     def perform_update(self, serializer):
         old_instance = self.get_object()
-        new_state = serializer.validated_data.pop('state', old_instance.state)
+        old_state = old_instance.state
+        new_state = serializer.validated_data.pop("state", old_state)
         new_instance = serializer.save(modified_by=self.request.user)
+        payment_return_url = serializer.validated_data.pop("payment_return_url", None)
+        order = old_instance.get_order()
+        if (
+            order
+            and old_state == Reservation.REQUESTED
+            and new_state == Reservation.WAITING_FOR_PAYMENT
+        ):
+            if not payment_return_url:
+                raise ValidationError(_("Return URL is required to initiate the payment"))
+            else:
+                # Initiate the payment process
+                provider = get_payment_provider(
+                    self.request, ui_return_url=payment_return_url
+                )
+                provider.initiate_payment(order)
+
         new_instance.set_state(new_state, self.request.user)
 
     def perform_destroy(self, instance):
