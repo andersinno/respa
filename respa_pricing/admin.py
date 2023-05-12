@@ -4,6 +4,7 @@ from django.contrib.admin import site as admin_site
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
+from modeltranslation.admin import TranslationAdmin
 from payments.models import Product
 from resources.admin.base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 from .forms import (
@@ -22,13 +23,13 @@ from .models import (
 
 
 class UserGroupAdmin(
-    PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin
+    PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin
 ):
     pass
 
 
 class EventTypeAdmin(
-    PopulateCreatedAndModifiedMixin, CommonExcludeMixin, admin.ModelAdmin
+    PopulateCreatedAndModifiedMixin, CommonExcludeMixin, TranslationAdmin
 ):
     pass
 

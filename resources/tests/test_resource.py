@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
-from decimal import Decimal
-
 import pytest
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.translation import activate
@@ -16,6 +15,7 @@ from resources.tests.utils import (
     get_field_errors,
     get_test_image_data,
 )
+from respa_pricing.models import PricedProduct
 from respa_pricing.tests.factories import (
     EventTypePriceListItemFactory,
     PricedProductFactory,
@@ -52,6 +52,50 @@ def test_free_of_charge_free_to_use_false_no_pricing_info(space_resource):
 
     assert Resource.objects.free_of_charge(True).count() == 1
     assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_price_list_no_product(space_resource):
+    """price_list should be None if no product attached"""
+    space_resource.free_to_use = False
+    space_resource.product = None
+    space_resource.save()
+
+    assert space_resource.price_list is None
+
+
+@pytest.mark.django_db
+def test_price_list_no_priced_product(space_resource_with_product, priced_product):
+    """price_list should be None if no priced product attached"""
+    space_resource_with_product.free_to_use = False
+    space_resource_with_product.save()
+
+    PricedProduct.objects.all().delete()
+
+    assert space_resource_with_product.price_list is None
+
+
+@pytest.mark.django_db
+def test_price_list_free_of_charge(space_resource_with_product, priced_product):
+    """Even if price info attached, price_list should be None if resource is free."""
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+
+    space_resource_with_product.free_to_use = True
+    space_resource_with_product.save()
+
+    assert space_resource_with_product.price_list is None
+
+
+@pytest.mark.django_db
+def test_price_list_available(space_resource_with_product, priced_product):
+    """If resource is not free and there is a priced product attached,
+    price list should be returned."""
+    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
+
+    space_resource_with_product.free_to_use = False
+    space_resource_with_product.save()
+
+    assert space_resource_with_product.price_list == priced_product.price_list
 
 
 @pytest.mark.django_db

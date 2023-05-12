@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from resources.api.base import TranslatedModelSerializer
+from resources.api.base import TranslatedModelSerializer, get_translated_values
 from resources.models import ResourceEquipment
 
 
@@ -11,8 +11,28 @@ def TMS():
     class TestSerializer(TranslatedModelSerializer):
         class Meta:
             model = ResourceEquipment
-            fields = '__all__'
+            fields = "__all__"
+
     return TestSerializer
+
+
+@pytest.mark.django_db
+def test_get_translated_values(equipment, space_resource):
+    resource_equipment = ResourceEquipment.objects.create(
+        equipment=equipment,
+        resource=space_resource,
+        description_fi="testiresurssissa olevan testivarusteen kuvaus",
+        description_en="description of test equipment in test resource",
+    )
+
+    values = get_translated_values(resource_equipment)
+
+    assert values == {
+        "description": {
+            "en": "description of test equipment in test resource",
+            "fi": "testiresurssissa olevan testivarusteen kuvaus",
+        }
+    }
 
 
 @pytest.mark.django_db
@@ -29,29 +49,33 @@ def test_translated_model_serializer_language_filtering(TMS, equipment, space_re
     resource_equipment = ResourceEquipment.objects.create(
         equipment=equipment,
         resource=space_resource,
-        description_fi='testiresurssissa olevan testivarusteen kuvaus',
-        description_en=''
+        description_fi="testiresurssissa olevan testivarusteen kuvaus",
+        description_en="",
     )
     representation = tms.to_representation(resource_equipment)
-    description = representation['description']
-    assert description['fi'] == 'testiresurssissa olevan testivarusteen kuvaus'
-    assert 'en' not in description  # empty field should not be included
-    assert 'sv' not in description  # null field should not be included
+    description = representation["description"]
+    assert description["fi"] == "testiresurssissa olevan testivarusteen kuvaus"
+    assert "en" not in description  # empty field should not be included
+    assert "sv" not in description  # null field should not be included
 
     resource_equipment_descriptions_null = ResourceEquipment.objects.create(
         equipment=equipment,
         resource=space_resource,
     )
     representation = tms.to_representation(resource_equipment_descriptions_null)
-    assert representation['description'] is None  # should be None as all description fields are null
+    assert (
+        representation["description"] is None
+    )  # should be None as all description fields are null
 
     resource_equipment_descriptions_empty = ResourceEquipment.objects.create(
         equipment=equipment,
         resource=space_resource,
-        description_fi='',
-        description_en='',
-        description_sv='',
+        description_fi="",
+        description_en="",
+        description_sv="",
     )
 
     representation = tms.to_representation(resource_equipment_descriptions_empty)
-    assert representation['description'] is None  # should be None as all description fields are empty
+    assert (
+        representation["description"] is None
+    )  # should be None as all description fields are empty
