@@ -4,7 +4,6 @@ import factory
 import factory.fuzzy
 import factory.random
 
-from resources.models import Reservation
 from resources.models.utils import generate_id
 
 from .models import ARCHIVED_AT_NONE, Order, OrderLine, Product

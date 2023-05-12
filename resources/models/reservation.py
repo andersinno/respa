@@ -6,7 +6,7 @@ import pytz
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
@@ -319,6 +319,18 @@ class Reservation(ModifiableModel):
     def get_end_tz(self, tz):
         return self._get_dt("end", tz)
 
+    def get_payment_link(self):
+        """Returns the payment provider (CeePos) payment link if WAITING_FOR_PAYMENT,
+        otherwise returns None."""
+
+        if self.state == self.WAITING_FOR_PAYMENT:
+            try:
+                return self.order.payment_link or None
+            except ObjectDoesNotExist:
+                pass
+
+        return None
+
     def is_active(self):
         return self.end >= timezone.now() and self.state not in (
             Reservation.CANCELLED,
@@ -364,7 +376,7 @@ class Reservation(ModifiableModel):
                 )
             self.send_reservation_changed_mail_to_user()
             return
-        
+
         if new_state == Reservation.REQUESTED:
             self.requested_at = timezone.now()
 

@@ -1,6 +1,7 @@
 import arrow
 import datetime
 import pytest
+from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
@@ -8,6 +9,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import activate
 from freezegun import freeze_time
 
+from payments.factories import OrderFactory
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (
     Day,
@@ -69,7 +71,7 @@ class ReservationTestCase(TestCase):
 
     def test_reservation(self):
         r1a = Resource.objects.get(id="r1a")
-        r1b = Resource.objects.get(id="r1b")
+        Resource.objects.get(id="r1b")
 
         tz = timezone.get_current_timezone()
         begin = tz.localize(datetime.datetime(2116, 6, 1, 8, 0, 0))
@@ -124,6 +126,78 @@ class ReservationTestCase(TestCase):
             resource=r1a, begin=begin, end=end + datetime.timedelta(hours=1)
         )
         reservation.clean()
+
+
+class TestPaymentLink:
+    payment_link = "https://verkkomaksutesti.cpu.fi/kassa/order-pay/4751/?pay_for_order=true&key=wc_order_Fzy20q31ujVqd"  # noqa
+
+    @pytest.fixture
+    def reservation_times(self):
+        begin = timezone.now() + timedelta(days=3)
+        end = begin + timedelta(hours=1)
+        return (begin, end)
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_confirmed(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.CONFIRMED,
+        )
+
+        OrderFactory(reservation=reservation, payment_link=self.payment_link)
+
+        reservation.refresh_from_db()
+
+        assert reservation.get_payment_link() is None
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_waiting_for_payment(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.WAITING_FOR_PAYMENT,
+        )
+
+        OrderFactory(reservation=reservation, payment_link=self.payment_link)
+
+        reservation.refresh_from_db()
+
+        assert reservation.get_payment_link() == self.payment_link
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_waiting_for_payment_order_is_none(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.WAITING_FOR_PAYMENT,
+        )
+
+        assert reservation.get_payment_link() is None
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_waiting_for_payment_link_is_empty(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.WAITING_FOR_PAYMENT,
+        )
+
+        OrderFactory(reservation=reservation),
+
+        assert reservation.get_payment_link() is None
 
 
 @pytest.mark.django_db

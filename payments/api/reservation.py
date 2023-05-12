@@ -1,8 +1,8 @@
 from decimal import Decimal
+from django.utils.duration import duration_string
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, serializers, status
 from rest_framework.exceptions import PermissionDenied
-from django.utils.duration import duration_string
 
 from payments.exceptions import (
     DuplicateOrderError,
@@ -12,8 +12,8 @@ from payments.exceptions import (
     ServiceUnavailableError,
     UnknownReturnCodeError,
 )
-from resources.models import Reservation
 from resources.api.reservation import ReservationSerializer
+from resources.models import Reservation
 from respa_pricing.models import PriceList
 
 from ..models import OrderLine, Product
@@ -145,6 +145,7 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
 
 class PaymentsReservationSerializer(ReservationSerializer):
     order = serializers.SlugRelatedField("order_number", read_only=True)
+    payment_link = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -157,7 +158,10 @@ class PaymentsReservationSerializer(ReservationSerializer):
             self.fields["order"] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ["order"]
+        fields = ReservationSerializer.Meta.fields + ["order", "payment_link"]
+
+    def get_payment_link(self, obj):
+        return obj.get_payment_link()
 
     def is_order_required(self):
         request = self.context.get("request")
