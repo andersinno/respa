@@ -383,6 +383,8 @@ if env('MAIL_MAILGUN_KEY'):
         'MAILGUN_API_URL': env('MAIL_MAILGUN_API'),
     }
     EMAIL_BACKEND = 'anymail.backends.mailgun.EmailBackend'
+elif DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 RESPA_ADMIN_USERNAME_LOGIN = env.bool(
     'RESPA_ADMIN_USERNAME_LOGIN', default=True)
