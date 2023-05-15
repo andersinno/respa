@@ -154,6 +154,41 @@ def test_reservation_creation_state(
     assert Order.objects.count() == new_orders
 
 
+@pytest.mark.parametrize(
+    "has_order, free_to_use, expected_state, new_orders",
+    (
+        (False, False, Reservation.REQUESTED, 0),
+        (False, True, Reservation.REQUESTED, 0),
+        (True, False, Reservation.REQUESTED, 1),
+        (True, True, Reservation.REQUESTED, 0),
+    ),
+)
+def test_reservation_creation_state_need_manual_confirmation(
+    user_api_client,
+    resource_in_unit,
+    has_order,
+    free_to_use,
+    expected_state,
+    new_orders,
+):
+    resource_in_unit.free_to_use = free_to_use
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    reservation_data = build_reservation_data(resource_in_unit)
+    if has_order:
+        product = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+        reservation_data["order"] = build_order_data(product)
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.last()
+    assert new_reservation.state == expected_state
+
+    assert Order.objects.count() == new_orders
+
+
 def test_reservation_creation_state_total_price_zero(user_api_client, resource_in_unit):
     """If total price of order is zero, no payment is required.
 
@@ -193,8 +228,7 @@ def test_payment_return_url_is_required_when_updating_state_to_waiting_for_payme
     )
     api_client.force_authenticate(user=general_admin)
     expected_error = ErrorDetail(
-        string="Return URL is required to initiate the payment",
-        code='invalid'
+        string="Return URL is required to initiate the payment", code="invalid"
     )
 
     response = api_client.put(get_detail_url(reservation), data=data)
