@@ -307,6 +307,12 @@ def test_time_slot_validations(resource_in_unit):
 
 
 @pytest.mark.django_db
+def test_allow_manual_confirmation_and_payment(space_resource_with_product):
+    space_resource_with_product.need_manual_confirmation = True
+    space_resource_with_product.full_clean()
+
+
+@pytest.mark.django_db
 def test_queryset_with_perm(resource_in_unit, user):
     resources = Resource.objects.with_perm("can_view_reservation_catering_orders", user)
     assert not resources
