@@ -6,16 +6,14 @@ from guardian.shortcuts import assign_perm
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.reverse import reverse
 
+from notifications.tests.utils import check_received_mail_exists
 from resources.enums import UnitAuthorizationLevel
 from resources.models import Reservation
 from resources.models.unit import UnitAuthorization
-from resources.tests.conftest import (
-    resource_in_unit,  # noqa
-    user_api_client,  # noqa
-    staff_api_client,  # noqa
-)
+from resources.tests.conftest import resource_in_unit  # noqa
+from resources.tests.conftest import staff_api_client  # noqa
+from resources.tests.conftest import user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
-
 from respa_pricing.tests.factories import (
     PricedProductFactory,
     PriceListFactory,
@@ -23,9 +21,10 @@ from respa_pricing.tests.factories import (
     UserGroupPriceListItemFactory,
 )
 
-from ..factories import ProductFactory, OrderFactory
+from ..factories import OrderWithOrderLinesFactory, ProductFactory
 from ..models import Order, Product
 from ..providers.base import PaymentProvider
+from .test_notifications import paid_reservation_approved_notification  # noqa
 from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse("reservation-list")
@@ -641,6 +640,9 @@ def test_user_may_bypass_payment_on_paid_resource(
 
 @pytest.mark.django_db
 def test_approve_paid_reservation(
+    mailoutbox,
+    settings,
+    paid_reservation_approved_notification,
     staff_api_client,
     paid_resource,
     staff_user,
@@ -650,8 +652,10 @@ def test_approve_paid_reservation(
 
     1. Reservation new state should be WAITING_FOR_PAYMENT
     2. Payment is initiated
-    3. (TODO) Payment link is emailed to customer
+    3. Payment link is emailed to customer
     """
+
+    settings.RESPA_MAILS_ENABLED = True
 
     paid_resource.need_manual_confirmation = True
 
@@ -679,7 +683,7 @@ def test_approve_paid_reservation(
         end=reservation_data["end"],
     )
 
-    OrderFactory(
+    OrderWithOrderLinesFactory(
         reservation=reservation,
         state=Order.WAITING,
         payment_link="https://random-payment-link.com",
@@ -701,7 +705,6 @@ def test_approve_paid_reservation(
                 **reservation_data,
             },
         )
-    print(response.json())
 
     assert response.status_code == 200
 
@@ -712,3 +715,11 @@ def test_approve_paid_reservation(
 
     mocked_provider.initiate_payment.assert_called()
 
+    # check notification sent
+    assert len(mailoutbox) == 1
+
+    check_received_mail_exists(
+        "Paid reservation approved subject.",
+        user.email,
+        "Paid reservation approved body.",
+    )

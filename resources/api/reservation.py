@@ -934,15 +934,26 @@ class ReservationViewSet(
     def perform_update(self, serializer):
         old_instance = self.get_object()
         old_state = old_instance.state
-        new_state = serializer.validated_data.pop("state", old_state)
-        new_instance = serializer.save(modified_by=self.request.user)
-        payment_return_url = serializer.validated_data.pop("payment_return_url", None)
+
         order = old_instance.get_order()
+
+        new_state = serializer.validated_data.pop("state", old_state)
+        new_order = serializer.validated_data.pop("order", None)
+
+        new_instance = serializer.save(
+            modified_by=self.request.user,
+            order=new_order or order,
+        )
+
         if (
             order
             and old_state == Reservation.REQUESTED
             and new_state == Reservation.WAITING_FOR_PAYMENT
         ):
+            payment_return_url = serializer.validated_data.pop(
+                "payment_return_url", None
+            )
+
             if not payment_return_url:
                 raise ValidationError(
                     _("Return URL is required to initiate the payment")
