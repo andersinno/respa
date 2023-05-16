@@ -159,7 +159,11 @@ class PaymentsReservationSerializer(ReservationSerializer):
             self.fields["order"] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ["order", "payment_link", "payment_return_url"]
+        fields = ReservationSerializer.Meta.fields + [
+            "order",
+            "payment_link",
+            "payment_return_url",
+        ]
 
     def get_payment_link(self, obj):
         return obj.get_payment_link()
