@@ -10,7 +10,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
@@ -48,7 +47,7 @@ from resources.models import (
 )
 from resources.models.resource import determine_hours_time_range
 from resources.pagination import PurposePagination
-from respa_pricing.models import PricedProduct, PriceList
+from respa_pricing.models import PriceList
 
 from ..auth import is_general_admin, is_staff
 from .accessibility import ResourceAccessibilitySerializer

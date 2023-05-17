@@ -305,8 +305,8 @@ class ReservationSerializer(
             instance.clean(original_reservation=reservation, user=request_user)
         except DjangoValidationError as exc:
             # Convert Django ValidationError to DRF ValidationError so that in the
-            # response field specific error messages are added in the field instead
-            # of in non_field_messages.
+            # response field specific error messages are added in the field instead of
+            # in non_field_messages.
             if not hasattr(exc, "error_dict"):
                 raise ValidationError(exc)
             error_dict = {}
