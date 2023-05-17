@@ -151,7 +151,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.context["view"].action == "create":
+        if getattr(self.context["view"], "action", None) == "create":
             if self.is_order_required():
                 self.fields["order"] = ReservationEndpointOrderSerializer(required=True)
 

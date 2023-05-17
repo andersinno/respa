@@ -512,10 +512,14 @@ class ResourceSerializer(
         if not rv_list:
             return []
 
-        rv_ser_list = ReservationSerializer(
-            rv_list, many=True, context=self.context
+        return self.get_reservation_serializer_class()(
+            rv_list,
+            many=True,
+            context=self.context,
         ).data
-        return rv_ser_list
+
+    def get_reservation_serializer_class(self):
+        return ReservationSerializer
 
 
 class ResourceDetailsSerializer(ResourceSerializer):

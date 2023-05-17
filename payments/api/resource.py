@@ -4,6 +4,7 @@ from resources.api.resource import ResourceDetailsSerializer, ResourceSerializer
 
 from ..models import ARCHIVED_AT_NONE
 from .base import ProductSerializer
+from .reservation import PaymentsReservationSerializer
 
 
 class PaymentsResourceSerializerMixin(serializers.ModelSerializer):
@@ -24,7 +25,8 @@ class PaymentsResourceSerializerMixin(serializers.ModelSerializer):
 
 
 class PaymentsResourceSerializer(PaymentsResourceSerializerMixin, ResourceSerializer):
-    pass
+    def get_reservation_serializer_class(self):
+        return PaymentsReservationSerializer
 
 
 class PaymentsResourceDetailsSerializer(
