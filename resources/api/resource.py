@@ -90,9 +90,16 @@ def get_resource_reservations_queryset(begin, end):
     qs = Reservation.objects.filter(begin__lte=end, end__gte=begin).current()
     qs = (
         qs.order_by("begin")
-        .prefetch_related("catering_orders")
-        .select_related("user", "order")
+        .prefetch_related("catering_orders", "resource__groups")
+        .select_related("user", "order", "resource", "resource__unit")
     )
+
+    if settings.RESPA_PAYMENTS_ENABLED:
+        qs = qs.prefetch_related(
+            "order",
+            "order__order_lines",
+            "order__order_lines__product",
+        )
     return qs
 
 
@@ -1018,6 +1025,8 @@ class ResourceListViewSet(
         "generic_terms", "payment_terms", "unit", "type", "reservation_metadata_set"
     )
     queryset = queryset.prefetch_related(
+        "accessibility_summaries",
+        "accessibility_summaries__viewpoint",
         "favorited_by",
         "resource_equipment",
         "resource_equipment__equipment",
@@ -1025,9 +1034,13 @@ class ResourceListViewSet(
         "images",
         "purposes",
         "groups",
+        "periods",
+        "unit__periods",
     )
     if settings.RESPA_PAYMENTS_ENABLED:
-        queryset = queryset.prefetch_related("products")
+        queryset = queryset.prefetch_related(
+            "products",
+        )
 
     filter_backends = (
         filters.SearchFilter,

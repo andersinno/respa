@@ -805,13 +805,14 @@ class ReservationViewSet(
 ):
     queryset = (
         Reservation.objects.select_related("user", "resource", "resource__unit")
-        .prefetch_related("catering_orders")
-        .prefetch_related("resource__groups")
+        .prefetch_related("catering_orders", "resource__groups")
         .order_by("begin", "resource__unit__name", "resource__name")
     )
     if settings.RESPA_PAYMENTS_ENABLED:
         queryset = queryset.prefetch_related(
-            "order", "order__order_lines", "order__order_lines__product"
+            "order",
+            "order__order_lines",
+            "order__order_lines__product",
         )
     filter_backends = (
         DjangoFilterBackend,
