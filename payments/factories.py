@@ -1,4 +1,5 @@
 from random import randint
+import decimal
 
 import factory
 import factory.fuzzy
@@ -75,6 +76,9 @@ class OrderLineFactory(factory.django.DjangoModelFactory):
     quantity = factory.fuzzy.FuzzyInteger(1, 10)
     order = factory.SubFactory(OrderFactory)
     product = factory.SubFactory(ProductFactory)
+
+    unit_price = decimal.Decimal("10.00")
+    total_price = decimal.Decimal("100.00")
 
     class Meta:
         model = OrderLine

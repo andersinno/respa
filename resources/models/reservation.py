@@ -324,10 +324,9 @@ class Reservation(ModifiableModel):
         otherwise returns None."""
 
         if self.state == self.WAITING_FOR_PAYMENT:
-            try:
-                return self.order.payment_link or None
-            except ObjectDoesNotExist:
-                pass
+            order = self.get_order()
+            if order:
+                return order.payment_link or None
 
         return None
 
@@ -765,9 +764,7 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
 
     def send_paid_reservation_approved_mail(self):
-        self.send_reservation_mail(
-            NotificationType.PAID_RESERVATION_APPROVED
-        )
+        self.send_reservation_mail(NotificationType.PAID_RESERVATION_APPROVED)
 
     def send_reservation_confirmed_mail(self):
         reservations = [self]
