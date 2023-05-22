@@ -10,7 +10,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
@@ -48,7 +47,7 @@ from resources.models import (
 )
 from resources.models.resource import determine_hours_time_range
 from resources.pagination import PurposePagination
-from respa_pricing.models import PricedProduct, PriceList
+from respa_pricing.models import PriceList
 
 from ..auth import is_general_admin, is_staff
 from .accessibility import ResourceAccessibilitySerializer
@@ -91,9 +90,16 @@ def get_resource_reservations_queryset(begin, end):
     qs = Reservation.objects.filter(begin__lte=end, end__gte=begin).current()
     qs = (
         qs.order_by("begin")
-        .prefetch_related("catering_orders")
-        .select_related("user", "order")
+        .prefetch_related("catering_orders", "resource__groups")
+        .select_related("user", "order", "resource", "resource__unit")
     )
+
+    if settings.RESPA_PAYMENTS_ENABLED:
+        qs = qs.prefetch_related(
+            "order",
+            "order__order_lines",
+            "order__order_lines__product",
+        )
     return qs
 
 
@@ -513,10 +519,14 @@ class ResourceSerializer(
         if not rv_list:
             return []
 
-        rv_ser_list = ReservationSerializer(
-            rv_list, many=True, context=self.context
+        return self.get_reservation_serializer_class()(
+            rv_list,
+            many=True,
+            context=self.context,
         ).data
-        return rv_ser_list
+
+    def get_reservation_serializer_class(self):
+        return ReservationSerializer
 
 
 class ResourceDetailsSerializer(ResourceSerializer):
@@ -1015,6 +1025,8 @@ class ResourceListViewSet(
         "generic_terms", "payment_terms", "unit", "type", "reservation_metadata_set"
     )
     queryset = queryset.prefetch_related(
+        "accessibility_summaries",
+        "accessibility_summaries__viewpoint",
         "favorited_by",
         "resource_equipment",
         "resource_equipment__equipment",
@@ -1022,9 +1034,13 @@ class ResourceListViewSet(
         "images",
         "purposes",
         "groups",
+        "periods",
+        "unit__periods",
     )
     if settings.RESPA_PAYMENTS_ENABLED:
-        queryset = queryset.prefetch_related("products")
+        queryset = queryset.prefetch_related(
+            "products",
+        )
 
     filter_backends = (
         filters.SearchFilter,
