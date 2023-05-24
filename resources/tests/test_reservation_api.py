@@ -1245,7 +1245,7 @@ def test_user_can_cancel_manually_confirmed_reservation_if_cancellation_within_r
 
 @freeze_time("2115-04-03T12:00:00+02:00")
 @pytest.mark.django_db
-def test_user_cannot_cancel_manually_confirmed_reservation_if_cancellation_not_within_range( # noqa
+def test_user_cannot_cancel_manually_confirmed_reservation_if_cancellation_not_within_range(  # noqa
     user_api_client, detail_url, reservation, reservation_data_extra, resource_in_unit
 ):
     # Reservation starts at 2115-04-04T11:00:00+02:00
@@ -1610,7 +1610,7 @@ def test_reservation_mails_in_finnish(
 
 @override_settings(RESPA_MAILS_ENABLED=True)
 @pytest.mark.django_db
-def test_unit_admins_are_notified_when_reservation_is_created_along_with_officials_and_reserver( # noqa
+def test_unit_admins_are_notified_when_reservation_is_created_along_with_officials_and_reserver(  # noqa
     general_admin,
     user_api_client,
     list_url,
@@ -3156,7 +3156,7 @@ def test_disallow_overlapping_reservations(
     resource_in_unit, resource_in_unit2, user, user_api_client, list_url
 ):
     expected_error = ErrorDetail(
-        string="['This unit does not allow overlapping reservations for its resources']", # noqa
+        string="['This unit does not allow overlapping reservations for its resources']",  # noqa
         code="conflicting_reservation",
     )
     resource_in_unit.unit.disallow_overlapping_reservations = True
@@ -3331,6 +3331,69 @@ def test_whole_day_reservation_do_not_allow_partial_reservation(
     if not is_valid:
         json_response = response.json()
         assert json_response["non_field_errors"] == [
+            "['Tämä tila täytyy varata koko päiväksi']"
+        ]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("reservation_data", "is_valid"),
+    [
+        # before now
+        (
+            {"begin": "2115-04-25T08:00:00+02:00", "end": "2115-04-25T16:00:00+02:00"},
+            False,
+        ),
+        # now until end of day
+        (
+            {"begin": "2115-04-25T12:00:00+02:00", "end": "2115-04-25T16:00:00+02:00"},
+            True,
+        ),
+    ],
+)
+def test_whole_day_reservation_allow_partial_reservation_same_day(
+    settings,
+    resource_with_opening_hours,
+    user_api_client,
+    list_url,
+    reservation_data,
+    is_valid,
+):
+    """If the reservation is being made on the same day, and it is a whole day
+    reservation, then it should be permitted as long as the start time is greater than
+    the current time."""
+    #
+    # Resource opens from 08-16.
+    resource_with_opening_hours.should_be_reserved_whole_day = True
+    resource_with_opening_hours.max_period = None
+    resource_with_opening_hours.save()
+
+    data = {"resource": resource_with_opening_hours.pk, **reservation_data}
+
+    settings.TIME_ZONE = "Europe/Helsinki"
+    tz = timezone.get_current_timezone()
+
+    with freeze_time(datetime.datetime(2115, 4, 25, 10, 0, tzinfo=tz)):
+        response = user_api_client.post(list_url, data)
+
+    if is_valid:
+        assert response.status_code == 201
+        reservation = Reservation.objects.get()
+
+        begin = datetime.datetime.strptime(
+            reservation_data["begin"], "%Y-%m-%dT%H:%M:%S%z"
+        ).astimezone(tz)
+
+        end = datetime.datetime.strptime(
+            reservation_data["end"], "%Y-%m-%dT%H:%M:%S%z"
+        ).astimezone(tz)
+
+        assert reservation.begin.astimezone(tz) == begin
+        assert reservation.end.astimezone(tz) == end
+    else:
+        assert response.status_code == 400
+        assert Reservation.objects.count() == 0
+        assert response.json()["non_field_errors"] == [
             "['Tämä tila täytyy varata koko päiväksi']"
         ]
 
