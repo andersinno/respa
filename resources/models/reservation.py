@@ -545,7 +545,16 @@ class Reservation(ModifiableModel):
                 )
 
             if self.resource.should_be_reserved_whole_day:
-                if day["opens"] != self.begin or day["closes"] != self.end:
+                # if today you are allowed to start after current time
+                # otherwise reservation start must be same as day start
+
+                is_full_day = (
+                    self.begin > day["opens"]
+                    if timezone.now().date() == self.begin.date()
+                    else self.begin == day["opens"]
+                ) and day["closes"] == self.end
+
+                if not is_full_day:
                     raise ValidationError(
                         _("This resource should be reserved for entire opening hours"),
                         code="invalid_time_slot",
