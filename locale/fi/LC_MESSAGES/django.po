@@ -1911,3 +1911,13 @@ msgid ""
 msgstr ""
 "Tämän resurssin toimipisteelle ei ole määritelty kustannuspaikkakoodia. "
 "Aseta kustannuspaikkakoodi toimipisteen asetuksissa, jotta maksut menevät läpi."
+
+msgid "include other event type option"
+msgstr "lisää muu tapahtuman tyyppi -valinta"
+
+msgid ""
+"Designates whether a \"None of the above\" option, that doesn't affect the "
+"price, should be added to the event type options."
+msgstr ""
+"Määrittää, lisätäänkö tapahtumatyypin valintoihin \"Ei mikään edellisistä\", "
+"joka ei vaikuta hintaan."

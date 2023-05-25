@@ -101,6 +101,15 @@ class PriceList(models.Model):
         verbose_name=_("Name"),
         max_length=100,
     )
+    include_other_event_type_option = models.BooleanField(
+        verbose_name=_("include other event type option"),
+        default=True,
+        help_text=_(
+            'Designates whether a "None of the above" option, '
+            "that doesn't affect the price, "
+            "should be added to the event type options."
+        ),
+    )
 
     objects = PriceListQuerySet.as_manager()
 
