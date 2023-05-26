@@ -6,7 +6,7 @@ import pytz
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
@@ -356,6 +356,30 @@ class Reservation(ModifiableModel):
         if self.is_own(user):
             return True
         return self.resource.can_view_reservation_access_code(user)
+
+    def is_new_state_allowed(self, new_state, user):
+        """Checks that new state is permitted for this user."""
+
+        # if same state, always OK
+        if new_state == self.state:
+            return True
+
+        if not self.resource.can_approve_reservations(user):
+            return False
+
+        allowed_states = [self.CANCELLED]
+
+        if self.state == self.REQUESTED:
+            allowed_states += [self.DENIED]
+            if self.get_order():
+                allowed_states += [self.WAITING_FOR_PAYMENT]
+            else:
+                allowed_states += [self.CONFIRMED]
+
+        elif self.need_manual_confirmation():
+            allowed_states += [self.REQUESTED]
+
+        return new_state in allowed_states
 
     def set_state(self, new_state, user):
         # Make sure it is a known state

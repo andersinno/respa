@@ -170,28 +170,12 @@ class ReservationSerializer(
         return extra_fields
 
     def validate_state(self, value):
-        instance = self.instance
-        request_user = self.context["request"].user
+        if self.instance and not self.instance.is_new_state_allowed(
+            value, self.context["request"].user
+        ):
+            raise ValidationError(_("Illegal state change"))
 
-        # new reservations will get their value regardless of this value
-        if not instance:
-            return value
-
-        # state not changed
-        if instance.state == value:
-            return value
-
-        if instance.resource.can_approve_reservations(request_user):
-            allowed_states = (
-                Reservation.REQUESTED,
-                Reservation.CONFIRMED,
-                Reservation.DENIED,
-                Reservation.WAITING_FOR_PAYMENT,
-            )
-            if instance.state in allowed_states and value in allowed_states:
-                return value
-
-        raise ValidationError(_("Illegal state change"))
+        return value
 
     def validate(self, data):
         reservation = self.instance
