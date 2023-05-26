@@ -1476,6 +1476,10 @@ def test_reservation_mails(
         "has been denied.",
     )
 
+    # reset to REQUESTED
+
+    Reservation.objects.update(state=Reservation.REQUESTED)
+
     # test CONFIRMED
     reservation_data_extra["state"] = Reservation.CONFIRMED
     response = api_client.put(detail_url, data=reservation_data_extra, format="json")
@@ -1580,6 +1584,9 @@ def test_reservation_mails_in_finnish(
         reservation_data_extra["reserver_email_address"],
         "Varauksesi on hylätty.",
     )
+
+    # reset to REQUESTED
+    Reservation.objects.update(state=Reservation.REQUESTED)
 
     # test CONFIRMED
     reservation_data_extra["state"] = Reservation.CONFIRMED
