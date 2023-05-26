@@ -244,6 +244,8 @@ class ResourceSerializer(
     pricing_user_groups = serializers.SerializerMethodField()
     pricing_event_types = serializers.SerializerMethodField()
 
+    include_other_event_type_option = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Resource
         exclude = (
@@ -294,6 +296,11 @@ class ResourceSerializer(
             if obj.price_list
             else []
         )
+
+    def get_include_other_event_type_option(self, obj):
+        if obj.price_list:
+            return obj.price_list.include_other_event_type_option
+        return False
 
     def get_max_price(self, obj):
         """Return max_price if pricing available, otherwise return None.

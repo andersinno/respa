@@ -70,7 +70,7 @@ class PriceListForm(forms.ModelForm):
 
     class Meta:
         model = PriceList
-        fields = ("name",)
+        fields = ("name", "resource", "include_other_event_type_option",)
 
 
 class AtLeastOneRequiredInlineFormSet(forms.models.BaseInlineFormSet):
