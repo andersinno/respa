@@ -3,9 +3,9 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.urls import reverse
 from django.utils import translation
 
-from respa_pricing.models import PriceList
+from respa_pricing.models import PriceList, UserGroupPriceListItem
 
-from ..views.prices import PriceListCreateView, PriceListEditView
+from ..views.prices import PriceListCopyView, PriceListCreateView, PriceListEditView
 
 
 @pytest.mark.django_db
@@ -114,3 +114,48 @@ def test_price_list_edit_valid_post(
             "price_list_id": price_list_with_product.pk,
         },
     )
+
+
+@pytest.mark.django_db
+def test_price_list_copy_get(price_list_with_user_group_item, general_admin, rf):
+    """
+    Test that the form view has the price list items from the price list being copied.
+    """
+
+    price_list = price_list_with_user_group_item
+    price_item = price_list.usergroup_prices.first()
+    request = rf.get("/")
+    request.user = general_admin
+    with translation.override("fi"):
+        response = PriceListCopyView.as_view()(request, price_list_id=price_list.pk)
+        response.render()
+
+    content = str(response.content)
+    assert price_item.user_group.name in content
+    assert str(price_item.price) in content
+
+
+@pytest.mark.django_db
+def test_price_list_copy_post(
+    price_list_with_user_group_item, valid_price_list_copy_form_data, general_admin, rf
+):
+    """
+    Test that new PriceList and UserGroupPriceListItem instaances are created.
+    """
+
+    assert PriceList.objects.count() == 1
+    assert UserGroupPriceListItem.objects.count() == 1
+    request = rf.post("/", valid_price_list_copy_form_data)
+    request.user = general_admin
+
+    # mock session/messages middleware
+    # https://code.djangoproject.com/ticket/17971
+    request.session = "session"
+    request._messages = FallbackStorage(request)
+
+    PriceListCopyView.as_view()(
+        request, price_list_id=price_list_with_user_group_item.pk
+    )
+
+    assert PriceList.objects.count() == 2
+    assert UserGroupPriceListItem.objects.count() == 2

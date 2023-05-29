@@ -15,6 +15,7 @@ from .views.resources import (
 from .views.units import UnitEditView, UnitListView
 from .views.prices import (
     PriceListView,
+    PriceListCopyView,
     PriceListCreateView,
     PriceListEditView,
     PriceListDeleteView,
@@ -37,6 +38,7 @@ urlpatterns = [
     url(r'^price_list/$', PriceListView.as_view(), name='price-list'),
     url(r'^price_list/edit/(?P<price_list_id>\w+)/$', PriceListEditView.as_view(), name='edit-price-list'),
     url(r'^price_list/delete/(?P<price_list_id>\w+)/$', PriceListDeleteView.as_view(), name='delete-price-list'),
+    url(r'^price_list/copy/(?P<price_list_id>\w+)/$', PriceListCopyView.as_view(), name='copy-price-list'),
     url(r'^price_list/new/$', PriceListCreateView.as_view(), name='new-price-list'),
     url(r'^i18n/$', include('django.conf.urls.i18n'), name='language'),
     url(r'^user_management/$', ManageUserPermissionsListView.as_view(), name='user-management'),

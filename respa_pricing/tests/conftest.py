@@ -31,10 +31,11 @@ def price_list_with_product(resource):
 
 
 @pytest.fixture
-def price_list_with_user_group_item(price_list):
+def price_list_with_user_group_item(price_list, user_group):
     UserGroupPriceListItemFactory(
         price_list=price_list, user_group=user_group, price=10.0
     )
+    return price_list
 
 
 @pytest.fixture

@@ -240,4 +240,14 @@ main {
       grid-template-columns: 7fr 3fr 2fr;
     }
   }
+
+  section.price-lists {
+    @extend .main-section;
+
+    /* Price list list has four columns */
+    .unit-list ul li div.panel div.panel-body,
+    .unit-list ul li.list-group-item.sort-bar {
+      grid-template-columns: 6fr 2fr 2fr 2fr;
+    }
+  }
 }
