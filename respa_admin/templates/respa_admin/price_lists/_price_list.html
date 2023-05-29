@@ -2,7 +2,7 @@
 
 {#TODO: Fix the classes that are copied from Units#}
 
-<section class="price-lists units">
+<section class="price-lists">
   <div class="container">
     <div class="unit-list container-fluid">
       <ul class="list-group">
@@ -10,6 +10,7 @@
           <a class="col-4 btn order-by-link" href="?order_by={% if order_by == "name" %}-name{% else %}name{% endif %}">
             {% trans "Name" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
           </a>
+          <div class="order-by-link"></div>
           <div class="order-by-link"></div>
           <div class="order-by-link"></div>
         </li>
@@ -25,6 +26,12 @@
                           <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
                           <a href="{% url 'respa_admin:edit-price-list' price_list_id=pricelist.id %}">{% trans 'Edit' %}</a>
                         </h6>
+                      </div>
+                      <div class="col-4">
+                          <h6>
+                            <span class='glyphicon glyphicon-copy icon-left' aria-hidden="true"></span>
+                            <a href="{% url 'respa_admin:copy-price-list' price_list_id=pricelist.id %}">{% trans 'Copy' %}</a>
+                          </h6>
                       </div>
                       <div class="col-4">
                         <h6>

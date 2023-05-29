@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.db.models import FieldDoesNotExist
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
@@ -90,8 +91,12 @@ class PriceListCreateView(ExtraContextMixin, CreateView):
         self.object = None
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        user_group_item_formset = UserGroupPriceListItemFormset(self.request.POST)
-        event_type_item_formset = EventTypePriceListItemFormset(self.request.POST)
+        user_group_item_formset = UserGroupPriceListItemFormset(
+            self.request.POST, save_as_new=True
+        )
+        event_type_item_formset = EventTypePriceListItemFormset(
+            self.request.POST, save_as_new=True
+        )
 
         if (
             form.is_valid()
@@ -224,3 +229,29 @@ class PriceListDeleteView(ExtraContextMixin, DeleteView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.modifiable_by(self.request.user)
+
+
+class PriceListCopyView(PriceListCreateView):
+    def get(self, request, *args, **kwargs):
+        self.object = None
+        original_object = get_object_or_404(
+            PriceList, pk=self.kwargs.get("price_list_id")
+        )
+
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+
+        user_group_item_formset = UserGroupPriceListItemFormset(
+            instance=original_object
+        )
+        event_type_item_formset = EventTypePriceListItemFormset(
+            instance=original_object
+        )
+
+        return self.render_to_response(
+            self.get_context_data(
+                form=form,
+                user_group_item_formset=user_group_item_formset,
+                event_type_item_formset=event_type_item_formset,
+            )
+        )
