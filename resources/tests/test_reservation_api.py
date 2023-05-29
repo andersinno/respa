@@ -2083,6 +2083,34 @@ def test_reservation_reservable_after(
     assert_non_field_errors_contain(response, "The resource is reservable only after")
 
 
+@freeze_time("2115-04-24")
+@pytest.mark.django_db
+def test_reservation_reservable_after_day_before(
+    user_api_client,
+    resource_in_unit,
+    list_url,
+    reservation_data,
+):
+    resource_in_unit.reservable_min_days_in_advance = 1
+    resource_in_unit.save()
+
+    resource_in_unit.update_opening_hours()
+    now = timezone.now()
+
+    reservation_time = now + datetime.timedelta(days=1)
+
+    reservation_data["begin"] = reservation_time.replace(hour=12, minute=0, second=0)
+    reservation_data["end"] = reservation_time.replace(hour=13, minute=0, second=0)
+
+    response = user_api_client.post(list_url, data=reservation_data)
+
+    msg = 'expected status_code {}, received {} with message "{}"'
+
+    assert response.status_code == 201, msg.format(
+        201, response.status_code, response.data
+    )
+
+
 @freeze_time("2115-04-02")
 @pytest.mark.django_db
 def test_admins_can_make_reservations_despite_delay(
