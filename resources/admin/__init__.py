@@ -347,6 +347,7 @@ class ReservationAdmin(
     list_display = ("__str__", "type")
     list_filter = ("type",)
     search_fields = (
+        "resource__name",
         "user__first_name",
         "user__last_name",
         "user__username",
