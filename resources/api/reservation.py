@@ -1,9 +1,7 @@
-import operator
-import uuid
-from functools import reduce
-
 import arrow
 import django_filters
+import operator
+import uuid
 from arrow.parser import ParserError
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -13,6 +11,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
+from functools import reduce
 from guardian.core import ObjectPermissionChecker
 from munigeo import api as munigeo_api
 from rest_framework import (
@@ -206,12 +205,20 @@ class ReservationSerializer(
                 )
             reservable_after = resource.get_reservable_after()
             if reservable_after and data["begin"] < reservable_after:
-                raise ValidationError(
-                    _(
-                        "The resource is reservable only after %(datetime)s"
-                        % {"datetime": reservable_after}
+                # date falls before the reservable after date. If the number of days
+                # difference (based on date rather than datetime) is equal to the min
+                # days in advance, then should still be permitted
+                is_day_before = (
+                    data["begin"].date() - timezone.now().date()
+                ).days == resource.get_reservable_min_days_in_advance()
+
+                if not is_day_before:
+                    raise ValidationError(
+                        _(
+                            "The resource is reservable only after %(datetime)s"
+                            % {"datetime": reservable_after}
+                        )
                     )
-                )
 
         # normal users cannot make reservations for other people
         if not resource.can_create_reservations_for_other_users(request_user):

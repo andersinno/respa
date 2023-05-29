@@ -724,6 +724,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         # Set the dates when the resource is closed.
         date = begin.date()
         end = end.date()
+
         while date < end:
             if date not in opening_hours:
                 opening_hours[date] = [OrderedDict(opens=None, closes=None)]
