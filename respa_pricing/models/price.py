@@ -1,21 +1,19 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.duration import duration_string
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
 
 from payments.utils import (
-    rounded,
     convert_aftertax_to_pretax,
     convert_pretax_to_aftertax,
+    rounded,
 )
 from resources.models import Resource
 
 from .utils import generate_id
-
 
 TAX_PERCENTAGES = [
     Decimal(x)
@@ -88,6 +86,69 @@ class EventType(AutoIdentifiedModelMixin, models.Model):
         return f"{self.name} (ALV {self.tax_percentage}%)"
 
 
+class PriceListTemplate(models.Model):
+    name = models.CharField(
+        verbose_name=_("Name"),
+        max_length=100,
+    )
+    include_other_event_type_option = models.BooleanField(
+        verbose_name=_("include other event type option"),
+        default=True,
+        help_text=_(
+            'Designates whether a "None of the above" option, '
+            "that doesn't affect the price, "
+            "should be added to the event type options."
+        ),
+    )
+
+    template_fields = ["include_other_event_type_option"]
+
+    def save(self, **kwargs):
+        is_new = self.pk is None
+        super().save(**kwargs)
+        if not is_new:
+            price_lists_for_update = []
+            price_lists = self.price_lists.all()
+
+            for price_list in price_lists:
+                for field in self.template_fields:
+                    setattr(price_list, field, getattr(self, field))
+                price_lists_for_update.append(price_list)
+
+            if price_lists_for_update:
+                price_lists.bulk_update(
+                    price_lists_for_update, fields=self.template_fields
+                )
+
+    def create_price_list(self, **fields):
+        """Creates a new PriceList instance with all fields based on template.
+
+        User groups and event types are also created.
+        """
+        price_list = PriceList.objects.create(
+            **fields,
+            **{field: getattr(self, field) for field in self.template_fields},
+            template=self,
+        )
+        user_group_items = [
+            template.make_item(price_list)
+            for template in self.usergroup_prices.select_related("user_group")
+        ]
+
+        if user_group_items:
+            UserGroupPriceListItem.objects.bulk_create(user_group_items)
+
+        event_type_items = [
+            template.make_item(price_list)
+            for template in self.event_prices.select_related("event_type")
+        ]
+
+        if event_type_items:
+            EventTypePriceListItem.objects.bulk_create(event_type_items)
+
+        return price_list
+
+
 class PriceListQuerySet(models.QuerySet):
     def modifiable_by(self, user):
         modifiable_resources_by_user = Resource.objects.modifiable_by(user)
@@ -109,6 +170,14 @@ class PriceList(models.Model):
             "that doesn't affect the price, "
             "should be added to the event type options."
         ),
+    )
+
+    template = models.ForeignKey(
+        PriceListTemplate,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="price_lists",
     )
 
     objects = PriceListQuerySet.as_manager()
@@ -231,7 +300,7 @@ class GeneralPriceListItem(models.Model):
                 raise ValidationError(
                     {
                         "price_period": _(
-                            'This field requires a non-zero value when price type is "per period".'
+                            'This field requires a non-zero value when price type is "per period".'  # noqa
                         )
                     }
                 )
@@ -290,7 +359,91 @@ class GeneralPriceListItem(models.Model):
         )
 
 
-class EventTypePriceListItem(GeneralPriceListItem):
+class EventTypeTaxPercentage:
+    """Mixin class for calculating event type tax percentage."""
+
+    @property
+    def tax_percentage(self):
+        return self.event_type.tax_percentage
+
+
+class EventTypePriceListTemplateItem(EventTypeTaxPercentage, GeneralPriceListItem):
+    template = models.ForeignKey(
+        PriceListTemplate,
+        related_name="event_prices",
+        on_delete=models.CASCADE,
+        verbose_name=_("template"),
+    )
+
+    event_type = models.ForeignKey(
+        EventType,
+        related_name="pricelist_template_items",
+        on_delete=models.CASCADE,
+        verbose_name=_("event type"),
+    )
+
+    class Meta:
+        verbose_name = _("Event type price")
+        verbose_name_plural = _("Event type prices")
+
+    template_fields = [
+        "event_type",
+        "price",
+        "price_period",
+        "price_type",
+    ]
+
+    def __str__(self):
+        return f"{self.price}:{self.event_type.name}"
+
+    def save(self, **kwargs):
+        is_new = self.pk is None
+        super().save(**kwargs)
+        if is_new:
+            self.create_items()
+        else:
+            self.update_items()
+
+    def make_item(self, price_list):
+        return EventTypePriceListItem(
+            price_list=price_list,
+            template=self,
+            **{field: getattr(self, field) for field in self.template_fields},
+        )
+
+    def create_items(self):
+        """Creates new event types for connected price lists."""
+        items_for_create = []
+
+        for price_list in self.template.price_lists.all():
+            items_for_create.append(self.make_item(price_list))
+
+        if items_for_create:
+            EventTypePriceListItem.objects.bulk_create(items_for_create)
+
+    def update_items(self):
+        """Updates all connected event types."""
+        items_for_update = []
+        items = self.event_prices.select_related("event_type")
+
+        for item in items:
+            for field in self.template_fields:
+                setattr(item, field, getattr(self, field))
+            items_for_update.append(item)
+
+        if items_for_update:
+            items.bulk_update(items_for_update, fields=self.template_fields)
+
+
+class EventTypePriceListItem(EventTypeTaxPercentage, GeneralPriceListItem):
+    template = models.ForeignKey(
+        EventTypePriceListTemplateItem,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="event_prices",
+    )
+
     price_list = models.ForeignKey(
         PriceList,
         related_name="event_prices",
@@ -308,15 +461,95 @@ class EventTypePriceListItem(GeneralPriceListItem):
         verbose_name = _("Event type price")
         verbose_name_plural = _("Event type prices")
 
-    @property
-    def tax_percentage(self):
-        return self.event_type.tax_percentage
-
     def __str__(self):
         return f"{self.price}:{self.event_type.name}"
 
 
-class UserGroupPriceListItem(GeneralPriceListItem):
+class UserGroupItemTaxPercentage:
+    """Mixin class for calculating user group tax percentage."""
+
+    @property
+    def tax_percentage(self):
+        return self.user_group.tax_percentage
+
+
+class UserGroupPriceListTemplateItem(UserGroupItemTaxPercentage, GeneralPriceListItem):
+    template = models.ForeignKey(
+        PriceListTemplate,
+        related_name="usergroup_prices",
+        on_delete=models.CASCADE,
+        verbose_name=_("template"),
+    )
+    user_group = models.ForeignKey(
+        UserGroup,
+        related_name="pricelist_template_items",
+        on_delete=models.CASCADE,
+        verbose_name=_("user group"),
+    )
+
+    template_fields = [
+        "user_group",
+        "price",
+        "price_period",
+        "price_type",
+    ]
+
+    class Meta:
+        verbose_name = _("User group price")
+        verbose_name_plural = _("User group prices")
+
+    def __str__(self):
+        return f"{self.price}:{self.user_group.name}"
+
+    def save(self, **kwargs):
+        is_new = self.pk is None
+        super().save(**kwargs)
+        if is_new:
+            self.create_items()
+        else:
+            self.update_items()
+
+    def make_item(self, price_list):
+        return UserGroupPriceListItem(
+            price_list=price_list,
+            template=self,
+            **{field: getattr(self, field) for field in self.template_fields},
+        )
+
+    def create_items(self):
+        """Creates new user groups for connected price lists."""
+        items_for_create = []
+
+        for price_list in self.template.price_lists.all():
+            items_for_create.append(self.make_item(price_list))
+
+        if items_for_create:
+            UserGroupPriceListItem.objects.bulk_create(items_for_create)
+
+    def update_items(self):
+        """Updates all connected user groups."""
+        items_for_update = []
+
+        items = self.usergroup_prices.select_related("user_group")
+
+        for item in items:
+            for field in self.template_fields:
+                setattr(item, field, getattr(self, field))
+            items_for_update.append(item)
+
+        if items_for_update:
+            items.bulk_update(items_for_update, fields=self.template_fields)
+
+
+class UserGroupPriceListItem(UserGroupItemTaxPercentage, GeneralPriceListItem):
+    template = models.ForeignKey(
+        UserGroupPriceListTemplateItem,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="usergroup_prices",
+    )
+
     price_list = models.ForeignKey(
         PriceList,
         related_name="usergroup_prices",
@@ -333,10 +566,6 @@ class UserGroupPriceListItem(GeneralPriceListItem):
     class Meta:
         verbose_name = _("User group price")
         verbose_name_plural = _("User group prices")
-
-    @property
-    def tax_percentage(self):
-        return self.user_group.tax_percentage
 
     def __str__(self):
         return f"{self.price}:{self.user_group.name}"
