@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from resources.models import Reservation
 
-from ..exceptions import OrderStateTransitionError
+from ..exceptions import OrderStateTransitionError, PaymentAlreadyCompletedError
 from ..factories import OrderFactory
 from ..models import Order, OrderLogEntry
 
@@ -154,7 +154,47 @@ def test_update_expired(
 
     num_orders = 1 if expired else 0
 
-    assert Order.objects.update_expired() == num_orders
+    assert Order.objects.update_expired()[0] == num_orders
+
+
+def test_update_expired_confirms_paid_orders(resource_with_opening_hours, user):
+    """
+    Test that when trying to expire an order that is waiting for payment but
+    has actually already been paid, the state is set to CONFIRMED instead.
+    """
+
+    now = timezone.now()
+
+    reservation = Reservation.objects.create(
+        resource=resource_with_opening_hours,
+        begin=now,
+        end=now + timedelta(hours=2),
+        user=user,
+        state=Reservation.WAITING_FOR_PAYMENT,
+    )
+
+    order = OrderFactory(reservation=reservation, state=Order.WAITING)
+
+    OrderLogEntry.objects.update(
+        timestamp=now - timedelta(hours=2),
+    )
+
+    orig_set_state = Order.set_state
+
+    def mocked_set_state(self, new_state):
+        if new_state == Order.EXPIRED:
+            raise PaymentAlreadyCompletedError()
+        return orig_set_state(self, new_state)
+
+    with patch("payments.models.Order.set_state", new=mocked_set_state):
+        expired, confirmed = Order.objects.update_expired()
+
+        assert expired == 0
+        assert confirmed == 1
+
+    order.refresh_from_db()
+    assert order.state == Order.CONFIRMED
+    assert order.reservation.state == Reservation.CONFIRMED
 
 
 def test_get_price_correct(order_with_products):

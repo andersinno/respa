@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Sets too old orders from state "waiting" to state "expired".'
+    help = 'Sets state of old orders awaiting payment from "waiting" to "expired" or "confirmed".'
 
     @atomic
     def handle(self, *args, **options):
@@ -20,6 +20,7 @@ class Command(BaseCommand):
             datefmt = "%Y-%m-%d %H:%M:%S",
             stream = sys.stdout
         )
-        logger.info('Expiring too old unpaid orders...')
-        num_of_updated_orders = Order.objects.update_expired()
-        logger.info('Done, {} order(s) got expired.'.format(num_of_updated_orders))
+        logger.info('Handling too old unpaid orders...')
+        num_of_expired_orders, num_of_confirmed_orders = Order.objects.update_expired()
+        logger.info('Done, {} order(s) got expired.'.format(num_of_expired_orders))
+        logger.info('{} paid order(s) got confirmed.'.format(num_of_confirmed_orders))
