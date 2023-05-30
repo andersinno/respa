@@ -103,6 +103,13 @@ class PriceListTemplate(models.Model):
 
     template_fields = ["include_other_event_type_option"]
 
+    class Meta:
+        verbose_name = _("Price list template")
+        verbose_name_plural = _("Price list templates")
+
+    def __str__(self):
+        return self.name
+
     def save(self, **kwargs):
         is_new = self.pk is None
         super().save(**kwargs)
@@ -383,8 +390,8 @@ class EventTypePriceListTemplateItem(EventTypeTaxPercentage, GeneralPriceListIte
     )
 
     class Meta:
-        verbose_name = _("Event type price")
-        verbose_name_plural = _("Event type prices")
+        verbose_name = _("Event type price template")
+        verbose_name_plural = _("Event type price templates")
 
     template_fields = [
         "event_type",
@@ -495,8 +502,8 @@ class UserGroupPriceListTemplateItem(UserGroupItemTaxPercentage, GeneralPriceLis
     ]
 
     class Meta:
-        verbose_name = _("User group price")
-        verbose_name_plural = _("User group prices")
+        verbose_name = _("User group price template")
+        verbose_name_plural = _("User group price templates")
 
     def __str__(self):
         return f"{self.price}:{self.user_group.name}"

@@ -1823,6 +1823,12 @@ msgstr "Hinnasto"
 msgid "Price lists"
 msgstr "Hinnastot"
 
+msgid "Price list template"
+msgstr "Hinnastosapluuna"
+
+msgid "Price list templates"
+msgstr "Hinnastosapluunat"
+
 msgid "price list"
 msgstr "hinnasto"
 
@@ -1841,6 +1847,13 @@ msgstr "Hinta tapahtumatyypin mukaan"
 msgid "Event type prices"
 msgstr "Hinnat tapahtumatyypin mukaan"
 
+msgid "Event type price template"
+msgstr "Hintasapluuna tapahtumatyypin mukaan"
+
+msgid "Event type price templates"
+msgstr "Hintasapluunat tapahtumatyypin mukaan"
+
+
 msgid "user group"
 msgstr "käyttäjäryhmä"
 
@@ -1849,6 +1862,12 @@ msgstr "Hinta käyttäjäryhmän mukaan"
 
 msgid "User group prices"
 msgstr "Hinnat käyttäjäryhmän mukaan"
+
+msgid "User group price template"
+msgstr "Hintasapluuna käyttäjäryhmän mukaan"
+
+msgid "User group price templates"
+msgstr "Hintasapluunat käyttäjäryhmän mukaan"
 
 msgid "Price before tax"
 msgstr "Hinta ennen veroja"
