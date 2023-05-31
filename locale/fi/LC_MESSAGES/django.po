@@ -1875,11 +1875,18 @@ msgstr "Hinta ennen veroja"
 msgid "Create a new price list"
 msgstr "Luo uusi hinnasto"
 
+msgid "Create a new price list from template"
+msgstr "Luo uusi hinnasto sapluunasta"
+
 msgid "Edit price list"
 msgstr "Muokkaa hinnastoa"
 
 msgid "Delete price list"
 msgstr "Poista hinnasto"
+
+#, python-brace-format
+msgid "This price list is based on template <strong>%(price_list_template)s</strong>. The prices can only be edited in the template."
+msgstr "Tämä hinnasto pohjautuu sapluunaan <strong>%(price_list_template)s</strong>. Hintoja tulee muuttaa vain sapluunassa."
 
 #, python-format
 msgid ""

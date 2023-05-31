@@ -1,20 +1,15 @@
 import pytest
 
+from ..models import PriceList
 from .factories import (
+    EventTypePriceListTemplateItemFactory,
     PriceListTemplateFactory,
     UserGroupPriceListTemplateItemFactory,
-    ProductFactory,
-    EventTypePriceListTemplateItemFactory,
 )
 
 
-@pytest.fixture
-def product(resource):
-    return ProductFactory(resources=[resource])
-
-
 @pytest.mark.django_db
-def test_create_price_list_from_template():
+def test_add_price_list_to_template():
     """Should create a new price list from a template, including user group and
     event type items."""
 
@@ -22,7 +17,7 @@ def test_create_price_list_from_template():
     user_group_template = UserGroupPriceListTemplateItemFactory(template=template)
     event_type_template = EventTypePriceListTemplateItemFactory(template=template)
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
 
     assert price_list.name == "new price list"
 
@@ -53,7 +48,7 @@ def test_update_price_list_from_template():
 
     template = PriceListTemplateFactory(include_other_event_type_option=True)
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
 
     assert price_list.include_other_event_type_option is True
     assert price_list.template == template
@@ -73,7 +68,7 @@ def test_delete_user_group_item_from_template():
     template = PriceListTemplateFactory()
     user_group_template = UserGroupPriceListTemplateItemFactory(template=template)
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
     assert price_list.usergroup_prices.count() == 1
 
     user_group_template.delete()
@@ -92,7 +87,7 @@ def test_update_user_group_item_template():
         price=333,
     )
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
 
     user_group_item = price_list.usergroup_prices.first()
     assert user_group_item.price == 333
@@ -117,7 +112,7 @@ def test_add_user_group_item_template():
         price=333,
     )
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
 
     user_group_item = price_list.usergroup_prices.first()
     assert user_group_item.price == 333
@@ -147,7 +142,7 @@ def test_delete_event_type_item_from_template():
     template = PriceListTemplateFactory()
     event_type_template = EventTypePriceListTemplateItemFactory(template=template)
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
     assert price_list.event_prices.count() == 1
 
     event_type_template.delete()
@@ -166,7 +161,7 @@ def test_update_event_type_item_template():
         price=333,
     )
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
 
     event_type_item = price_list.event_prices.first()
     assert event_type_item.price == 333
@@ -191,7 +186,7 @@ def test_add_event_type_item_template():
         price=333,
     )
 
-    price_list = template.create_price_list(name="new price list")
+    price_list = template.add_price_list(PriceList(name="new price list"))
 
     event_type_item = price_list.event_prices.first()
     assert event_type_item.price == 333

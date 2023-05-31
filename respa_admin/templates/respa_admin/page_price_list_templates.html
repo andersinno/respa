@@ -6,20 +6,8 @@
         <div class="container">
             <div class="headline">
                 <div class="listing-report row">
-                    <h1 class="col-sm-6">{% trans 'Price lists' %}</h1>
+                    <h1 class="col-sm-6">{% trans 'Price list templates' %}</h1>
                     <span class="col-sm-6 listing-count">{{ paginator.count }} kpl</span>
-                </div>
-                <div>
-                    <a class="btn resource-control"
-                       href="{% url 'respa_admin:new-price-list' %}">
-                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
-                        {% trans 'Create a new price list' %}<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                    </a>
-                    <a class="btn resource-control"
-                       href="{% url 'respa_admin:price-list-templates' %}">
-                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
-                        {% trans 'Create a new price list from template' %}<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                    </a>
                 </div>
                 <form action="." method="get">
                     <div class="form-group listing-search center-block">
@@ -43,5 +31,5 @@
     </section>
 {% endblock koro_shape %}
 {% block body %}
-    {% include "respa_admin/price_lists/_price_list.html" %}
+    {% include "respa_admin/price_lists/_price_list_template.html" %}
 {% endblock %}

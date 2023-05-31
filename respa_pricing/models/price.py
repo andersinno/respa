@@ -127,16 +127,19 @@ class PriceListTemplate(models.Model):
                     price_lists_for_update, fields=self.template_fields
                 )
 
-    def create_price_list(self, **fields):
-        """Creates a new PriceList instance with all fields based on template.
+    def add_price_list(self, price_list):
+        """Saves a PriceList instance with all fields based on template.
 
         User groups and event types are also created.
         """
-        price_list = PriceList.objects.create(
-            **fields,
-            **{field: getattr(self, field) for field in self.template_fields},
-            template=self,
-        )
+
+        price_list.template = self
+
+        for field in self.template_fields:
+            setattr(price_list, field, getattr(self, field))
+
+        price_list.save()
+
         user_group_items = [
             template.make_item(price_list)
             for template in self.usergroup_prices.select_related("user_group")

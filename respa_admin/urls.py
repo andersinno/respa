@@ -8,6 +8,7 @@ from .views.prices import (
     PriceListCreateView,
     PriceListDeleteView,
     PriceListEditView,
+    PriceListTemplateView,
     PriceListView,
 )
 from .views.resources import (
@@ -48,6 +49,11 @@ urlpatterns = [
     ),
     url(r"^price_list/$", PriceListView.as_view(), name="price-list"),
     url(
+        r"^price_list_template/$",
+        PriceListTemplateView.as_view(),
+        name="price-list-templates",
+    ),
+    url(
         r"^price_list/edit/(?P<price_list_id>\w+)/$",
         PriceListEditView.as_view(),
         name="edit-price-list",
@@ -63,6 +69,11 @@ urlpatterns = [
         name="copy-price-list",
     ),
     url(r"^price_list/new/$", PriceListCreateView.as_view(), name="new-price-list"),
+    url(
+        r"^price_list/new/template/(?P<template_id>\w+)/$",
+        PriceListCreateView.as_view(),
+        name="new-price-list-from-template",
+    ),
     url(r"^i18n/$", include("django.conf.urls.i18n"), name="language"),
     url(
         r"^user_management/$",
