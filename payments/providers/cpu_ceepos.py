@@ -32,6 +32,7 @@ REQUEST_CHECKSUM_PARAMS = (
     "Id",
     "Status",
     "Reference",
+    "Payments",
     "PaymentMethod",
     "PaymentSum",
     "Timestamp",
@@ -229,7 +230,17 @@ class CPUCeeposProvider(PaymentProvider):
         the message has been received intact and directly from CeePos.
         """
         checksum_received = data["Hash"]
-        checksum_calc_values = [data[x] for x in params if x in data]
+        checksum_calc_values = []
+
+        for key, value in data.items():
+            if key not in params:
+                continue
+            if isinstance(value, list):
+                for item in value:
+                    checksum_calc_values.extend(item.values())
+            else:
+                checksum_calc_values.append(value)
+
         secret = self.config.get(RESPA_PAYMENTS_CEEPOS_API_SECRET)
         correct_checksum = self.calculate_checksum(checksum_calc_values, secret)
 
