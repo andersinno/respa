@@ -16,7 +16,11 @@ from rest_framework import serializers
 from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
-from .exceptions import OrderStateTransitionError, PaymentCancellationFailedError
+from .exceptions import (
+    OrderStateTransitionError,
+    PaymentAlreadyCompletedError,
+    PaymentCancellationFailedError,
+)
 from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
 
 # The best way for representing non existing archived_at would be using None for it,
@@ -148,8 +152,11 @@ class OrderQuerySet(models.QuerySet):
            AND reservation didn’t need manual approval (Reservation.approved_at==null)
            AND order is older than settings.RESPA_PAYMENTS_PAYMENT_WAITING_TIME
 
+        If the Order has actually already been paid but for some reason the state
+        doesn't reflect that (should not happen), confirm the order instead.
+
         Returns:
-            number of orders expired
+            tuple of number of orders expired and number of orders confirmed
         """
 
         now = timezone.now()
@@ -183,12 +190,18 @@ class OrderQuerySet(models.QuerySet):
             .distinct()
         )
 
-        counter = 0
+        num_of_orders_expired = 0
+        num_of_order_confirmed = 0
 
-        for counter, order in enumerate(for_expiry, 1):
-            order.set_state(self.model.EXPIRED)
+        for order in for_expiry:
+            try:
+                order.set_state(self.model.EXPIRED)
+                num_of_orders_expired += 1
+            except PaymentAlreadyCompletedError:
+                order.set_state(self.model.CONFIRMED)
+                num_of_order_confirmed += 1
 
-        return counter
+        return (num_of_orders_expired, num_of_order_confirmed)
 
 
 class Order(models.Model):
@@ -206,7 +219,7 @@ class Order(models.Model):
         (CANCELLED, _("cancelled")),
     )
 
-    payment_link = models.URLField(verbose_name=_('Payment Link'), blank=True)
+    payment_link = models.URLField(verbose_name=_("Payment Link"), blank=True)
 
     state = models.CharField(
         max_length=32, verbose_name=_("state"), choices=STATE_CHOICES, default=WAITING
@@ -284,8 +297,6 @@ class Order(models.Model):
                 )
             )
 
-        self.state = new_state
-
         if new_state in (Order.EXPIRED, Order.CANCELLED):
             if self.reservation.state == Reservation.WAITING_FOR_PAYMENT:
                 # Cancel any open payments to make sure the order cannot
@@ -301,6 +312,11 @@ class Order(models.Model):
                     pass
                 except PaymentCancellationFailedError as error:
                     self.create_log_entry(message=f"Failed to cancel payment: {error}")
+                except PaymentAlreadyCompletedError as error:
+                    self.create_log_entry(message=f"Failed to cancel payment: {error}")
+                    raise error
+
+        self.state = new_state
 
         if new_state == Order.CONFIRMED:
             self.reservation.set_state(Reservation.CONFIRMED, None)
@@ -473,4 +489,4 @@ class NotificationOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('id', 'order_lines', 'price', 'created_at', 'payment_link')
+        fields = ("id", "order_lines", "price", "created_at", "payment_link")
