@@ -1,20 +1,12 @@
 let emptyPermissionItem = null;
 
+
 function enableRemovePermission() {
   $('#current-permissions-list').on('click', '.remove-permission', removePermission)
 }
 
 function enableAddNewPermission() {
   $('#add-new-permission').bind('click', addNewPermission);
-}
-
-function isStaffCheckboxListener() {
-  let staff_input_elem = $("input#id_is_staff");
-  $('.select-dropdown, .custom-checkbox').change(function() {
-    if(!staff_input_elem.is(":checked")) {
-      staff_input_elem.prop("checked", true);
-    }
-  });
 }
 
 function setEmptyPermissionItem() {
@@ -107,5 +99,4 @@ export function initializeUserFormEventHandlers() {
   enableRemovePermission();
   enableAddNewPermission();
   setEmptyPermissionItem();
-  isStaffCheckboxListener();
 }
