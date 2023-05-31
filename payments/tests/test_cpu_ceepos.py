@@ -549,7 +549,8 @@ def test_handle_notify_request_success(
         "Id": "abc123",
         "Status": "1",
         "Reference": "123",
-        "Hash": "daac0c407cc08b5e679bd2aaa1b39cc3e3e70b6cf5de8b9063cbc66bb9952fd5",
+        "Payments": [{'PaymentMethod': '51', 'PaymentSum': '500', 'Timestamp': '202305311008'}],
+        "Hash": "f3afa700560555501d857df09835fb0aa300a315272c65030c044704d9475567",
     }
     order_with_products.set_state(order_state)
 
