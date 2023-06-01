@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 import datetime
-
+from dateutil import parser
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test.testcases import SimpleTestCase
-from django.utils.six import BytesIO
 from django.utils.encoding import force_text
-from dateutil import parser
+from django.utils.six import BytesIO
 from PIL import Image
 
 from resources.models import ResourceImage
 
-UNSAFE_METHODS = ('post', 'put', 'patch', 'delete')
+UNSAFE_METHODS = ("post", "put", "patch", "delete")
 
 MAX_QUERIES = 50
 
@@ -36,7 +35,9 @@ def get_test_image_data(size=(32, 32), color=(250, 250, 210), format="JPEG"):
     return sio.getvalue()
 
 
-def create_resource_image(resource, size=(32, 32), color=(250, 250, 210), format="JPEG", **instance_kwargs):
+def create_resource_image(
+    resource, size=(32, 32), color=(250, 250, 210), format="JPEG", **instance_kwargs
+):
     """
     Create a ResourceImage object with image data with the given specs.
 
@@ -48,17 +49,21 @@ def create_resource_image(resource, size=(32, 32), color=(250, 250, 210), format
     :type color: tuple[int, int, int]
     :param format: PIL image format specifier
     :type format: str
-    :param instance_kwargs: Other kwargs for `ResourceImage`. Some values are sanely prefilled.
+    :param instance_kwargs: Other kwargs for `ResourceImage`.
+        Some values are sanely prefilled.
     :type instance_kwargs: dict
     :return: Saved ResourceImage
     :rtype: resources.models.ResourceImage
     """
     instance_kwargs.setdefault("sort_order", resource.images.count() + 1)
     instance_kwargs.setdefault("type", "main")
-    instance_kwargs.setdefault("image", ContentFile(
-        get_test_image_data(size=size, color=color, format=format),
-        name="%s.%s" % (instance_kwargs["sort_order"], format.lower())
-    ))
+    instance_kwargs.setdefault(
+        "image",
+        ContentFile(
+            get_test_image_data(size=size, color=color, format=format),
+            name="%s.%s" % (instance_kwargs["sort_order"], format.lower()),
+        ),
+    )
     ri = ResourceImage(resource=resource, **instance_kwargs)
     ri.full_clean()
     ri.save()
@@ -80,7 +85,9 @@ def get_form_data(form, prepared=False):
     data = {}
     for name, field in form.fields.items():
         prefixed_name = form.add_prefix(name)
-        data_value = field.widget.value_from_datadict(form.data, form.files, prefixed_name)
+        data_value = field.widget.value_from_datadict(
+            form.data, form.files, prefixed_name
+        )
 
         if data_value:
             value = data_value
@@ -94,8 +101,11 @@ def get_form_data(form, prepared=False):
                 initial_prefixed_name = form.add_initial_prefix(name)
                 hidden_widget = field.hidden_widget()
                 try:
-                    initial_value = field.to_python(hidden_widget.value_from_datadict(
-                        form.data, form.files, initial_prefixed_name))
+                    initial_value = field.to_python(
+                        hidden_widget.value_from_datadict(
+                            form.data, form.files, initial_prefixed_name
+                        )
+                    )
                 except ValidationError:
                     form._changed_data.append(name)
                     continue
@@ -121,7 +131,9 @@ def check_disallowed_methods(api_client, urls, disallowed_methods):
     """
 
     # endpoints return 401 instead of 405 if there is no user
-    expected_status_codes = (401, 405) if api_client.handler._force_user is None else (405, )
+    expected_status_codes = (
+        (401, 405) if api_client.handler._force_user is None else (405,)
+    )
     for url in urls:
         for method in disallowed_methods:
             assert getattr(api_client, method)(url).status_code in expected_status_codes
@@ -138,7 +150,9 @@ def assert_non_field_errors_contain(response, text):
     :type response: Response
     :type text: str
     """
-    error_messages = [force_text(error_message) for error_message in response.data['non_field_errors']]
+    error_messages = [
+        force_text(error_message) for error_message in response.data["non_field_errors"]
+    ]
     assert any(text in error_message for error_message in error_messages)
 
 
@@ -162,14 +176,16 @@ def assert_hours(tz, opening_hours, date, opens, closes=None):
     hours = hours[0]
     if opens:
         opens = tz.localize(datetime.datetime.combine(date, parser.parse(opens).time()))
-        assert hours['opens'] == opens
+        assert hours["opens"] == opens
     else:
-        assert hours['opens'] is None
+        assert hours["opens"] is None
     if closes:
-        closes = tz.localize(datetime.datetime.combine(date, parser.parse(closes).time()))
-        assert hours['closes'] == closes
+        closes = tz.localize(
+            datetime.datetime.combine(date, parser.parse(closes).time())
+        )
+        assert hours["closes"] == closes
     else:
-        assert hours['closes'] is None
+        assert hours["closes"] is None
 
 
 def assert_response_objects(response, objects):
@@ -177,16 +193,19 @@ def assert_response_objects(response, objects):
     Assert object or objects exist in response data.
     """
     data = response.data
-    if 'results' in data:
-        data = data['results']
+    if "results" in data:
+        data = data["results"]
 
     if not (isinstance(objects, list) or isinstance(objects, tuple)):
         objects = [objects]
 
     expected_ids = {obj.id for obj in objects}
-    actual_ids = {obj['id'] for obj in data}
-    assert expected_ids == actual_ids, '%s does not match %s' % (expected_ids, actual_ids)
-    assert len(objects) == len(data), '%s does not match %s' % (len(data), len(objects))
+    actual_ids = {obj["id"] for obj in data}
+    assert expected_ids == actual_ids, "%s does not match %s" % (
+        expected_ids,
+        actual_ids,
+    )
+    assert len(objects) == len(data), "%s does not match %s" % (len(data), len(objects))
 
 
 def check_keys(data, expected_keys):
