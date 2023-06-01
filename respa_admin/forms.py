@@ -475,24 +475,6 @@ def _get_images_formset_translated_fields(images_formset, lang_postfix):
     return images_translation_count
 
 
-class UserForm(forms.ModelForm):
-    class Meta:
-        model = User
-
-        fields = [
-            "is_staff",
-        ]
-
-        widgets = {
-            "is_staff": RespaGenericCheckboxInput(
-                attrs={
-                    "label": _("Staff account"),
-                    "help_text": _("Allows user to grant permissions to units"),
-                }
-            )
-        }
-
-
 class UnitAuthorizationForm(forms.ModelForm):
     can_approve_reservation = forms.BooleanField(
         widget=RespaGenericCheckboxInput, required=False
@@ -541,7 +523,7 @@ class UnitAuthorizationForm(forms.ModelForm):
                 self.add_error(
                     "subject",
                     _(
-                        "You can't add, change or delete permissions to unit you are not admin of"
+                        "You can't add, change or delete permissions to unit you are not admin of"  # noqa
                     ),
                 )
                 self.cleaned_data[DELETION_FIELD_NAME] = False
