@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 from dateutil import parser
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test.testcases import SimpleTestCase
@@ -13,6 +14,17 @@ from resources.models import ResourceImage
 UNSAFE_METHODS = ("post", "put", "patch", "delete")
 
 MAX_QUERIES = 50
+
+
+def use_fallback_message_storage(request):
+    """Enables fallback storage when testing messages without
+    the requisite middleware.
+
+    See https://code.djangoproject.com/ticket/17971
+    """
+    request.session = "session"
+    request._messages = FallbackStorage(request)
+    return request
 
 
 def get_test_image_data(size=(32, 32), color=(250, 250, 210), format="JPEG"):

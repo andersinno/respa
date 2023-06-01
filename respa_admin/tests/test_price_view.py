@@ -1,8 +1,8 @@
 import pytest
-from django.contrib.messages.storage.fallback import FallbackStorage
 from django.urls import reverse
 from django.utils import translation
 
+from resources.tests.utils import use_fallback_message_storage
 from respa_pricing.models import PriceList, UserGroupPriceListItem
 
 from ..views.prices import PriceListCopyView, PriceListCreateView, PriceListEditView
@@ -39,10 +39,7 @@ def test_price_list_create_valid_post(valid_price_list_form_data, general_admin,
     request = rf.post("/", valid_price_list_form_data)
     request.user = general_admin
 
-    # mock session/messages middleware
-    # https://code.djangoproject.com/ticket/17971
-    request.session = "session"
-    request._messages = FallbackStorage(request)
+    use_fallback_message_storage(request)
 
     with translation.override("fi"):
         response = PriceListCreateView.as_view()(request)
@@ -94,10 +91,7 @@ def test_price_list_edit_valid_post(
     request = rf.post("/", valid_price_list_form_data)
     request.user = general_admin
 
-    # mock session/messages middleware
-    # https://code.djangoproject.com/ticket/17971
-    request.session = "session"
-    request._messages = FallbackStorage(request)
+    use_fallback_message_storage(request)
 
     with translation.override("fi"):
         response = PriceListEditView.as_view()(
@@ -148,10 +142,7 @@ def test_price_list_copy_post(
     request = rf.post("/", valid_price_list_copy_form_data)
     request.user = general_admin
 
-    # mock session/messages middleware
-    # https://code.djangoproject.com/ticket/17971
-    request.session = "session"
-    request._messages = FallbackStorage(request)
+    use_fallback_message_storage(request)
 
     PriceListCopyView.as_view()(
         request, price_list_id=price_list_with_user_group_item.pk

@@ -94,27 +94,6 @@ class ManageUserPermissionsView(ExtraContextMixin, DetailView):
     def get_success_url(self, **kwargs):
         return reverse_lazy("respa_admin:edit-user", kwargs={"user_id": self.object.pk})
 
-    def _validate_forms(self, form, unit_authorization_formset):
-        valid_unit_authorization_formset = unit_authorization_formset.is_valid()
-
-        if valid_unit_authorization_formset:
-            perms_are_empty_or_marked_for_deletion = all(
-                {"DELETE": True}.items() <= dict.items() or len(dict) == 0
-                for dict in unit_authorization_formset.cleaned_data
-            )
-
-        if (
-            not form.cleaned_data["is_staff"]
-            and not perms_are_empty_or_marked_for_deletion
-        ):
-            form.add_error(
-                None,
-                _("You can't remove staff status from user with existing permissions"),
-            )
-            return False
-
-        return valid_unit_authorization_formset
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["unit_authorization_formset"] = get_unit_authorization_formset(
@@ -130,7 +109,7 @@ class ManageUserPermissionsView(ExtraContextMixin, DetailView):
             request=request, instance=self.get_object()
         )
 
-        if self._validate_forms(unit_authorization_formset):
+        if unit_authorization_formset.is_valid():
             return self.forms_valid(unit_authorization_formset)
         else:
             return self.forms_invalid(unit_authorization_formset)
@@ -171,8 +150,7 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
     paginate_by = 10
 
     def get(self, request, *args, **kwargs):
-        get_params = request.GET
-        self.selected_unit = get_params.get("selected_unit")
+        self.selected_unit = request.GET.get("selected_unit")
         return super().get(request, *args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
@@ -204,6 +182,7 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
         all_available_units = self.model.objects.filter(
             unit_filters | unit_group_filters
         ).prefetch_related("authorizations")
+
         return all_available_units.exclude(
             authorizations__authorized__isnull=True
         ).distinct("name")
