@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import CreateView, ListView, UpdateView
+from django.views.generic import CreateView, DetailView, ListView
 from guardian.shortcuts import assign_perm, remove_perm
 
 from resources.auth import is_any_admin
@@ -25,7 +25,6 @@ from resources.models import (
 from respa_admin import accessibility_api, forms
 from respa_admin.forms import (
     ResourceForm,
-    UserForm,
     get_resource_accessibility_formset,
     get_resource_image_formset,
     get_unit_authorization_formset,
@@ -86,18 +85,16 @@ class ResourceListView(ExtraContextMixin, ListView):
         return qs
 
 
-class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
+class ManageUserPermissionsView(ExtraContextMixin, DetailView):
     model = User
     context_object_name = "user_object"
     pk_url_kwarg = "user_id"
-    form_class = UserForm
     template_name = "respa_admin/resources/edit_user.html"
 
     def get_success_url(self, **kwargs):
         return reverse_lazy("respa_admin:edit-user", kwargs={"user_id": self.object.pk})
 
     def _validate_forms(self, form, unit_authorization_formset):
-        valid_form = form.is_valid()
         valid_unit_authorization_formset = unit_authorization_formset.is_valid()
 
         if valid_unit_authorization_formset:
@@ -116,7 +113,7 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
             )
             return False
 
-        return valid_form and valid_unit_authorization_formset
+        return valid_unit_authorization_formset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -128,19 +125,17 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.get_form()
 
         unit_authorization_formset = get_unit_authorization_formset(
             request=request, instance=self.get_object()
         )
 
-        if self._validate_forms(form, unit_authorization_formset):
-            return self.forms_valid(form, unit_authorization_formset)
+        if self._validate_forms(unit_authorization_formset):
+            return self.forms_valid(unit_authorization_formset)
         else:
-            return self.forms_invalid(form, unit_authorization_formset)
+            return self.forms_invalid(unit_authorization_formset)
 
-    def forms_valid(self, form, unit_authorization_formset):
-        self.object = form.save()
+    def forms_valid(self, unit_authorization_formset):
         unit_authorization_formset.instance = self.object
         for form in unit_authorization_formset.cleaned_data:
             if "subject" in form and "level" in form:
@@ -156,14 +151,13 @@ class ManageUserPermissionsView(ExtraContextMixin, UpdateView):
         unit_authorization_formset.save()
         return HttpResponseRedirect(self.get_success_url())
 
-    def forms_invalid(self, form, unit_authorization_formset):
+    def forms_invalid(self, unit_authorization_formset):
         messages.error(
             self.request, _("Failed to save. Please check the form for errors.")
         )
 
         return self.render_to_response(
             self.get_context_data(
-                form=form,
                 unit_authorization_formset=unit_authorization_formset,
             )
         )
