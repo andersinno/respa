@@ -231,6 +231,8 @@ class ResourceSerializer(
     )
     reservable_after = serializers.SerializerMethodField()
 
+    price_type = serializers.SerializerMethodField()
+
     min_price = serializers.SerializerMethodField()
     max_price = serializers.SerializerMethodField()
 
@@ -301,6 +303,11 @@ class ResourceSerializer(
         if obj.price_list:
             return obj.price_list.include_other_event_type_option
         return False
+
+    def get_price_type(self, obj):
+        if obj.price_list and obj.price_list.price_type:
+            return obj.price_list.price_type
+        return obj.price_type
 
     def get_max_price(self, obj):
         """Return max_price if pricing available, otherwise return None.

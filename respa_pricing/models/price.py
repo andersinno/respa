@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.db import models
 from django.utils.duration import duration_string
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
@@ -31,6 +32,7 @@ DEFAULT_TAX_PERCENTAGE = Decimal("24.00")
 
 PRICE_PER_PERIOD = "per_period"
 PRICE_FIXED = "fixed"
+PRICE_MIXED = "mixed"
 PRICE_TYPE_CHOICES = (
     (PRICE_PER_PERIOD, _("per period")),
     (PRICE_FIXED, _("fixed")),
@@ -119,6 +121,22 @@ class PriceList(models.Model):
 
     def __str__(self):
         return self.name
+
+    @cached_property
+    def price_type(self):
+        price_types = (
+            self.usergroup_prices.union(self.event_prices.all())
+            .values_list("price_type", flat=True)
+            .distinct()
+        )
+
+        if not price_types:
+            return None
+
+        if len(price_types) > 1 or PRICE_PER_PERIOD in price_types:
+            return PRICE_MIXED
+
+        return PRICE_FIXED
 
     @classmethod
     def get_price_info(cls, product, user_group_id, event_type_id, begin, end):
