@@ -19,7 +19,7 @@
             value="{{ field.value|stringformat:'s' }}"
         {% endif %}
         class="form-control text-input"
-        {% include "django/forms/widgets/attrs.html" %}
+        {% include "django/forms/widgets/attrs.html" with widget=field.field.widget %}
     >
     {% if prefix_text %}
         <span class="">{{ prefix_text }}</span>

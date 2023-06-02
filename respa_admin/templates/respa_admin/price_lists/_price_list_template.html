@@ -13,31 +13,17 @@
                     <div class="order-by-link"></div>
                     <div class="order-by-link"></div>
                 </li>
-                {% for pricelist in price_lists %}
+                {% for template in price_list_templates %}
                     <li class="list-group-item">
                         <div class="panel panel-default">
                             <div class="panel-body">
                                 <div class="col-4">
-                                    <h4>{{ pricelist.name }}</h4>
+                                    <h4>{{ template.name }}</h4>
                                 </div>
                                 <div class="col-4">
                                     <h6>
-                                        <span class='glyphicon glyphicon-pencil icon-left' aria-hidden="true"></span>
-                                        <a href="{% url 'respa_admin:edit-price-list' price_list_id=pricelist.id %}">{% trans 'Edit' %}</a>
-                                    </h6>
-                                </div>
-                                {% if not pricelist.template %}
-                                    <div class="col-4">
-                                        <h6>
-                                            <span class='glyphicon glyphicon-copy icon-left' aria-hidden="true"></span>
-                                            <a href="{% url 'respa_admin:copy-price-list' price_list_id=pricelist.id %}">{% trans 'Copy' %}</a>
-                                        </h6>
-                                    </div>
-                                {% endif %}
-                                <div class="col-4">
-                                    <h6>
-                                        <span class='glyphicon glyphicon-trash icon-left' aria-hidden="true"></span>
-                                        <a href="{% url 'respa_admin:delete-price-list' price_list_id=pricelist.id %}">{% trans 'Delete' %}</a>
+                                        <span class="glyphicon glyphicon-plus plus" aria-hidden="true"></span>
+                                        <a href="{% url 'respa_admin:new-price-list-from-template' template.pk %}">{% trans 'Create a new price list' %}</a>
                                     </h6>
                                 </div>
                             </div>
