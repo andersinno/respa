@@ -20,6 +20,7 @@ from resources.models import (
     Unit,
     UnitGroup,
 )
+from respa_pricing.models.price import PRICE_MIXED
 from respa_pricing.tests.factories import (
     EventTypeFactory,
     EventTypePriceListItemFactory,
@@ -579,9 +580,11 @@ def test_price_fields_with_pricing_info(
     assert response.data["min_price"] == Decimal("5.05")
     assert response.data["max_price"] == Decimal("10.00")
     assert response.data["free_to_use"] is False
-    assert (
-        response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
-    )
+
+    # The price list determines the price type. When there are
+    # 'Per period' type prices, the price type should be 'mixed'
+    # since we don't know whether they are hourly, per 30 mins etc.
+    assert response.data["price_type"] == PRICE_MIXED
 
     assert response.data["pricing_user_groups"] == [
         {
