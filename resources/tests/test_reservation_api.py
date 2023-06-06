@@ -2181,6 +2181,54 @@ def test_reservation_metadata_set(
 
 
 @pytest.mark.django_db
+def test_reservation_metadata_set_not_supported_field(
+    user_api_client, reservation, list_url, reservation_data
+):
+    detail_url = reverse("reservation-detail", kwargs={"pk": reservation.pk})
+
+    field_1 = ReservationMetadataField.objects.get(field_name="reserver_name")
+    field_2 = ReservationMetadataField.objects.get(field_name="reserver_phone_number")
+    field_3 = ReservationMetadataField.objects.get(
+        field_name="reservation_extra_questions"
+    )
+
+    # should be just ignored
+    unsupported_field = ReservationMetadataField.objects.create(
+        field_name="billing_group"
+    )
+
+    metadata_set = ReservationMetadataSet.objects.create(
+        name="test_set",
+    )
+    metadata_set.supported_fields.set([field_1, field_2, field_3, unsupported_field])
+    metadata_set.required_fields.set([field_1, unsupported_field])
+
+    reservation.resource.reservation_metadata_set = metadata_set
+    reservation.resource.save(update_fields=("reservation_metadata_set",))
+    reservation_data["resource"] = reservation.resource.pk
+
+    response = user_api_client.put(
+        detail_url, data=reservation_data, HTTP_ACCEPT_LANGUAGE="en"
+    )
+    assert response.status_code == 400
+    assert "This field is required." in response.data["reserver_name"]
+
+    reservation_data["reserver_name"] = "Mr. Reserver"
+    reservation_data["reserver_phone_number"] = "0700-555555"
+    reservation_data["reserver_address_street"] = "ignored street 7"
+    reservation_data["reservation_extra_questions"] = "Yes this is extra question"
+
+    response = user_api_client.put(detail_url, data=reservation_data)
+    assert response.status_code == 200
+
+    reservation.refresh_from_db()
+    assert reservation.reserver_name == "Mr. Reserver"
+    assert reservation.reserver_phone_number == "0700-555555"
+    assert reservation.reserver_address_street != "ignored street 7"
+    assert reservation.reservation_extra_questions == "Yes this is extra question"
+
+
+@pytest.mark.django_db
 def test_detail_endpoint_does_not_need_all_true_filter(
     user_api_client, user, resource_in_unit
 ):
