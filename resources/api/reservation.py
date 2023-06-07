@@ -148,11 +148,14 @@ class ReservationSerializer(
 
             # we don't need to remove a field here if it isn't supported, as it will
             # be read-only and will be more easily removed in to_representation()
+
             for field_name in supported:
-                self.fields[field_name].read_only = False
+                if field_name in self.fields:
+                    self.fields[field_name].read_only = False
 
             for field_name in required:
-                self.fields[field_name].required = True
+                if field_name in self.fields:
+                    self.fields[field_name].required = True
 
         self.context.update({"resource": resource})
 
