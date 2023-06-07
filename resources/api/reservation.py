@@ -134,28 +134,43 @@ class ReservationSerializer(
         # set supported and required extra fields
         if resource:
             cache = self.context.get("reservation_metadata_set_cache")
-            supported = resource.get_supported_reservation_extra_field_names(
-                cache=cache
-            )
-            required = resource.get_required_reservation_extra_field_names(cache=cache)
-
             # staff events have less requirements
             request_user = self.context["request"].user
             is_staff_event = data.get("staff_event", False)
 
+            required = resource.get_required_reservation_extra_field_names(cache=cache)
+
+            # staff events always have the same set of required fields
             if is_staff_event and resource.can_create_staff_event(request_user):
-                required = {"reserver_name", "event_description"}
+                required_for_staff = {"reserver_name", "event_description"}
 
-            # we don't need to remove a field here if it isn't supported, as it will
-            # be read-only and will be more easily removed in to_representation()
+                # billing fields are also required if own use
+                if data.get("type", None) == Reservation.TYPE_NORMAL:
+                    required_for_staff |= {
+                        field
+                        for field in (
+                            "billing_first_name",
+                            "billing_last_name",
+                            "billing_email_address",
+                        )
+                        if field in required
+                    }
 
-            for field_name in supported:
-                if field_name in self.fields:
-                    self.fields[field_name].read_only = False
+                required = required_for_staff
 
             for field_name in required:
                 if field_name in self.fields:
                     self.fields[field_name].required = True
+
+            # we don't need to remove a field here if it isn't supported, as it will
+            # be read-only and will be more easily removed in to_representation()
+            supported = resource.get_supported_reservation_extra_field_names(
+                cache=cache
+            )
+
+            for field_name in supported:
+                if field_name in self.fields:
+                    self.fields[field_name].read_only = False
 
         self.context.update({"resource": resource})
 
