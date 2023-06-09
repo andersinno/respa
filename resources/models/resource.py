@@ -1,10 +1,9 @@
+import arrow
 import datetime
 import os
+import pytz
 import re
 from collections import OrderedDict
-
-import arrow
-import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import DateTimeRangeField, HStoreField
@@ -324,6 +323,25 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_period = models.DurationField(
         verbose_name=_("Maximum reservation time"), null=True, blank=True
     )
+
+    default_min_price = models.DecimalField(
+        verbose_name=_("Default minimum price"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_("Price displayed if no price list info attached to this resource."),
+    )
+
+    default_max_price = models.DecimalField(
+        verbose_name=_("Default maximum price"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_("Price displayed if no price list info attached to this resource."),
+    )
+
     slot_size = models.DurationField(
         verbose_name=_("Slot size for reservation time in calendar view"),
         default=datetime.timedelta(minutes=30),

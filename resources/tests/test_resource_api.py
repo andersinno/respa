@@ -1,8 +1,7 @@
 import datetime
+import pytest
 from copy import deepcopy
 from decimal import Decimal
-
-import pytest
 from django.contrib.gis.geos import Point
 from django.urls import reverse
 from django.utils import timezone
@@ -25,8 +24,8 @@ from respa_pricing.tests.factories import (
     EventTypeFactory,
     EventTypePriceListItemFactory,
     PricedProductFactory,
-    UserGroupPriceListItemFactory,
     UserGroupFactory,
+    UserGroupPriceListItemFactory,
 )
 
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel
@@ -622,6 +621,32 @@ def test_price_fields_with_no_pricing_info(
 
     assert response.data["min_price"] is None
     assert response.data["max_price"] is None
+    assert response.data["free_to_use"] is False
+    assert (
+        response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+
+    assert response.data["pricing_user_groups"] == []
+    assert response.data["pricing_event_types"] == []
+
+
+@pytest.mark.django_db
+def test_price_fields_with_no_default_pricing(
+    api_client, priced_product, resource_in_unit_with_product, detail_url
+):
+    resource_in_unit_with_product.price_type = (
+        resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+    resource_in_unit_with_product.free_to_use = False
+    resource_in_unit_with_product.default_min_price = 10.00
+    resource_in_unit_with_product.default_max_price = 30.00
+    resource_in_unit_with_product.save()
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+
+    assert response.data["min_price"] == 10.00
+    assert response.data["max_price"] == 30.00
     assert response.data["free_to_use"] is False
     assert (
         response.data["price_type"] == resource_in_unit_with_product.PRICE_TYPE_HOURLY
