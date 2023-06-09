@@ -1119,6 +1119,15 @@ msgstr "Minimihinta"
 msgid "Max price"
 msgstr "Maksimihinta"
 
+msgid "Default min price"
+msgstr "Oletusminimihinta"
+
+msgid "Default max price"
+msgstr "Oletusmaksimihinta"
+
+msgid "Price displayed if no price list info attached to this resource."
+msgstr "Hinta näytetään mikäli resurssilla ei ole hinnastoa."
+
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
 

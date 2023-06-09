@@ -325,7 +325,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     )
 
     default_min_price = models.DecimalField(
-        verbose_name=_("Default minimum price"),
+        verbose_name=_("Default min price"),
         max_digits=10,
         decimal_places=2,
         null=True,
@@ -334,7 +334,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     )
 
     default_max_price = models.DecimalField(
-        verbose_name=_("Default maximum price"),
+        verbose_name=_("Default max price"),
         max_digits=10,
         decimal_places=2,
         null=True,

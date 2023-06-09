@@ -1,5 +1,4 @@
 {% load i18n %}
-
 <div id="term-condition">
     <div class="form-section-header">
         <h2>{% trans "Authentication, terms and price" %}</h2>
@@ -15,23 +14,25 @@
     {% include "respa_admin/forms/_select.html" with field=form.payment_terms %}
     {% include "respa_admin/forms/_select.html" with field=form.reservation_metadata_set custom_label=metadata_custom_label %}
     {% include "respa_admin/forms/_select.html" with field=form.access_code_type %}
-
     {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_fi %}
     {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_en %}
     {% include "respa_admin/forms/_textarea_input.html" with field=form.specific_terms_sv %}
     <div class="pricing">
         <h4>{% trans "Pricing" %}</h4>
         <div class="price-confirm">
-          <span class="control-label input-label">{% trans "The space is free of charge" %}</span>
+            <span class="control-label input-label">{% trans "The space is free of charge" %}</span>
             {{ form.free_to_use }}
-          {% include "respa_admin/forms/_errors.html" with field=form.free_to_use %}
+            {% include "respa_admin/forms/_errors.html" with field=form.free_to_use %}
         </div>
         <div class="price-range">
             <div class="price-list-link" style="margin-top: 1em;">
+                {% include "respa_admin/forms/_input.html" with field=form.default_min_price %}
+                {% include "respa_admin/forms/_input.html" with field=form.default_max_price %}
                 {% if not form.instance.id %}
                     {% trans "Save the resource first to manage prices" %}
                 {% elif price_list_id %}
-                    <a href="{% url 'respa_admin:edit-price-list' price_list_id=price_list_id %}" target="_blank">
+                    <a href="{% url 'respa_admin:edit-price-list' price_list_id=price_list_id %}"
+                       target="_blank">
                         {% trans 'Manage prices' %}
                         <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
                     </a>
@@ -41,7 +42,8 @@
                         </div>
                     {% endif %}
                 {% else %}
-                    <a href="{% url 'respa_admin:new-price-list' %}?resource_id={{ form.instance.id }}" target="_blank">
+                    <a href="{% url 'respa_admin:new-price-list' %}?resource_id={{ form.instance.id }}"
+                       target="_blank">
                         {% trans 'Add price list' %}
                         <span class="glyphicon glyphicon-new-window icon-right" aria-hidden="true"></span>
                     </a>
