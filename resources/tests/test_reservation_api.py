@@ -1056,6 +1056,51 @@ def test_staff_event_restrictions(
     assert response.status_code == 400
     assert {"reserver_name", "event_description"} == set(response.data)
 
+    # unit manager but own use: no billing fields
+    response = staff_api_client.post(
+        list_url, data={**reservation_data, "type": "normal"}
+    )
+    assert response.status_code == 400
+    assert {
+        "reserver_name",
+        "event_description",
+    } == set(response.data)
+
+    # add billing fields metadata
+
+    billing_fields = {
+        "billing_first_name",
+        "billing_last_name",
+        "billing_email_address",
+    }
+
+    fields = ReservationMetadataField.objects.bulk_create(
+        ReservationMetadataField(field_name=field) for field in billing_fields
+    )
+
+    resource_in_unit.reservation_metadata_set.supported_fields.add(*fields)
+    resource_in_unit.reservation_metadata_set.required_fields.add(*fields)
+
+    # unit manager but internal use
+    response = staff_api_client.post(
+        list_url, data={**reservation_data, "type": "internal_use"}
+    )
+    assert response.status_code == 400
+    assert {
+        "reserver_name",
+        "event_description",
+    } == set(response.data)
+    #
+    # unit manager but own use
+    response = staff_api_client.post(
+        list_url, data={**reservation_data, "type": "normal"}
+    )
+    assert response.status_code == 400
+    assert billing_fields | {
+        "reserver_name",
+        "event_description",
+    } == set(response.data)
+
 
 @pytest.mark.django_db
 def test_new_staff_event_gets_confirmed(
