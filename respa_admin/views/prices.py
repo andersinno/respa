@@ -355,12 +355,13 @@ class PriceListCopyView(PriceListCreateView):
 def _make_form_readonly(form, fields=None):
     fields = fields or form.fields
     for field in fields:
-        form.fields[field].widget.attrs.update(
-            {
-                "disabled": True,
-                "readonly": True,
-            }
-        )
+        if field in form.fields:
+            form.fields[field].widget.attrs.update(
+                {
+                    "disabled": True,
+                    "readonly": True,
+                }
+            )
     return form
 
 

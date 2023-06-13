@@ -75,7 +75,6 @@ class PriceListForm(forms.ModelForm):
         fields = (
             "name",
             "resource",
-            "include_other_event_type_option",
         )
 
 
