@@ -93,16 +93,17 @@
                         {% include "respa_admin/price_lists/_event_type_item_form.html" with form=event_type_item_formset.empty_form %}
                     </div>
                 </div>
+                {% blocktrans asvar t_other_event_type %}Note! If there are event type specific prices, the reserver can also select "None of the above" as the event type. In this case, the price is determined based on the selected user group.{% endblocktrans %}
                 {% if not price_list_template %}
                     <button id="event-type-item-add-more" class="btn add-more" type="button">
                         <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
                         {% trans "Add item" %}
                     </button>
                     {% if form.instance.include_other_event_type_option %}
-                        <label class="extra-event-type-option-label">
-                            {% blocktrans %}Note! If there are event type specific prices, the reserver can also select "None of the above" as the event type. In this case, the price is determined based on the selected user group.{% endblocktrans %}
-                        </label>
+                        <label class="extra-event-type-option-label">{{ t_other_event_type }}</label>
                     {% endif %}
+                {% elif price_list_template.include_other_event_type_option %}
+                    <label class="extra-event-type-option-label">{{ t_other_event_type }}</label>
                 {% endif %}
             </div>
             <!-- Function buttons -->
