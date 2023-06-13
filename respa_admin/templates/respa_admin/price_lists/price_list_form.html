@@ -98,7 +98,7 @@
                         <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
                         {% trans "Add item" %}
                     </button>
-                    {% if not form.include_other_event_type_option.value %}
+                    {% if form.instance.include_other_event_type_option %}
                         <label class="extra-event-type-option-label">
                             {% blocktrans %}Note! If there are event type specific prices, the reserver can also select "None of the above" as the event type. In this case, the price is determined based on the selected user group.{% endblocktrans %}
                         </label>
