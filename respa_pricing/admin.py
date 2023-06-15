@@ -8,11 +8,9 @@ from modeltranslation.admin import TranslationAdmin
 from payments.models import Product
 from resources.admin.base import CommonExcludeMixin, PopulateCreatedAndModifiedMixin
 
-from .forms import (
-    EventTypePriceListItemFormset,
-    PriceListForm,
-    UserGroupPriceListItemFormset,
-)
+from .forms import EventTypePriceListItemFormset
+from .forms import PriceListForm as BasePriceListForm
+from .forms import UserGroupPriceListItemFormset
 from .models import (
     EventType,
     EventTypePriceListItem,
@@ -86,6 +84,11 @@ class EventTypePriceListItemInline(
     )
     extra = 0
     formset = EventTypePriceListItemFormset
+
+
+class PriceListForm(BasePriceListForm):
+    class Meta(BasePriceListForm.Meta):
+        fields = BasePriceListForm.Meta.fields + ("include_other_event_type_option",)
 
 
 class PriceListAdmin(admin.ModelAdmin):
