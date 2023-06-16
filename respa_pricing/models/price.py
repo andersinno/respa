@@ -234,16 +234,35 @@ class PriceList(models.Model):
         Then the price should be 20 and tax_percentage should be 14.
 
         ** Exception: If any price is zero, that should take precedence.
+
+        If no price list found for priced product or price list does not have
+        a user group price item, returns:
+            {
+                "total_price": 0,
+                "amount": 0,
+                "price_source": None,
+            }
         """
 
-        @rounded
-        def _pre_tax_to_after_tax(pretax_price, tax_percentage):
-            return convert_pretax_to_aftertax(pretax_price, tax_percentage)
+        try:
+            price_list = PricedProduct.objects.get(product=product).price_list
+        except PricedProduct.DoesNotExist:
+            return {
+                "total_price": 0,
+                "amount": 0,
+                "price_source": None,
+            }
 
-        price_list = PricedProduct.objects.get(product=product).price_list
         user_group_item = price_list.usergroup_prices.filter(
             user_group__id=user_group_id
         ).first()
+
+        if user_group_item is None:
+            return {
+                "total_price": 0,
+                "amount": 0,
+                "price_source": None,
+            }
 
         price_source = tax_source = user_group_item
 
@@ -597,3 +616,8 @@ class UserGroupPriceListItem(UserGroupItemTaxPercentage, GeneralPriceListItem):
 
     def __str__(self):
         return f"{self.price}:{self.user_group.name}"
+
+
+@rounded
+def _pre_tax_to_after_tax(pretax_price, tax_percentage):
+    return convert_pretax_to_aftertax(pretax_price, tax_percentage)
