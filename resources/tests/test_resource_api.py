@@ -631,7 +631,7 @@ def test_price_fields_with_no_pricing_info(
 
 
 @pytest.mark.django_db
-def test_price_fields_with_no_default_pricing(
+def test_price_fields_with_default_pricing_and_no_pricing_info(
     api_client, priced_product, resource_in_unit_with_product, detail_url
 ):
     resource_in_unit_with_product.price_type = (
@@ -654,6 +654,46 @@ def test_price_fields_with_no_default_pricing(
 
     assert response.data["pricing_user_groups"] == []
     assert response.data["pricing_event_types"] == []
+
+
+@pytest.mark.django_db
+def test_price_fields_with_default_pricing_and_min_price_zero(
+    api_client, priced_product, resource_in_unit_with_product, detail_url
+):
+    """If the min price in price list is zero, the calculated min price should also
+    be zero even if default min price is not null."""
+
+    resource_in_unit_with_product.price_type = (
+        resource_in_unit_with_product.PRICE_TYPE_HOURLY
+    )
+    resource_in_unit_with_product.free_to_use = False
+    resource_in_unit_with_product.default_min_price = 10.00
+    resource_in_unit_with_product.default_max_price = 30.00
+    resource_in_unit_with_product.save()
+
+    event_type = EventTypeFactory(
+        name_fi="Juhlat",
+        name_en="Parties",
+    )
+
+    EventTypePriceListItemFactory(
+        price_list=priced_product.price_list, price="0.00", event_type=event_type
+    )
+
+    user_group = UserGroupFactory(
+        name_fi="Opeskilijat",
+        name_en="Students",
+    )
+
+    UserGroupPriceListItemFactory(
+        price_list=priced_product.price_list, price="10.00", user_group=user_group
+    )
+
+    response = api_client.get(detail_url)
+    assert response.status_code == 200
+
+    assert response.data["min_price"] == 0.00
+    assert response.data["max_price"] == 10.00
 
 
 @pytest.mark.django_db
