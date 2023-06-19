@@ -320,7 +320,12 @@ class ResourceSerializer(
         """
         if obj.free_to_use:
             return None
-        return getattr(obj, "max_price", None) or obj.default_max_price
+
+        max_price = getattr(obj, "max_price", None)
+
+        if max_price is None:
+            max_price = obj.default_max_price
+        return max_price
 
     def get_min_price(self, obj):
         """Return `max_price` if pricing available, otherwise return
@@ -333,7 +338,12 @@ class ResourceSerializer(
         """
         if obj.free_to_use:
             return None
-        return getattr(obj, "min_price", None) or obj.default_min_price
+
+        min_price = getattr(obj, "min_price", None)
+
+        if min_price is None:
+            min_price = obj.default_min_price
+        return min_price
 
     def get_max_price_per_hour(self, obj):
         """Backwards compatibility for 'max_price_per_hour' field that
