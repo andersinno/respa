@@ -1,132 +1,128 @@
 {% extends "respa_admin/_base.html" %}
 {% load i18n %}
 {% load static %}
-
 {% block form_nav %}
-  <div class="panel panel-default form-nav-wrapper">
-    <div class='container form-header-wrapper'>
-      <div class="container-fluid row form-header">
-        <div class='form-title col-sm-6' style="margin-bottom: 1.5em;">
-          <h2>
-            <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
-            {% if object.pk %}
-              {% trans "Edit price list" %}
-            {% else %}
-              {% trans "Create a new price list" %}
-            {% endif %}
-          </h2>
+    <div class="panel panel-default form-nav-wrapper">
+        <div class="container form-header-wrapper">
+            <div class="container-fluid row form-header">
+                <div class="form-title col-sm-6" style="margin-bottom: 1.5em;">
+                    <h2>
+                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                        {% if object.pk %}
+                            {% trans "Edit price list" %}
+                        {% else %}
+                            {% trans "Create a new price list" %}
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 {% endblock form_nav %}
-
 {% block body %}
-  <div class="container form-container price-list-form">
-    <form method="post">
-      {% csrf_token %}
-      {% if form.errors or user_group_item_formset.errors or event_type_item_formset.errors %}
-        <div class="alert alert-danger">
-          <strong>{% trans "Tarkista lomakkeen virheet" %}</strong>
-        </div>
-      {% endif %}
-
-      <div>
-        <!-- Name -->
-        <h4>{% trans "Name" %}</h4>
-        <div class="description">
-          {% include "respa_admin/forms/_input.html" with field=form.name skip_label=True %}
-        </div>
-
-        <hr>
-
-        <!-- Resource -->
-        <h4>{% trans "Resource" %}</h4>
-        <div class="resource" data-select-ajax-target="{% url 'respa_admin:check-cost-center-code' %}">
-          {% include "respa_admin/forms/_select.html" with field=form.resource skip_label=True %}
-        </div>
-        <div class="alert alert-warning no-cost-center-code" style='display:none'>
-          {% trans "This resource's unit doesn't have a cost center code set. Please set one in the unit settings to ensure payments go through." %}
-        </div>
-
-        <hr>
-
-        <!-- Prices by user group-->
-        <h4>{% trans "Prices by user group" %}</h4>
-        <div id="user-group-prices" class="user-group-prices">
-          <div class="row header">
-            <div class="col-sm-3">{{ user_group_item_formset.forms.0.user_group.label }}</div>
-            <div class="col-sm-2">{{ user_group_item_formset.forms.0.price.label }}</div>
-            <div class="col-sm-2">{{ user_group_item_formset.forms.0.price_period.label }}</div>
-            <div class="col-sm-2">{{ user_group_item_formset.forms.0.price_type.label }}</div>
-            <div class="col-sm-2"></div>
-          </div>
-          {{ user_group_item_formset.management_form }}
-          {% for form in user_group_item_formset.forms %}
-            {% include "respa_admin/price_lists/_user_group_item_form.html" with form=form %}
-          {% endfor %}
-
-          <!-- Empty form set item -->
-          <div id="empty-user-group-item" style="display:none;">
-            {% include "respa_admin/price_lists/_user_group_item_form.html" with form=user_group_item_formset.empty_form %}
-          </div>
-        </div>
-
-        <button id="user-group-item-add-more" class="btn add-more" type="button">
-          <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
-          {% trans "Add item" %}
-        </button>
-
-        <hr>
-
-        <!-- Prices by event type -->
-        <h4>{% trans "Prices by event type" %}</h4>
-        <div id="event-type-prices" class="event-type-prices">
-          <div class="row header">
-            <div class="col-sm-3">{{ event_type_item_formset.empty_form.event_type.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.empty_form.price.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.empty_form.price_period.label }}</div>
-            <div class="col-sm-2">{{ event_type_item_formset.empty_form.price_type.label }}</div>
-            <div class="col-sm-2"></div>
-          </div>
-          {{ event_type_item_formset.management_form }}
-          {% for form in event_type_item_formset.forms %}
-            {% include "respa_admin/price_lists/_event_type_item_form.html" with form=form %}
-          {% endfor %}
-
-          <!-- Empty form set item -->
-          <div id="empty-event-type-item" style="display:none;">
-            {% include "respa_admin/price_lists/_event_type_item_form.html" with form=event_type_item_formset.empty_form %}
-          </div>
-        </div>
-
-        <button id="event-type-item-add-more" class="btn add-more" type="button">
-          <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
-          {% trans "Add item" %}
-        </button>
-      </div>
-      
-      <!-- Function buttons -->
-      <div class="navbar-fixed-bottom">
-        <div class="panel panel-default form-toolbar-wrapper">
-          <div class='container form-toolbar'>
-            <span class="toolbar-label">{% trans "Functions" %}</span>
-            <a href="{% url 'respa_admin:price-list' %}" rel="noopener noreferrer">
-              <button class="btn cancel-button" type="button">
-                {% trans "Cancel" %}
-              </button>
-            </a>
-            <button class="btn resources-button" type="submit">
-              {% trans "Save" %}
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </form>
-  </div>
+    <div class="container form-container price-list-form">
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors or user_group_item_formset.errors or event_type_item_formset.errors %}
+                <div class="alert alert-danger">
+                    <strong>{% trans "Tarkista lomakkeen virheet" %}</strong>
+                </div>
+            {% endif %}
+            <div>
+                <!-- Name -->
+                <h4>{% trans "Name" %}</h4>
+                <div class="description">{% include "respa_admin/forms/_input.html" with field=form.name skip_label=True %}</div>
+                <hr>
+                <!-- Resource -->
+                <h4>{% trans "Resource" %}</h4>
+                <div class="resource"
+                     data-select-ajax-target="{% url 'respa_admin:check-cost-center-code' %}">
+                    {% include "respa_admin/forms/_select.html" with field=form.resource skip_label=True %}
+                </div>
+                <div class="alert alert-warning no-cost-center-code" style="display:none">
+                    {% trans "This resource's unit doesn't have a cost center code set. Please set one in the unit settings to ensure payments go through." %}
+                </div>
+                <hr>
+                {% if price_list_template %}
+                    <div class="alert alert-warning">
+                        {% blocktrans with price_list_template=price_list_template.name %}This price list is based on template <strong>{{ price_list_template }}</strong>. The prices can only be edited in the template.{% endblocktrans %}
+                    </div>
+                {% endif %}
+                <!-- Prices by user group-->
+                <h4>{% trans "Prices by user group" %}</h4>
+                <div id="user-group-prices" class="user-group-prices">
+                    <div class="row header">
+                        <div class="col-sm-3">{{ user_group_item_formset.forms.0.user_group.label }}</div>
+                        <div class="col-sm-2">{{ user_group_item_formset.forms.0.price.label }}</div>
+                        <div class="col-sm-2">{{ user_group_item_formset.forms.0.price_period.label }}</div>
+                        <div class="col-sm-2">{{ user_group_item_formset.forms.0.price_type.label }}</div>
+                        <div class="col-sm-2"></div>
+                    </div>
+                    {{ user_group_item_formset.management_form }}
+                    {% for form in user_group_item_formset.forms %}
+                        {% include "respa_admin/price_lists/_user_group_item_form.html" with form=form %}
+                    {% endfor %}
+                    <!-- Empty form set item -->
+                    <div id="empty-user-group-item" style="display:none;">
+                        {% include "respa_admin/price_lists/_user_group_item_form.html" with form=user_group_item_formset.empty_form %}
+                    </div>
+                </div>
+                {% if not price_list_template %}
+                    <button id="user-group-item-add-more" class="btn add-more" type="button">
+                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                        {% trans "Add item" %}
+                    </button>
+                {% endif %}
+                <hr>
+                <!-- Prices by event type -->
+                <h4>{% trans "Prices by event type" %}</h4>
+                <div id="event-type-prices" class="event-type-prices">
+                    <div class="row header">
+                        <div class="col-sm-3">{{ event_type_item_formset.empty_form.event_type.label }}</div>
+                        <div class="col-sm-2">{{ event_type_item_formset.empty_form.price.label }}</div>
+                        <div class="col-sm-2">{{ event_type_item_formset.empty_form.price_period.label }}</div>
+                        <div class="col-sm-2">{{ event_type_item_formset.empty_form.price_type.label }}</div>
+                        <div class="col-sm-2"></div>
+                    </div>
+                    {{ event_type_item_formset.management_form }}
+                    {% for form in event_type_item_formset.forms %}
+                        {% include "respa_admin/price_lists/_event_type_item_form.html" with form=form %}
+                    {% endfor %}
+                    <!-- Empty form set item -->
+                    <div id="empty-event-type-item" style="display:none;">
+                        {% include "respa_admin/price_lists/_event_type_item_form.html" with form=event_type_item_formset.empty_form %}
+                    </div>
+                </div>
+                {% blocktrans asvar t_other_event_type %}Note! If there are event type specific prices, the reserver can also select "None of the above" as the event type. In this case, the price is determined based on the selected user group.{% endblocktrans %}
+                {% if not price_list_template %}
+                    <button id="event-type-item-add-more" class="btn add-more" type="button">
+                        <span class="glyphicon glyphicon-plus-sign icon-left" aria-hidden="true"></span>
+                        {% trans "Add item" %}
+                    </button>
+                    {% if form.instance.include_other_event_type_option %}
+                        <label class="extra-event-type-option-label">{{ t_other_event_type }}</label>
+                    {% endif %}
+                {% elif price_list_template.include_other_event_type_option %}
+                    <label class="extra-event-type-option-label">{{ t_other_event_type }}</label>
+                {% endif %}
+            </div>
+            <!-- Function buttons -->
+            <div class="navbar-fixed-bottom">
+                <div class="panel panel-default form-toolbar-wrapper">
+                    <div class="container form-toolbar">
+                        <span class="toolbar-label">{% trans "Functions" %}</span>
+                        <a href="{% url price_list_template|yesno:'respa_admin:price-list-templates,respa_admin:price-list' %}"
+                           rel="noopener noreferrer">
+                            <button class="btn cancel-button" type="button">{% trans "Cancel" %}</button>
+                        </a>
+                        <button class="btn resources-button" type="submit">{% trans "Save" %}</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock body %}
-
 {% block js_extra %}
-  <script type="text/javascript" src="{% static 'respa_admin/priceListForm-bundle.js' %}"></script>
+    <script type="text/javascript"
+            src="{% static 'respa_admin/priceListForm-bundle.js' %}"></script>
 {% endblock js_extra %}

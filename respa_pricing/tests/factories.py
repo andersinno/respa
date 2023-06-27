@@ -9,11 +9,21 @@ from payments.factories import ProductFactory
 from ..models import (
     EventType,
     EventTypePriceListItem,
+    EventTypePriceListTemplateItem,
     PriceList,
     PricedProduct,
     UserGroup,
     UserGroupPriceListItem,
+    UserGroupPriceListTemplateItem,
+    PriceListTemplate,
 )
+
+
+class PriceListTemplateFactory(factory.django.DjangoModelFactory):
+    name = factory.Faker("catch_phrase")
+
+    class Meta:
+        model = PriceListTemplate
 
 
 class PriceListFactory(factory.django.DjangoModelFactory):
@@ -28,7 +38,9 @@ class PriceListFactory(factory.django.DjangoModelFactory):
 class UserGroupFactory(factory.django.DjangoModelFactory):
     """Mock UserGroup objects"""
 
-    name = factory.Faker("catch_phrase")
+    name_en = factory.Faker("catch_phrase")
+    name_fi = factory.Faker("catch_phrase")
+
     tax_percentage = Decimal("24.00")
 
     class Meta:
@@ -38,11 +50,24 @@ class UserGroupFactory(factory.django.DjangoModelFactory):
 class EventTypeFactory(factory.django.DjangoModelFactory):
     """Mock EventType objects"""
 
-    name = factory.Faker("catch_phrase")
+    name_en = factory.Faker("catch_phrase")
+    name_fi = factory.Faker("catch_phrase")
+
     tax_percentage = Decimal("14.00")
 
     class Meta:
         model = EventType
+
+
+class UserGroupPriceListTemplateItemFactory(factory.django.DjangoModelFactory):
+    """Mock UserGroupPriceListItem objects"""
+
+    template = factory.SubFactory(PriceListTemplateFactory)
+    user_group = factory.SubFactory(UserGroupFactory)
+    price = Decimal("10.0")
+
+    class Meta:
+        model = UserGroupPriceListTemplateItem
 
 
 class UserGroupPriceListItemFactory(factory.django.DjangoModelFactory):
@@ -54,6 +79,17 @@ class UserGroupPriceListItemFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = UserGroupPriceListItem
+
+
+class EventTypePriceListTemplateItemFactory(factory.django.DjangoModelFactory):
+    """Mock EventTypePriceListItem objects"""
+
+    template = factory.SubFactory(PriceListTemplateFactory)
+    event_type = factory.SubFactory(EventTypeFactory)
+    price = Decimal("20.0")
+
+    class Meta:
+        model = EventTypePriceListTemplateItem
 
 
 class EventTypePriceListItemFactory(factory.django.DjangoModelFactory):

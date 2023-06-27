@@ -1,10 +1,15 @@
 import pytest
 
+from payments.factories import ProductFactory
 from resources.models import Resource, ResourceType
 
-from payments.factories import ProductFactory
-
-from .factories import *
+from .factories import (
+    EventTypeFactory,
+    PricedProductFactory,
+    PriceListFactory,
+    UserGroupFactory,
+    UserGroupPriceListItemFactory,
+)
 
 
 @pytest.fixture
@@ -25,16 +30,18 @@ def price_list():
 @pytest.fixture
 def price_list_with_product(resource):
     price_list = PriceListFactory()
-    prod = ProductFactory(resources=[resource])
-    PricedProductFactory(product=prod, price_list=price_list)
+    PricedProductFactory(
+        product=ProductFactory(resources=[resource]), price_list=price_list
+    )
     return price_list
 
 
 @pytest.fixture
-def price_list_with_user_group_item(price_list):
+def price_list_with_user_group_item(price_list, user_group):
     UserGroupPriceListItemFactory(
         price_list=price_list, user_group=user_group, price=10.0
     )
+    return price_list
 
 
 @pytest.fixture

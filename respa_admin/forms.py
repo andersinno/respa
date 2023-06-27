@@ -191,28 +191,6 @@ class ResourceForm(forms.ModelForm):
         required=False,
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["generic_terms"].queryset = TermsOfUse.objects.filter(
-            terms_type=TermsOfUse.TERMS_TYPE_GENERIC
-        )
-        self.fields["payment_terms"].queryset = TermsOfUse.objects.filter(
-            terms_type=TermsOfUse.TERMS_TYPE_PAYMENT
-        )
-        self.fields["authentication"].choices = [
-            choice
-            for choice in self.fields["authentication"].choices
-            if choice[0] not in ["", "none"]
-        ]
-        self.fields["authentication"].initial = ["weak"]
-
-    def clean_notification_email_addresses(self):
-        notification_email_addresses = self.cleaned_data["notification_email_addresses"]
-        emails = ", ".join(
-            [email.strip() for email in notification_email_addresses.split(",")]
-        )
-        return emails
-
     class Meta:
         model = Resource
 
@@ -266,6 +244,8 @@ class ResourceForm(forms.ModelForm):
             "authentication",
             "access_code_type",
             "free_to_use",
+            "default_min_price",
+            "default_max_price",
             "generic_terms",
             "payment_terms",
             "public",
@@ -294,6 +274,28 @@ class ResourceForm(forms.ModelForm):
                 choices=((False, _("Can not be reserved")), (True, _("Bookable")))
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["generic_terms"].queryset = TermsOfUse.objects.filter(
+            terms_type=TermsOfUse.TERMS_TYPE_GENERIC
+        )
+        self.fields["payment_terms"].queryset = TermsOfUse.objects.filter(
+            terms_type=TermsOfUse.TERMS_TYPE_PAYMENT
+        )
+        self.fields["authentication"].choices = [
+            choice
+            for choice in self.fields["authentication"].choices
+            if choice[0] not in ["", "none"]
+        ]
+        self.fields["authentication"].initial = ["weak"]
+
+    def clean_notification_email_addresses(self):
+        notification_email_addresses = self.cleaned_data["notification_email_addresses"]
+        emails = ", ".join(
+            [email.strip() for email in notification_email_addresses.split(",")]
+        )
+        return emails
 
 
 class UnitForm(forms.ModelForm):
@@ -475,24 +477,6 @@ def _get_images_formset_translated_fields(images_formset, lang_postfix):
     return images_translation_count
 
 
-class UserForm(forms.ModelForm):
-    class Meta:
-        model = User
-
-        fields = [
-            "is_staff",
-        ]
-
-        widgets = {
-            "is_staff": RespaGenericCheckboxInput(
-                attrs={
-                    "label": _("Staff account"),
-                    "help_text": _("Allows user to grant permissions to units"),
-                }
-            )
-        }
-
-
 class UnitAuthorizationForm(forms.ModelForm):
     can_approve_reservation = forms.BooleanField(
         widget=RespaGenericCheckboxInput, required=False
@@ -541,7 +525,7 @@ class UnitAuthorizationForm(forms.ModelForm):
                 self.add_error(
                     "subject",
                     _(
-                        "You can't add, change or delete permissions to unit you are not admin of"
+                        "You can't add, change or delete permissions to unit you are not admin of"  # noqa
                     ),
                 )
                 self.cleaned_data[DELETION_FIELD_NAME] = False

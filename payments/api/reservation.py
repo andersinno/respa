@@ -1,8 +1,8 @@
 from decimal import Decimal
+from django.utils.duration import duration_string
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import exceptions, serializers, status
 from rest_framework.exceptions import PermissionDenied
-from django.utils.duration import duration_string
 
 from payments.exceptions import (
     DuplicateOrderError,
@@ -12,8 +12,8 @@ from payments.exceptions import (
     ServiceUnavailableError,
     UnknownReturnCodeError,
 )
-from resources.models import Reservation
 from resources.api.reservation import ReservationSerializer
+from resources.models import Reservation
 from respa_pricing.models import PriceList
 
 from ..models import OrderLine, Product
@@ -145,11 +145,13 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
 
 class PaymentsReservationSerializer(ReservationSerializer):
     order = serializers.SlugRelatedField("order_number", read_only=True)
+    payment_link = serializers.SerializerMethodField()
+    payment_return_url = serializers.URLField(required=False, write_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.context["view"].action == "create":
+        if getattr(self.context["view"], "action", None) == "create":
             if self.is_order_required():
                 self.fields["order"] = ReservationEndpointOrderSerializer(required=True)
 
@@ -157,7 +159,14 @@ class PaymentsReservationSerializer(ReservationSerializer):
             self.fields["order"] = ReservationEndpointOrderSerializer(read_only=True)
 
     class Meta(ReservationSerializer.Meta):
-        fields = ReservationSerializer.Meta.fields + ["order"]
+        fields = ReservationSerializer.Meta.fields + [
+            "order",
+            "payment_link",
+            "payment_return_url",
+        ]
+
+    def get_payment_link(self, obj):
+        return obj.get_payment_link()
 
     def is_order_required(self):
         request = self.context.get("request")
@@ -207,6 +216,7 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     def create(self, validated_data):
         order_data = validated_data.pop("order", None)
+        validated_data.pop("payment_return_url", None)
         reservation = super().create(validated_data)
 
         if order_data:
@@ -222,6 +232,8 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     def validate(self, data):
         order_data = data.pop("order", None)
+        payment_return_url = data.pop("payment_return_url", None)
         data = super().validate(data)
         data["order"] = order_data
+        data["payment_return_url"] = payment_return_url
         return data

@@ -1,10 +1,9 @@
+import arrow
 import datetime
 import os
+import pytz
 import re
 from collections import OrderedDict
-
-import arrow
-import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import DateTimeRangeField, HStoreField
@@ -324,6 +323,25 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     max_period = models.DurationField(
         verbose_name=_("Maximum reservation time"), null=True, blank=True
     )
+
+    default_min_price = models.DecimalField(
+        verbose_name=_("Default min price"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_("Price displayed if no price list info attached to this resource."),
+    )
+
+    default_max_price = models.DecimalField(
+        verbose_name=_("Default max price"),
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_("Price displayed if no price list info attached to this resource."),
+    )
+
     slot_size = models.DurationField(
         verbose_name=_("Slot size for reservation time in calendar view"),
         default=datetime.timedelta(minutes=30),
@@ -472,6 +490,33 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
         return resource_image.image if resource_image else None
+
+    @cached_property
+    def price_list(self):
+        """Returns price list for this resource based on priced product.
+
+        If the resource is free, or no product or price list available, returns None.
+        """
+        if self.free_to_use:
+            return None
+
+        product = (
+            self.products.select_related(
+                "pricedproduct",
+                "pricedproduct__price_list",
+            )
+            .prefetch_related(
+                "pricedproduct__price_list__event_prices__event_type",
+                "pricedproduct__price_list__usergroup_prices__user_group",
+            )
+            .filter(
+                pricedproduct__isnull=False,
+            )
+            .current()
+            .first()
+        )
+
+        return product.pricedproduct.price_list if product else None
 
     def validate_reservation_period(self, reservation, user, data=None):
         """
@@ -697,6 +742,7 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         # Set the dates when the resource is closed.
         date = begin.date()
         end = end.date()
+
         while date < end:
             if date not in opening_hours:
                 opening_hours[date] = [OrderedDict(opens=None, closes=None)]
@@ -972,14 +1018,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
                 {"min_period": _("This value must be a multiple of slot_size")}
             )
 
-        if self.need_manual_confirmation and self.products.current().exists():
-            raise ValidationError(
-                {
-                    "need_manual_confirmation": _(
-                        "This cannot be enabled because the resource has product(s)."
-                    )
-                }
-            )
         if self.max_period and self.should_be_reserved_whole_day:
             raise ValidationError(
                 {

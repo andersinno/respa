@@ -28,5 +28,9 @@ class PaymentCreationFailedError(RespaPaymentError):
     """When payment creation fails or is cancelled by the payment service"""
 
 
+class PaymentAlreadyCompletedError(RespaPaymentError):
+    """When the payment cancellation fails due to being already paid"""
+
+
 class PaymentCancellationFailedError(RespaPaymentError):
     """When the payment cancellation fails"""

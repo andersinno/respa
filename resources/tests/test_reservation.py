@@ -1,6 +1,9 @@
 import arrow
 import datetime
 import pytest
+from datetime import timedelta
+
+from guardian.shortcuts import assign_perm
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
@@ -8,6 +11,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import activate
 from freezegun import freeze_time
 
+from payments.factories import OrderFactory
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (
     Day,
@@ -69,7 +73,7 @@ class ReservationTestCase(TestCase):
 
     def test_reservation(self):
         r1a = Resource.objects.get(id="r1a")
-        r1b = Resource.objects.get(id="r1b")
+        Resource.objects.get(id="r1b")
 
         tz = timezone.get_current_timezone()
         begin = tz.localize(datetime.datetime(2116, 6, 1, 8, 0, 0))
@@ -124,6 +128,78 @@ class ReservationTestCase(TestCase):
             resource=r1a, begin=begin, end=end + datetime.timedelta(hours=1)
         )
         reservation.clean()
+
+
+class TestPaymentLink:
+    payment_link = "https://verkkomaksutesti.cpu.fi/kassa/order-pay/4751/?pay_for_order=true&key=wc_order_Fzy20q31ujVqd"  # noqa
+
+    @pytest.fixture
+    def reservation_times(self):
+        begin = timezone.now() + timedelta(days=3)
+        end = begin + timedelta(hours=1)
+        return (begin, end)
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_confirmed(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.CONFIRMED,
+        )
+
+        OrderFactory(reservation=reservation, payment_link=self.payment_link)
+
+        reservation.refresh_from_db()
+
+        assert reservation.get_payment_link() is None
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_waiting_for_payment(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.WAITING_FOR_PAYMENT,
+        )
+
+        OrderFactory(reservation=reservation, payment_link=self.payment_link)
+
+        reservation.refresh_from_db()
+
+        assert reservation.get_payment_link() == self.payment_link
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_waiting_for_payment_order_is_none(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.WAITING_FOR_PAYMENT,
+        )
+
+        assert reservation.get_payment_link() is None
+
+    @pytest.mark.django_db
+    def test_get_payment_link_resource_waiting_for_payment_link_is_empty(
+        self, resource_in_unit, reservation_times
+    ):
+        reservation = Reservation.objects.create(
+            resource=resource_in_unit,
+            begin=reservation_times[0],
+            end=reservation_times[1],
+            state=Reservation.WAITING_FOR_PAYMENT,
+        )
+
+        OrderFactory(reservation=reservation),
+
+        assert reservation.get_payment_link() is None
 
 
 @pytest.mark.django_db
@@ -244,3 +320,121 @@ def test_state_change_from_requested_to_waiting_for_payment_sets_approval_time(
     assert requested_reservation.approved_at == parse_datetime(
         "2023-01-01T11:00:00+02:00"
     )
+
+
+class TestIsAllowedSameState:
+    def create_reservation(self, resource, user, state):
+        begin = timezone.now()
+        end = begin + datetime.timedelta(hours=2)
+        reservation = Reservation.objects.create(
+            resource=resource,
+            begin=begin,
+            end=end,
+            user=user,
+            state=state,
+        )
+
+        assign_perm("unit:can_approve_reservation", user, resource.unit)
+
+        return reservation
+
+    @pytest.mark.django_db
+    def test_is_allowed_same_state(self, resource_in_unit, user):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        assert reservation.is_new_state_allowed(Reservation.REQUESTED, user)
+
+    @pytest.mark.django_db
+    def test_is_not_allowed_user_not_permitted(self, resource_in_unit, user, user2):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        assert not reservation.is_new_state_allowed(Reservation.CANCELLED, user2)
+
+    @pytest.mark.django_db
+    def test_is_allowed_cancelled_from_requested(self, resource_in_unit, user):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        assert reservation.is_new_state_allowed(Reservation.CANCELLED, user)
+
+    @pytest.mark.django_db
+    def test_is_allowed_denied_from_requested(self, resource_in_unit, user):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        assert reservation.is_new_state_allowed(Reservation.DENIED, user)
+
+    @pytest.mark.django_db
+    def test_is_allowed_confirmed_from_requested_if_no_order(
+        self, resource_in_unit, user
+    ):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        assert reservation.is_new_state_allowed(Reservation.CONFIRMED, user)
+
+    @pytest.mark.django_db
+    def test_is_not_allowed_confirmed_from_requested_if_order(
+        self, resource_in_unit, user
+    ):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        OrderFactory(reservation=reservation)
+        assert not reservation.is_new_state_allowed(Reservation.CONFIRMED, user)
+
+    @pytest.mark.django_db
+    def test_is_not_allowed_waiting_for_payment_from_requested_if_no_order(
+        self, resource_in_unit, user
+    ):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        assert not reservation.is_new_state_allowed(
+            Reservation.WAITING_FOR_PAYMENT, user
+        )
+
+    @pytest.mark.django_db
+    def test_is_allowed_waiting_for_payment_from_requested_if_order(
+        self, resource_in_unit, user
+    ):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.REQUESTED
+        )
+        OrderFactory(reservation=reservation)
+
+        assert reservation.is_new_state_allowed(Reservation.WAITING_FOR_PAYMENT, user)
+
+    @pytest.mark.django_db
+    def test_is_allowed_cancelled_from_created(self, resource_in_unit, user):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.CREATED
+        )
+        assert reservation.is_new_state_allowed(Reservation.CANCELLED, user)
+
+    @pytest.mark.django_db
+    def test_is_not_allowed_denied_from_created(self, resource_in_unit, user):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.CREATED
+        )
+        assert not reservation.is_new_state_allowed(Reservation.DENIED, user)
+
+    @pytest.mark.django_db
+    def test_is_not_allowed_confirmed_from_created(self, resource_in_unit, user):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.CREATED
+        )
+        assert not reservation.is_new_state_allowed(Reservation.CONFIRMED, user)
+
+    @pytest.mark.django_db
+    def test_is_not_allowed_waiting_for_payment_from_created(
+        self, resource_in_unit, user
+    ):
+        reservation = self.create_reservation(
+            resource_in_unit, user, Reservation.CREATED
+        )
+        assert not reservation.is_new_state_allowed(
+            Reservation.WAITING_FOR_PAYMENT, user
+        )

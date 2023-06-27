@@ -1,15 +1,17 @@
 from django import forms
-
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from payments.models import Product, Resource
 
 from .models import (
-    PriceList,
-    PricedProduct,
     EventTypePriceListItem,
+    EventTypePriceListTemplateItem,
+    PricedProduct,
+    PriceList,
+    PriceListTemplate,
     UserGroupPriceListItem,
+    UserGroupPriceListTemplateItem,
 )
 
 
@@ -28,7 +30,7 @@ class PriceListForm(forms.ModelForm):
         # Resources not linked to any price list
         queryset = Resource.objects.exclude(
             products__in=Product.objects.filter(pricedproduct__price_list__isnull=False)
-        )
+        ).select_related("unit")
 
         if self.instance.pk:
             # Resources linked to this price list
@@ -70,7 +72,10 @@ class PriceListForm(forms.ModelForm):
 
     class Meta:
         model = PriceList
-        fields = ("name",)
+        fields = (
+            "name",
+            "resource",
+        )
 
 
 class AtLeastOneRequiredInlineFormSet(forms.models.BaseInlineFormSet):
@@ -101,5 +106,23 @@ EventTypePriceListItemFormset = forms.inlineformset_factory(
     EventTypePriceListItem,
     fields=("event_type", "price", "price_period", "price_type"),
     can_delete=True,
+    extra=0,
+)
+
+UserGroupPriceListTemplateItemFormset = forms.inlineformset_factory(
+    PriceListTemplate,
+    UserGroupPriceListTemplateItem,
+    fields=("user_group", "price", "price_period", "price_type"),
+    can_delete=False,
+    min_num=0,
+    extra=0,
+)
+
+EventTypePriceListTemplateItemFormset = forms.inlineformset_factory(
+    PriceListTemplate,
+    EventTypePriceListTemplateItem,
+    fields=("event_type", "price", "price_period", "price_type"),
+    can_delete=False,
+    min_num=0,
     extra=0,
 )

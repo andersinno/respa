@@ -13,6 +13,7 @@ from payments.providers.cpu_ceepos import (
     CPUCeeposProvider,
     DuplicateOrderError,
     PayloadValidationError,
+    PaymentAlreadyCompletedError,
     PaymentCancellationFailedError,
     ServiceUnavailableError,
     UnknownReturnCodeError,
@@ -218,7 +219,7 @@ def test_handle_cancel_payment_success(payment_provider):
 
 def test_handle_cancel_payment_error_already_paid(payment_provider):
     """
-    Test the response handler raises PaymentCancellationFailedError as expected
+    Test the response handler raises PaymentAlreadyCompletedError as expected
     when the payment has already been made.
     """
     response = json.loads(
@@ -231,7 +232,7 @@ def test_handle_cancel_payment_error_already_paid(payment_provider):
         "Hash": "640f21ee6d90fad77b417399dd09560ae59fb4e9cb48e9d806b1d8232c0e41e5"
     }"""
     )
-    with pytest.raises(PaymentCancellationFailedError):
+    with pytest.raises(PaymentAlreadyCompletedError):
         assert payment_provider.handle_cancel_payment_response(response)
 
 

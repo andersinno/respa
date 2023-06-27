@@ -18,6 +18,7 @@ from respa_pricing.tests.conftest import (
     event_type,
     price_list,
     price_list_with_product,
+    price_list_with_user_group_item,
     resource,
     resource_type,
     user_group,
@@ -36,6 +37,7 @@ __all__ = [
     "payment_terms",
     "price_list",
     "price_list_with_product",
+    "price_list_with_user_group_item",
     "purpose",
     "resource",
     "resource_in_unit",
@@ -190,6 +192,23 @@ def valid_price_list_form_data(empty_price_list_form_data, user_group):
             "name": "test name",
             "usergroup_prices-0-id": "",
             "usergroup_prices-0-user_group": user_group.pk,
+            "usergroup_prices-0-price": "100.00",
+            "usergroup_prices-0-price_period": "01:00:00",
+            "usergroup_prices-0-price_type": "per_period",
+        }
+    )
+    return data
+
+
+@pytest.fixture
+def valid_price_list_copy_form_data(empty_price_list_form_data, price_list_with_user_group_item):
+    price_item = price_list_with_user_group_item.usergroup_prices.first()
+    data = empty_price_list_form_data.copy()
+    data.update(
+        {
+            "name": "test name",
+            "usergroup_prices-0-id": price_item.pk,
+            "usergroup_prices-0-user_group": price_item.user_group.pk,
             "usergroup_prices-0-price": "100.00",
             "usergroup_prices-0-price_period": "01:00:00",
             "usergroup_prices-0-price_type": "per_period",

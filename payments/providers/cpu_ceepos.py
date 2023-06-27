@@ -12,6 +12,7 @@ from ..exceptions import (
     DuplicateOrderError,
     OrderStateTransitionError,
     PayloadValidationError,
+    PaymentAlreadyCompletedError,
     PaymentCancellationFailedError,
     PaymentCreationFailedError,
     ServiceUnavailableError,
@@ -316,7 +317,7 @@ class CPUCeeposProvider(PaymentProvider):
                 raise PayloadValidationError("Invalid response checksum")
             return True
         elif status_code == 3:
-            raise PaymentCancellationFailedError("Payment already completed, cannot delete")
+            raise PaymentAlreadyCompletedError("Payment already completed, cannot delete")
         elif status_code == 4:
             raise PaymentCancellationFailedError("Payment already deleted")
         elif status_code == 98:

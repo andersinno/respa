@@ -116,7 +116,12 @@ main {
         span.glyphicon-chevron-right {
           transform: scale(0.8);
         }
+
+        &:not(:first-child) {
+          margin-left: 1rem;
+        }
       }
+
     }
   }
 
@@ -238,6 +243,16 @@ main {
     .unit-list ul li div.panel div.panel-body,
     .unit-list ul li.list-group-item.sort-bar {
       grid-template-columns: 7fr 3fr 2fr;
+    }
+  }
+
+  section.price-lists {
+    @extend .main-section;
+
+    /* Price list list has four columns */
+    .unit-list ul li div.panel div.panel-body,
+    .unit-list ul li.list-group-item.sort-bar {
+      grid-template-columns: 6fr 2fr 2fr 2fr;
     }
   }
 }

@@ -1,24 +1,57 @@
+import django_filters
 from django.conf import settings
 from django.utils import timezone
-import django_filters
 from modeltranslation.translator import NotRegistered, translator
 from rest_framework import serializers
 
 all_views = []
 
-
-def register_view(klass, name, base_name=None):
-    entry = {'class': klass, 'name': name}
-    if base_name is not None:
-        entry['base_name'] = base_name
-    all_views.append(entry)
-
-
 LANGUAGES = [x[0] for x in settings.LANGUAGES]
 
 
-class TranslatedModelSerializer(serializers.ModelSerializer):
+def register_view(klass, name, base_name=None):
+    entry = {"class": klass, "name": name}
+    if base_name is not None:
+        entry["base_name"] = base_name
+    all_views.append(entry)
 
+
+def get_translated_values(obj, *fields):
+    """Given a model instance, returns the translated fields
+    in that instance in a dict mapping each field name to its
+    translations in each available language.
+
+    For example:
+
+    {
+        "name": {
+            en: "Pay",
+            fi: "Maksa",
+            sv: "Betala",
+        },
+    }
+    """
+    try:
+        opts = translator.get_options_for_model(obj.__class__)
+    except NotRegistered:
+        return {}
+
+    translations = {}
+
+    for field_name in fields or opts.fields.keys():
+        dct = {}
+
+        for code, _ in settings.LANGUAGES:
+            value = getattr(obj, f"{field_name}_{code}", None)
+            if value:
+                dct[code] = value
+
+        translations[field_name] = dct
+
+    return translations
+
+
+class TranslatedModelSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(TranslatedModelSerializer, self).__init__(*args, **kwargs)
         model = self.Meta.model
@@ -53,14 +86,13 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
                 d[lang] = val
 
             # If no text provided, leave the field as null
-            d = (d or None)
+            d = d or None
             ret[field_name] = d
 
         return ret
 
 
 class NullableTimeField(serializers.TimeField):
-
     def to_representation(self, value):
         if not value:
             return None
@@ -70,7 +102,6 @@ class NullableTimeField(serializers.TimeField):
 
 
 class NullableDateTimeField(serializers.DateTimeField):
-
     def to_representation(self, value):
         if not value:
             return None
@@ -81,27 +112,32 @@ class NullableDateTimeField(serializers.DateTimeField):
 
 class DRFFilterBooleanWidget(django_filters.widgets.BooleanWidget):
     """
-    Without this Django complains about missing render method when DRF renders HTML version of API.
+    Without this Django complains about missing render method when DRF renders
+    HTML version of API.
     """
+
     def render(self, *args, **kwargs):
         return None
 
 
-class ExtraDataMixin():
-    """ Mixin for serializers that provides conditionally included extra fields """
-    INCLUDE_PARAMETER_NAME = 'include'
+class ExtraDataMixin:
+    """Mixin for serializers that provides conditionally included extra fields"""
+
+    INCLUDE_PARAMETER_NAME = "include"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if 'context' in kwargs and 'request' in kwargs['context']:
-            request = kwargs['context']['request']
+        if "context" in kwargs and "request" in kwargs["context"]:
+            request = kwargs["context"]["request"]
             includes = request.GET.getlist(self.INCLUDE_PARAMETER_NAME)
-            kwargs['context']['includes'] = includes
-            self.fields.update(self.get_extra_fields(includes, context=kwargs['context']))
+            kwargs["context"]["includes"] = includes
+            self.fields.update(
+                self.get_extra_fields(includes, context=kwargs["context"])
+            )
 
     def get_extra_fields(self, includes, context):
-        """ Return a dictionary of extra serializer fields.
+        """Return a dictionary of extra serializer fields.
         includes is a list of requested extra data.
 
         Example:

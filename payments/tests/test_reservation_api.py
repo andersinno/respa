@@ -3,14 +3,17 @@ from urllib.parse import urlencode
 
 import pytest
 from guardian.shortcuts import assign_perm
+from rest_framework.exceptions import ErrorDetail
 from rest_framework.reverse import reverse
 
+from notifications.tests.utils import check_received_mail_exists
 from resources.enums import UnitAuthorizationLevel
 from resources.models import Reservation
 from resources.models.unit import UnitAuthorization
-from resources.tests.conftest import resource_in_unit, user_api_client  # noqa
+from resources.tests.conftest import resource_in_unit  # noqa
+from resources.tests.conftest import staff_api_client  # noqa
+from resources.tests.conftest import user_api_client  # noqa
 from resources.tests.test_reservation_api import day_and_period  # noqa
-
 from respa_pricing.tests.factories import (
     PricedProductFactory,
     PriceListFactory,
@@ -18,9 +21,10 @@ from respa_pricing.tests.factories import (
     UserGroupPriceListItemFactory,
 )
 
-from ..factories import ProductFactory
+from ..factories import OrderWithOrderLinesFactory, ProductFactory
 from ..models import Order, Product
 from ..providers.base import PaymentProvider
+from .test_notifications import paid_reservation_approved_notification  # noqa
 from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse("reservation-list")
@@ -107,12 +111,18 @@ def paid_resource(resource_in_unit):
     return resource_in_unit
 
 
-@pytest.fixture(autouse=True)
-def mock_provider():
+def make_mock_provider():
     mocked_provider = create_autospec(PaymentProvider)
     mocked_provider.initiate_payment = MagicMock(
         return_value="https://mocked-payment-url.com"
     )
+    return mocked_provider
+
+
+@pytest.fixture(autouse=True)
+def mock_provider():
+    mocked_provider = make_mock_provider()
+
     with patch(
         "payments.api.reservation.get_payment_provider", return_value=mocked_provider
     ):
@@ -153,6 +163,41 @@ def test_reservation_creation_state(
     assert Order.objects.count() == new_orders
 
 
+@pytest.mark.parametrize(
+    "has_order, free_to_use, expected_state, new_orders",
+    (
+        (False, False, Reservation.REQUESTED, 0),
+        (False, True, Reservation.REQUESTED, 0),
+        (True, False, Reservation.REQUESTED, 1),
+        (True, True, Reservation.REQUESTED, 0),
+    ),
+)
+def test_reservation_creation_state_need_manual_confirmation(
+    user_api_client,
+    resource_in_unit,
+    has_order,
+    free_to_use,
+    expected_state,
+    new_orders,
+):
+    resource_in_unit.free_to_use = free_to_use
+    resource_in_unit.need_manual_confirmation = True
+    resource_in_unit.save()
+
+    reservation_data = build_reservation_data(resource_in_unit)
+    if has_order:
+        product = ProductFactory(type=Product.RENT, resources=[resource_in_unit])
+        reservation_data["order"] = build_order_data(product)
+
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    assert response.status_code == 201
+    new_reservation = Reservation.objects.last()
+    assert new_reservation.state == expected_state
+
+    assert Order.objects.count() == new_orders
+
+
 def test_reservation_creation_state_total_price_zero(user_api_client, resource_in_unit):
     """If total price of order is zero, no payment is required.
 
@@ -169,6 +214,35 @@ def test_reservation_creation_state_total_price_zero(user_api_client, resource_i
 
     assert new_reservation.state == Reservation.CONFIRMED
     assert Order.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_payment_return_url_is_required_when_updating_state_to_waiting_for_payment(
+    api_client, general_admin, requested_reservation_with_order
+):
+    reservation = requested_reservation_with_order
+    reservation.state = Reservation.REQUESTED
+    reservation.save()
+    data = build_reservation_data(reservation.resource)
+    data["state"] = Reservation.WAITING_FOR_PAYMENT
+    assign_perm(
+        "unit:can_approve_reservation",
+        general_admin,
+        reservation.resource.unit,
+    )
+    assign_perm(
+        "unit:can_modify_paid_reservations",
+        general_admin,
+        reservation.resource.unit,
+    )
+    api_client.force_authenticate(user=general_admin)
+    expected_error = ErrorDetail(
+        string="Return URL is required to initiate the payment", code="invalid"
+    )
+
+    response = api_client.put(get_detail_url(reservation), data=data)
+    assert response.status_code == 400
+    assert response.data[0] == expected_error
 
 
 @pytest.mark.parametrize("endpoint", ("list", "detail"))
@@ -562,3 +636,90 @@ def test_user_may_bypass_payment_on_paid_resource(
 
     if num_orders:
         mock_provider.initiate_payment.assert_called()
+
+
+@pytest.mark.django_db
+def test_approve_paid_reservation(
+    mailoutbox,
+    settings,
+    paid_reservation_approved_notification,
+    staff_api_client,
+    paid_resource,
+    staff_user,
+    user,
+):
+    """When a paid reservation is approved:
+
+    1. Reservation new state should be WAITING_FOR_PAYMENT
+    2. Payment is initiated
+    3. Payment link is emailed to customer
+    """
+
+    settings.RESPA_MAILS_ENABLED = True
+
+    paid_resource.need_manual_confirmation = True
+
+    paid_resource.save()
+
+    assign_perm(
+        "unit:can_approve_reservation",
+        staff_user,
+        paid_resource.unit,
+    )
+
+    assign_perm(
+        "unit:can_modify_paid_reservations",
+        staff_user,
+        paid_resource.unit,
+    )
+
+    reservation_data = build_reservation_data(paid_resource)
+
+    reservation = Reservation.objects.create(
+        state=Reservation.REQUESTED,
+        user=user,
+        resource=paid_resource,
+        begin=reservation_data["begin"],
+        end=reservation_data["end"],
+    )
+
+    OrderWithOrderLinesFactory(
+        reservation=reservation,
+        state=Order.WAITING,
+        payment_link="https://random-payment-link.com",
+    )
+
+    payment_return_url = "https://tampere.varaamo.fi/payment-done/"
+    #
+    # provider is in ReservationViewSet.perform_update
+    mocked_provider = make_mock_provider()
+
+    with patch(
+        "resources.api.reservation.get_payment_provider", return_value=mocked_provider
+    ):
+        response = staff_api_client.put(
+            get_detail_url(reservation),
+            {
+                "state": Reservation.WAITING_FOR_PAYMENT,
+                "payment_return_url": payment_return_url,
+                **reservation_data,
+            },
+        )
+
+    assert response.status_code == 200
+
+    reservation.refresh_from_db()
+
+    assert reservation.approved_at
+    assert reservation.state == Reservation.WAITING_FOR_PAYMENT
+
+    mocked_provider.initiate_payment.assert_called()
+
+    # check notification sent
+    assert len(mailoutbox) == 1
+
+    check_received_mail_exists(
+        "Paid reservation approved subject.",
+        user.email,
+        "Paid reservation approved body.",
+    )

@@ -1119,6 +1119,15 @@ msgstr "Minimihinta"
 msgid "Max price"
 msgstr "Maksimihinta"
 
+msgid "Default min price"
+msgstr "Oletusminimihinta"
+
+msgid "Default max price"
+msgstr "Oletusmaksimihinta"
+
+msgid "Price displayed if no price list info attached to this resource."
+msgstr "Hinta näytetään mikäli resurssilla ei ole hinnastoa."
+
 msgid "Access code type"
 msgstr "Pääsykoodityyppi"
 
@@ -1823,6 +1832,12 @@ msgstr "Hinnasto"
 msgid "Price lists"
 msgstr "Hinnastot"
 
+msgid "Price list template"
+msgstr "Hinnastosapluuna"
+
+msgid "Price list templates"
+msgstr "Hinnastosapluunat"
+
 msgid "price list"
 msgstr "hinnasto"
 
@@ -1841,6 +1856,13 @@ msgstr "Hinta tapahtumatyypin mukaan"
 msgid "Event type prices"
 msgstr "Hinnat tapahtumatyypin mukaan"
 
+msgid "Event type price template"
+msgstr "Hintasapluuna tapahtumatyypin mukaan"
+
+msgid "Event type price templates"
+msgstr "Hintasapluunat tapahtumatyypin mukaan"
+
+
 msgid "user group"
 msgstr "käyttäjäryhmä"
 
@@ -1850,17 +1872,30 @@ msgstr "Hinta käyttäjäryhmän mukaan"
 msgid "User group prices"
 msgstr "Hinnat käyttäjäryhmän mukaan"
 
+msgid "User group price template"
+msgstr "Hintasapluuna käyttäjäryhmän mukaan"
+
+msgid "User group price templates"
+msgstr "Hintasapluunat käyttäjäryhmän mukaan"
+
 msgid "Price before tax"
 msgstr "Hinta ennen veroja"
 
 msgid "Create a new price list"
 msgstr "Luo uusi hinnasto"
 
+msgid "Create a new price list from template"
+msgstr "Luo uusi hinnasto sapluunasta"
+
 msgid "Edit price list"
 msgstr "Muokkaa hinnastoa"
 
 msgid "Delete price list"
 msgstr "Poista hinnasto"
+
+#, python-brace-format
+msgid "This price list is based on template <strong>%(price_list_template)s</strong>. The prices can only be edited in the template."
+msgstr "Tämä hinnasto pohjautuu sapluunaan <strong>%(price_list_template)s</strong>. Hintoja tulee muuttaa vain sapluunassa."
 
 #, python-format
 msgid ""
@@ -1911,3 +1946,23 @@ msgid ""
 msgstr ""
 "Tämän resurssin toimipisteelle ei ole määritelty kustannuspaikkakoodia. "
 "Aseta kustannuspaikkakoodi toimipisteen asetuksissa, jotta maksut menevät läpi."
+
+msgid "include other event type option"
+msgstr "lisää muu tapahtuman tyyppi -valinta"
+
+msgid ""
+"Designates whether a \"None of the above\" option, that doesn't affect the "
+"price, should be added to the event type options."
+msgstr ""
+"Määrittää, lisätäänkö tapahtumatyypin valintoihin \"Ei mikään edellisistä\", "
+"joka ei vaikuta hintaan."
+
+msgid ""
+"Note! If there are event type specific prices, the reserver can also select "
+"\"None of the above\" as the event type. In this case, the price is "
+"determined based on the selected user group."
+msgstr ""
+"Huom! Jos hintoja tapahtumatyypin mukaan on määritelty, "
+"varaaja voi valita tapahtumatyypiksi myös \"Ei mikään\n"
+"edellisistä\". Tällöin hinta määräytyy valitun käyttäjäryhmän "
+"perusteella."

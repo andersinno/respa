@@ -1,9 +1,8 @@
+import arrow
 import collections
 import datetime
-import logging
-
-import arrow
 import django_filters
+import logging
 import pytz
 from arrow.parser import ParserError
 from django import forms
@@ -48,7 +47,7 @@ from resources.models import (
 )
 from resources.models.resource import determine_hours_time_range
 from resources.pagination import PurposePagination
-from respa_pricing.models import PricedProduct, PriceList
+from respa_pricing.models import PriceList
 
 from ..auth import is_general_admin, is_staff
 from .accessibility import ResourceAccessibilitySerializer
@@ -56,6 +55,7 @@ from .base import (
     DRFFilterBooleanWidget,
     ExtraDataMixin,
     TranslatedModelSerializer,
+    get_translated_values,
     register_view,
 )
 from .equipment import EquipmentSerializer
@@ -90,9 +90,16 @@ def get_resource_reservations_queryset(begin, end):
     qs = Reservation.objects.filter(begin__lte=end, end__gte=begin).current()
     qs = (
         qs.order_by("begin")
-        .prefetch_related("catering_orders")
-        .select_related("user", "order")
+        .prefetch_related("catering_orders", "resource__groups")
+        .select_related("user", "order", "resource", "resource__unit")
     )
+
+    if settings.RESPA_PAYMENTS_ENABLED:
+        qs = qs.prefetch_related(
+            "order",
+            "order__order_lines",
+            "order__order_lines__product",
+        )
     return qs
 
 
@@ -224,6 +231,8 @@ class ResourceSerializer(
     )
     reservable_after = serializers.SerializerMethodField()
 
+    price_type = serializers.SerializerMethodField()
+
     min_price = serializers.SerializerMethodField()
     max_price = serializers.SerializerMethodField()
 
@@ -236,6 +245,8 @@ class ResourceSerializer(
 
     pricing_user_groups = serializers.SerializerMethodField()
     pricing_event_types = serializers.SerializerMethodField()
+
+    include_other_event_type_option = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Resource
@@ -263,56 +274,76 @@ class ResourceSerializer(
         return False
 
     def get_pricing_user_groups(self, obj):
-        if obj.free_to_use:
-            return
-        product = obj.products.current().first()
-        if not product or not hasattr(product, "pricedproduct"):
-            return
-        price_list = PricedProduct.objects.get(product=product).price_list
-        if not price_list:
-            return
-        user_group_price_items = price_list.usergroup_prices.all()
-        data = []
-        for item in user_group_price_items:
-            user_group = item.user_group
-            data.append({"id": user_group.id, "name": user_group.name})
-        return data
+        return (
+            [
+                {
+                    "id": item.user_group.id,
+                    "name": get_translated_values(item.user_group, "name")["name"],
+                }
+                for item in obj.price_list.usergroup_prices.all()
+            ]
+            if obj.price_list
+            else []
+        )
 
     def get_pricing_event_types(self, obj):
-        if obj.free_to_use:
-            return
-        product = obj.products.current().first()
-        if not product or not hasattr(product, "pricedproduct"):
-            return
-        price_list = PricedProduct.objects.get(product=product).price_list
-        if not price_list:
-            return
-        event_type_price_items = price_list.event_prices.all()
-        if not event_type_price_items:
-            return
-        data = []
-        for item in event_type_price_items:
-            event_type = item.event_type
-            data.append({"id": event_type.id, "name": event_type.name})
-        return data
+        return (
+            [
+                {
+                    "id": item.event_type.id,
+                    "name": get_translated_values(item.event_type, "name")["name"],
+                }
+                for item in obj.price_list.event_prices.all()
+            ]
+            if obj.price_list
+            else []
+        )
+
+    def get_include_other_event_type_option(self, obj):
+        if obj.price_list:
+            return obj.price_list.include_other_event_type_option
+        return False
+
+    def get_price_type(self, obj):
+        if obj.price_list and obj.price_list.price_type:
+            return obj.price_list.price_type
+        return obj.price_type
 
     def get_max_price(self, obj):
-        """Return max_price if pricing available, otherwise return None.
+        """Return `max_price` if pricing available, otherwise return
+        `default_max_price`.
 
-        Will always return None if free_to_use=True.
+        Will always return `None ` if `free_to_use` is `True`.
+
+        Note: use `Resource.objects.with_pricing()` to fetch pricing info
+        for `max_price`.
         """
         if obj.free_to_use:
             return None
-        return getattr(obj, "max_price", None)
+
+        max_price = getattr(obj, "max_price", None)
+
+        if max_price is None:
+            max_price = obj.default_max_price
+        return max_price
 
     def get_min_price(self, obj):
-        """Return min_price if pricing available, otherwise return None.
+        """Return `max_price` if pricing available, otherwise return
+        `default_min_price`.
 
-        Will always return None if free_to_use=True.
+        Will always return `None ` if `free_to_use` is `True`.
+
+        Note: use `Resource.objects.with_pricing()` to fetch pricing info
+        for `min_price`.
         """
         if obj.free_to_use:
             return None
-        return getattr(obj, "min_price", None)
+
+        min_price = getattr(obj, "min_price", None)
+
+        if min_price is None:
+            min_price = obj.default_min_price
+        return min_price
 
     def get_max_price_per_hour(self, obj):
         """Backwards compatibility for 'max_price_per_hour' field that
@@ -520,10 +551,14 @@ class ResourceSerializer(
         if not rv_list:
             return []
 
-        rv_ser_list = ReservationSerializer(
-            rv_list, many=True, context=self.context
+        return self.get_reservation_serializer_class()(
+            rv_list,
+            many=True,
+            context=self.context,
         ).data
-        return rv_ser_list
+
+    def get_reservation_serializer_class(self):
+        return ReservationSerializer
 
 
 class ResourceDetailsSerializer(ResourceSerializer):
@@ -1022,6 +1057,8 @@ class ResourceListViewSet(
         "generic_terms", "payment_terms", "unit", "type", "reservation_metadata_set"
     )
     queryset = queryset.prefetch_related(
+        "accessibility_summaries",
+        "accessibility_summaries__viewpoint",
         "favorited_by",
         "resource_equipment",
         "resource_equipment__equipment",
@@ -1029,9 +1066,13 @@ class ResourceListViewSet(
         "images",
         "purposes",
         "groups",
+        "periods",
+        "unit__periods",
     )
     if settings.RESPA_PAYMENTS_ENABLED:
-        queryset = queryset.prefetch_related("products")
+        queryset = queryset.prefetch_related(
+            "products",
+        )
 
     filter_backends = (
         filters.SearchFilter,

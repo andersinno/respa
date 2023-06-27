@@ -1,30 +1,28 @@
-from datetime import timedelta
 from random import randint
+import decimal
 
 import factory
 import factory.fuzzy
 import factory.random
 
-from resources.models import Reservation
 from resources.models.utils import generate_id
 
-from .models import ARCHIVED_AT_NONE, TAX_PERCENTAGES, Order, OrderLine, Product
+from .models import ARCHIVED_AT_NONE, Order, OrderLine, Product
 
 
 class ProductFactory(factory.django.DjangoModelFactory):
     """Mock Product objects"""
 
     # Mandatory fields
-    product_id = factory.Faker('uuid4')
-    sku = factory.Faker('uuid4')
-    type = factory.fuzzy.FuzzyChoice(Product.TYPE_CHOICES,
-                                     getter=lambda c: c[0])
+    product_id = factory.Faker("uuid4")
+    sku = factory.Faker("uuid4")
+    type = factory.fuzzy.FuzzyChoice(Product.TYPE_CHOICES, getter=lambda c: c[0])
     # created_at, defaults to now()
     archived_at = ARCHIVED_AT_NONE
 
     # Optional fields
-    name = factory.Faker('catch_phrase')
-    description = factory.Faker('text')
+    name = factory.Faker("catch_phrase")
+    description = factory.Faker("text")
 
     @factory.post_generation
     def resources(self, create, extracted, **kwargs):
@@ -45,8 +43,7 @@ class OrderFactory(factory.django.DjangoModelFactory):
     """
 
     # Mandatory fields
-    state = factory.fuzzy.FuzzyChoice(Order.STATE_CHOICES,
-                                      getter=lambda c: c[0])
+    state = factory.fuzzy.FuzzyChoice(Order.STATE_CHOICES, getter=lambda c: c[0])
     order_number = generate_id()
 
     # Mandatory FKs
@@ -54,20 +51,6 @@ class OrderFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Order
-
-    @factory.post_generation
-    def reservation_state(obj, create, extracted, **kwargs):
-        if extracted:
-            state = extracted
-        else:
-            if obj.state == Order.CONFIRMED:
-                state = Reservation.CONFIRMED
-            elif obj.state in (Order.CANCELLED, Order.REJECTED, Order.EXPIRED):
-                state = Reservation.CANCELLED
-            else:
-                state = Reservation.WAITING_FOR_PAYMENT
-        Reservation.objects.filter(id=obj.reservation.id).update(state=state)
-        obj.reservation.refresh_from_db()
 
 
 class OrderWithOrderLinesFactory(OrderFactory):
@@ -89,9 +72,13 @@ class OrderWithOrderLinesFactory(OrderFactory):
 
 class OrderLineFactory(factory.django.DjangoModelFactory):
     """Mock OrderLine objects"""
+
     quantity = factory.fuzzy.FuzzyInteger(1, 10)
     order = factory.SubFactory(OrderFactory)
     product = factory.SubFactory(ProductFactory)
+
+    unit_price = decimal.Decimal("10.00")
+    total_price = decimal.Decimal("100.00")
 
     class Meta:
         model = OrderLine

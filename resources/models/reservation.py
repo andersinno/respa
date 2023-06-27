@@ -319,6 +319,17 @@ class Reservation(ModifiableModel):
     def get_end_tz(self, tz):
         return self._get_dt("end", tz)
 
+    def get_payment_link(self):
+        """Returns the payment provider (CeePos) payment link if WAITING_FOR_PAYMENT,
+        otherwise returns None."""
+
+        if self.state == self.WAITING_FOR_PAYMENT:
+            order = self.get_order()
+            if order:
+                return order.payment_link or None
+
+        return None
+
     def is_active(self):
         return self.end >= timezone.now() and self.state not in (
             Reservation.CANCELLED,
@@ -346,6 +357,30 @@ class Reservation(ModifiableModel):
             return True
         return self.resource.can_view_reservation_access_code(user)
 
+    def is_new_state_allowed(self, new_state, user):
+        """Checks that new state is permitted for this user."""
+
+        # if same state, always OK
+        if new_state == self.state:
+            return True
+
+        if not self.resource.can_approve_reservations(user):
+            return False
+
+        allowed_states = [self.CANCELLED]
+
+        if self.state == self.REQUESTED:
+            allowed_states += [self.DENIED]
+            if self.get_order():
+                allowed_states += [self.WAITING_FOR_PAYMENT]
+            else:
+                allowed_states += [self.CONFIRMED]
+
+        elif self.need_manual_confirmation():
+            allowed_states += [self.REQUESTED]
+
+        return new_state in allowed_states
+
     def set_state(self, new_state, user):
         # Make sure it is a known state
         assert new_state in (
@@ -364,7 +399,7 @@ class Reservation(ModifiableModel):
                 )
             self.send_reservation_changed_mail_to_user()
             return
-        
+
         if new_state == Reservation.REQUESTED:
             self.requested_at = timezone.now()
 
@@ -372,6 +407,8 @@ class Reservation(ModifiableModel):
             if old_state == Reservation.REQUESTED:
                 self.approver = user
                 self.approved_at = timezone.now()
+                if new_state == Reservation.WAITING_FOR_PAYMENT:
+                    self.send_paid_reservation_approved_mail()
 
         if new_state == Reservation.CONFIRMED:
             reservation_confirmed.send(sender=self.__class__, instance=self, user=user)
@@ -532,7 +569,16 @@ class Reservation(ModifiableModel):
                 )
 
             if self.resource.should_be_reserved_whole_day:
-                if day["opens"] != self.begin or day["closes"] != self.end:
+                # if today you are allowed to start after current time
+                # otherwise reservation start must be same as day start
+
+                is_full_day = (
+                    self.begin > day["opens"]
+                    if timezone.now().date() == self.begin.date()
+                    else self.begin == day["opens"]
+                ) and day["closes"] == self.end
+
+                if not is_full_day:
                     raise ValidationError(
                         _("This resource should be reserved for entire opening hours"),
                         code="invalid_time_slot",
@@ -667,7 +713,7 @@ class Reservation(ModifiableModel):
                 if ground_plan_image_url:
                     context["resource_ground_plan_image_url"] = ground_plan_image_url
 
-            order = getattr(self, "order", None)
+            order = self.get_order()
             if order:
                 context["order"] = order.get_notification_context(language_code)
 
@@ -749,6 +795,9 @@ class Reservation(ModifiableModel):
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
+
+    def send_paid_reservation_approved_mail(self):
+        self.send_reservation_mail(NotificationType.PAID_RESERVATION_APPROVED)
 
     def send_reservation_confirmed_mail(self):
         reservations = [self]
