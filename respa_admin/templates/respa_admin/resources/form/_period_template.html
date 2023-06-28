@@ -1,28 +1,32 @@
 {% load i18n %}
-
+{% for form in period_template_formset %}
+    <template id="period-template-{{ form.instance.pk }}">
+        {% include "respa_admin/common/_periods_accordion.html" with id=form.instance.pk period=form %}
+    </template>
+{% endfor %}
 <div class="period-templates">
-    <button class="btn btn-default dropdown-toggle select-dropdown" type="button"
-          id="periodTemplates" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+    <button class="btn btn-default dropdown-toggle select-dropdown"
+            type="button"
+            id="periodTemplates"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="true">
         {% trans "Select from templates" %}
-        <div class="glyphicon glyphicon-chevron-down" aria-hidden="true"/>
+        <div class="glyphicon glyphicon-chevron-down" aria-hidden="true" />
     </button>
-
     <ul class="dropdown-menu" aria-labelledby="periodTemplates">
         <div class="usage-checkbox checkbox-row" id="id_period_templates">
             {% for pk, choice in form.period_templates.field.choices %}
                 <div class="custom-checkbox period-template-item">
                     <li>
-                        <input
-                          id="id_period_templates_{{ forloop.counter0 }}"
-                          name="period_templates"
-                          type="checkbox"
-                          class="checkbox-custom"
-                          value="{{pk}}"
-                          {% if pk in used_period_templates %}checked{% endif %}
-                        />
-                        <label for="id_period_templates_{{ forloop.counter0 }}" class="checkbox-custom-label input-label">
-                            {{ choice }}
-                        </label>
+                        <input id="id_period_templates_{{ forloop.counter0 }}"
+                               name="period_templates"
+                               type="checkbox"
+                               class="checkbox-custom"
+                               value="{{ pk }}"
+                               {% if pk in used_period_templates %}checked{% endif %} />
+                        <label for="id_period_templates_{{ forloop.counter0 }}"
+                               class="checkbox-custom-label input-label">{{ choice }}</label>
                     </li>
                 </div>
             {% endfor %}

@@ -4,11 +4,24 @@ let emptyDayItem = null;
 export function initializePeriods() {
   enablePeriodEventHandlers();
   enableAddNewPeriod();
+  enableTemplateCopyButton();
   setPeriodAndDayItems();
   initialSortPeriodDays();
   setPeriodTemplateOnFocus();
+  selectPeriodTemplates();
 }
 
+function selectPeriodTemplates() {
+  const $copyButton = $('#copy-button');
+  $('[name=period_templates]').on('click', function() {
+    if ($('[name=period_templates]:checked').length > 0) {
+      $copyButton.show();
+    } else {
+      $copyButton.hide();
+    }
+  });
+
+}
 function setPeriodTemplateOnFocus() {
   // Don't hide the period template options if focus is inside the drowndown
   $('.period-template-item input').on('click', function (e){
@@ -37,6 +50,25 @@ function initialSortPeriodDays() {
   for (let i = 0; i < periods.length; i++) {
     sortPeriodDays($(periods[i]));
   }
+}
+
+function enableTemplateCopyButton() {
+  // copy selected templates in the dropdown from the specified <template> contents
+  const $copyButton = $("#copy-button");
+
+  $copyButton.on("click", function() {
+    const $selectedTemplates = $('[name=period_templates]:checked');
+
+    for (let i=0; i < $selectedTemplates.length; i++) {
+      const option = $selectedTemplates[i];
+      const template =  $($("#period-template-" + option.value).html());
+      const newItem = copyTimePeriod(template);
+      newItem.find('[data-toggle="collapse"]').click();
+
+      option.checked = false;
+    }
+    $copyButton.hide();
+  });
 }
 
 function enablePeriodEventHandlers() {
@@ -85,8 +117,12 @@ function setPeriodAndDayItems() {
   emptyDayItem.removeClass('original-day');  // added days are not original. used for sorting formset indices.
   emptyPeriodItem = $($servedPeriodItem).clone();
 
-  $servedDayItem.remove();
-  $servedPeriodItem.remove();
+  if ($servedDayItem) {
+    $servedDayItem.remove();
+  }
+  if ($servedPeriodItem) {
+    $servedPeriodItem.remove();
+  }
 
   //Iterate the existing days in all periods and remove the last one
   //which has been added from the backend.
@@ -134,6 +170,7 @@ function updatePeriodButtonsIds(periodItem, idNum) {
 * */
 function updatePeriodChildren(periodItem, idNum) {
   periodItem.attr('id', `accordion-item-${idNum}`);
+  periodItem.find('.delete-time').attr('id', `remove-button-${idNum}`);
   periodItem.find('.dropdown-time').attr('id', `accordion${idNum}`);
   periodItem.find('.date-input').attr('id', `date-inputs-${idNum}`);
   periodItem.find('.panel-heading').attr({id: `heading${idNum}`});
@@ -145,9 +182,13 @@ function updatePeriodChildren(periodItem, idNum) {
   });
 
   periodItem.find('.panel-collapse').attr({
-    "aria-labelledby": `heading${idNum}`,
+    'aria-labelledby': `heading${idNum}`,
     id: `collapse${idNum}`
   });
+
+  periodItem.find('[data-toggle="collapse"]').attr(
+    'data-parent', `#accordion${idNum}`
+  );
 }
 
 /*
@@ -433,18 +474,18 @@ function removePeriodExtraDays(periodItem) {
 * */
 function addNewPeriod() {
   // Get the list or periods.
-  let $periodList = $('#current-periods-list');
-  let emptyPeriodItem = getEmptyPeriodItem();
-
+  const $periodList = $('#current-periods-list');
+  const emptyPeriodItem = getEmptyPeriodItem();
+  let newItem;
   if (emptyPeriodItem) {
-    let newItem = emptyPeriodItem.clone();
+    newItem = emptyPeriodItem.clone();
     $periodList.append(newItem);
-
     updatePeriodsTotalForms();
     removePeriodExtraDays(newItem);
     updatePeriodInputIds();
     attachPeriodEventHandlers(newItem);
   }
+  return newItem;
 }
 
 /*
@@ -523,6 +564,7 @@ function copyTimePeriod(periodItem) {
 
   //Reset initial forms in case there are some days present in the previous period.
   newItem.find('#days-management-form').find('[id$="-INITIAL_FORMS"]').val('0');
+  return newItem;
 }
 
 /*

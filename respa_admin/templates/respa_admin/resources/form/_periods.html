@@ -1,25 +1,20 @@
 {% load i18n %}
-
 <div id="opening-hours">
     <div class="form-section-header">
         <h2>{% trans "Opening hours" %}</h2>
     </div>
-
     <div class="input-row dropdown-row">
         <button class="resources-button" type="button" id="add-new-hour">{% trans "Add new time period" %}</button>
-        <div class="select-dropdown btn btn-primary">
-            <select>
-                <option>{% trans "Add general time period" %}</option>
-            </select>
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
-        </div>
         {% include "respa_admin/resources/form/_period_template.html" %}
+        <button class="resources-button"
+                type="button"
+                id="copy-button"
+                style="display: none">{% trans "Copy" %}</button>
     </div>
-
     <div class="present-hours-list" id="current-periods-list">
         {% for period in formset %}
             {% with forloop.counter0 as id %}
-            {% include "respa_admin/common/_periods_accordion.html" with period=period id=id %}
+                {% include "respa_admin/common/_periods_accordion.html" with period=period id=id %}
             {% endwith %}
         {% endfor %}
     </div>

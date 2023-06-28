@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, modelformset_factory
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.translation import ugettext_lazy as _
 from guardian.core import ObjectPermissionChecker
@@ -419,6 +419,39 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(
             data=request.POST, files=request.FILES, instance=instance
         )
+
+
+def get_period_template_formset():
+    """Creates a read-only formset for rendering period templates.
+
+    The templates can be copied and amended with JS on the frontend and
+    added to the resource form.
+
+    As this formset is never validated or processed, we don't need to
+    worry about passing the resource instance.
+    """
+    forms = modelformset_factory(
+        Period,
+        form=PeriodForm,
+        extra=0,
+    )(
+        queryset=Period.objects.filter(is_template=True),
+        prefix="periods",
+    )
+
+    # add "days" formset to each form
+    for form in forms:
+        days_formset = inlineformset_factory(
+            Period, Day, form=DaysForm, extra=0, validate_max=True
+        )
+
+        form.days = days_formset(
+            instance=form.instance,
+            data=None,
+            prefix=f"days-{form.prefix}",
+        )
+
+    return forms
 
 
 def get_resource_accessibility_formset(request=None, extra=1, instance=None):
