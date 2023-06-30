@@ -398,8 +398,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     )
 
     price_type = models.CharField(
+        verbose_name=_("Price type for default min/max prices"),
         max_length=32,
-        verbose_name=_("price type"),
         choices=PRICE_TYPE_CHOICES,
         default=PRICE_TYPE_HOURLY,
     )

@@ -28,6 +28,7 @@
             <div class="price-list-link" style="margin-top: 1em;">
                 {% include "respa_admin/forms/_input.html" with field=form.default_min_price %}
                 {% include "respa_admin/forms/_input.html" with field=form.default_max_price %}
+                {% include "respa_admin/forms/_select.html" with field=form.price_type %}
                 {% if not form.instance.id %}
                     {% trans "Save the resource first to manage prices" %}
                 {% elif price_list_id %}
