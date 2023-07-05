@@ -246,6 +246,7 @@ class ResourceForm(forms.ModelForm):
             "free_to_use",
             "default_min_price",
             "default_max_price",
+            "price_type",
             "generic_terms",
             "payment_terms",
             "public",
