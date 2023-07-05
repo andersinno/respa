@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import FieldDoesNotExist, Q
 from django.forms import model_to_dict
@@ -424,14 +425,22 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         resource_image_formset,
         resource_accessibility_formset,
     ):
-        self.object = form.save()
-        self._save_resource_purposes()
-        self._delete_extra_images(resource_image_formset)
-        self._save_resource_images(resource_image_formset)
-        self.save_period_formset(period_formset_with_days)
-        self._save_or_update_opening_hours_via_period_templates()
-        self._delete_extra_resource_accessibility(resource_accessibility_formset)
-        self._save_resource_accessibility(resource_accessibility_formset)
+        try:
+            with transaction.atomic():
+                self.object = form.save()
+                self._save_resource_purposes()
+                self._delete_extra_images(resource_image_formset)
+                self._save_resource_images(resource_image_formset)
+                self.save_period_formset(period_formset_with_days)
+                self._save_or_update_opening_hours_via_period_templates()
+                self._delete_extra_resource_accessibility(
+                    resource_accessibility_formset
+                )
+                self._save_resource_accessibility(resource_accessibility_formset)
+        except ValidationError:
+            messages.error(self.request, _("Please check the opening hours"))
+            return self.form_invalid(form)
+
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(

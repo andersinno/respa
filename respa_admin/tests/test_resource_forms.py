@@ -124,13 +124,29 @@ def test_resource_creation_sets_opening_hours(admin_client, valid_resource_form_
     assert closing_time.minute == 0
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_resource_creation_with_empty_hours(admin_client, valid_resource_form_data):
     resource_count = Resource.objects.count()
     data = valid_resource_form_data.copy()
     data["days-periods-0-0-opens"] = ""
     data["days-periods-0-0-closes"] = ""
     data["days-periods-0-0-closed"] = ""
+    response = admin_client.post(NEW_RESOURCE_URL, data=data, follow=True)
+    assert response.status_code == 200
+    assert (
+        Resource.objects.count() == resource_count
+    ), "No new resource should be created with invalid data"
+
+
+@pytest.mark.django_db
+def test_resource_creation_missing_start_end(admin_client, valid_resource_form_data):
+    resource_count = Resource.objects.count()
+    data = {
+        **valid_resource_form_data,
+        "periods-0-name": "",
+        "periods-0-start": "",
+        "periods-0-end": "",
+    }
     response = admin_client.post(NEW_RESOURCE_URL, data=data, follow=True)
     assert response.status_code == 200
     assert (
