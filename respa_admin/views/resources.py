@@ -439,7 +439,12 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
                 self._save_resource_accessibility(resource_accessibility_formset)
         except ValidationError:
             messages.error(self.request, _("Please check the opening hours"))
-            return self.form_invalid(form)
+            return self.forms_invalid(
+                form,
+                period_formset_with_days,
+                resource_image_formset,
+                resource_accessibility_formset,
+            )
 
         return HttpResponseRedirect(self.get_success_url())
 
@@ -482,17 +487,22 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
     def _validate_forms(
         self, form, period_formset, image_formset, resource_accessibility_formset
     ):
-        valid_form = form.is_valid()
-        valid_period_form = period_formset.is_valid()
-        valid_image_formset = image_formset.is_valid()
-        valid_resource_accessibility_formset = resource_accessibility_formset.is_valid()
+        try:
+            valid_form = form.is_valid()
+            valid_period_form = period_formset.is_valid()
+            valid_image_formset = image_formset.is_valid()
+            valid_resource_accessibility_formset = (
+                resource_accessibility_formset.is_valid()
+            )
 
-        return (
-            valid_form
-            and valid_period_form
-            and valid_image_formset
-            and valid_resource_accessibility_formset
-        )
+            return (
+                valid_form
+                and valid_period_form
+                and valid_image_formset
+                and valid_resource_accessibility_formset
+            )
+        except ValidationError:
+            return False
 
     def _save_resource_purposes(self):
         checked_purposes = self.request.POST.getlist("purposes")
