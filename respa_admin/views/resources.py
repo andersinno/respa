@@ -25,6 +25,7 @@ from resources.models import (
 from respa_admin import accessibility_api, forms
 from respa_admin.forms import (
     ResourceForm,
+    get_period_template_formset,
     get_resource_accessibility_formset,
     get_resource_image_formset,
     get_unit_authorization_formset,
@@ -311,6 +312,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         resource_accessibility_formset = get_resource_accessibility_formset(
             self.request, instance=self.object
         )
+        period_template_formset = get_period_template_formset()
 
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
@@ -322,6 +324,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
                 form=form,
                 resource_accessibility_formset=resource_accessibility_formset,
                 resource_image_formset=resource_image_formset,
+                period_template_formset=period_template_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
             )
@@ -382,6 +385,8 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             request=request, instance=self.object
         )
 
+        period_template_formset = get_period_template_formset()
+
         if self._validate_forms(
             form,
             period_formset_with_days,
@@ -398,6 +403,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             return self.forms_invalid(
                 form,
                 period_formset_with_days,
+                period_template_formset,
                 resource_image_formset,
                 resource_accessibility_formset,
             )
@@ -432,6 +438,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         self,
         form,
         period_formset_with_days,
+        period_template_formset,
         resource_image_formset,
         resource_accessibility_formset,
     ):
@@ -455,6 +462,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             self.get_context_data(
                 form=form,
                 period_formset_with_days=period_formset_with_days,
+                period_template_formset=period_template_formset,
                 resource_image_formset=resource_image_formset,
                 resource_accessibility_formset=resource_accessibility_formset,
                 trans_fields=trans_fields,
