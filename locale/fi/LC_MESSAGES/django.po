@@ -1125,6 +1125,9 @@ msgstr "Oletusminimihinta"
 msgid "Default max price"
 msgstr "Oletusmaksimihinta"
 
+msgid "Price type for default prices"
+msgstr "Hintatyyppi oletushinnoille"
+
 msgid "Price displayed if no price list info attached to this resource."
 msgstr "Hinta näytetään mikäli resurssilla ei ole hinnastoa."
 
