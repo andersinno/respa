@@ -1,7 +1,28 @@
+import itertools
 from django import template
 
-
 register = template.Library()
+
+
+@register.inclusion_tag("respa_admin/forms/_form_errors.html")
+def form_errors(*forms):
+    """Renders list of errors from multiple forms or formsets to template."""
+    errors = []
+
+    for form in forms:
+        # may be None etc
+        if not hasattr(form, "errors"):
+            continue
+        # formset: errors will be list of dicts
+        if isinstance(form.errors, list):
+            for dct in form.errors:
+                errors += list(dct.values())
+        # plain form
+        elif isinstance(form.errors, dict):
+            errors += list(form.errors.values())
+    # flatten list
+    errors = list(itertools.chain.from_iterable(errors))
+    return {"errors": errors}
 
 
 @register.filter
@@ -24,7 +45,7 @@ def instances_and_widgets(bound_field):
     for index, instance in enumerate(bound_field.field.queryset.all()):
         widget = copy(bound_field[index])
         # Hide the choice label so it just renders as a checkbox
-        widget.choice_label = ''
+        widget.choice_label = ""
         instance_widgets.append((instance, widget))
     return instance_widgets
 

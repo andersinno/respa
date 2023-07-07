@@ -1,24 +1,16 @@
 {% extends "respa_admin/_base.html" %}
-{% load static %}
-
+{% load static templatetags %}
 {% block form_nav %}
     {% include "respa_admin/resources/form/_nav.html" %}
 {% endblock form_nav %}
-
 {% block body %}
     <div class="container form-container">
-        <form
-            method="post"
-            enctype="multipart/form-data"
-            class="resource-form"
-        >
+        <form method="post" enctype="multipart/form-data" class="resource-form">
             {% csrf_token %}
             {{ resource_accessibility_formset.management_form }}
             {{ resource_image_formset.management_form }}
             {{ period_formset_with_days.management_form }}
-
-            {% include "respa_admin/forms/_form_errors.html" %}
-
+            {% form_errors form resource_image_formset period_formset_with_days resource_accessibility_formset %}
             {% include "respa_admin/resources/form/_general_info.html" %}
             {% include "respa_admin/resources/form/_booking.html" %}
             {% include "respa_admin/resources/form/_images.html" with formset=resource_image_formset %}
@@ -27,16 +19,13 @@
             {% include "respa_admin/resources/form/_equipment.html" %}
             {% include "respa_admin/resources/form/_periods.html" with formset=period_formset_with_days %}
             {% if accessibility_data_link %}
-              {% include "respa_admin/resources/form/_accessibility.html" %}
+                {% include "respa_admin/resources/form/_accessibility.html" %}
             {% endif %}
-
-            <div class="navbar-fixed-bottom">
-                {% include "respa_admin/resources/form/_toolbar.html" %}
-            </div>
+            <div class="navbar-fixed-bottom">{% include "respa_admin/resources/form/_toolbar.html" %}</div>
         </form>
     </div>
 {% endblock body %}
-
 {% block js_extra %}
-    <script type="text/javascript" src="{% static 'respa_admin/resourceForm-bundle.js' %}"></script>
+    <script type="text/javascript"
+            src="{% static 'respa_admin/resourceForm-bundle.js' %}"></script>
 {% endblock js_extra %}

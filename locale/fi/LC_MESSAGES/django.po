@@ -1435,8 +1435,8 @@ msgstr "Aikaväli"
 msgid "Remove time period"
 msgstr "Poista ajanjakso"
 
-msgid "Tarkista seuraavat virheet"
-msgstr "Check the following errors"
+msgid "Check the following errors"
+msgstr "Tarkista seuraavat virheet"
 
 msgid "Choose image"
 msgstr "Valitse kuva"
