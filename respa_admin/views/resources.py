@@ -386,8 +386,6 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             request=request, instance=self.object
         )
 
-        period_template_formset = get_period_template_formset()
-
         if self._validate_forms(
             form,
             period_formset_with_days,
@@ -404,7 +402,6 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             return self.forms_invalid(
                 form,
                 period_formset_with_days,
-                period_template_formset,
                 resource_image_formset,
                 resource_accessibility_formset,
             )
@@ -452,7 +449,6 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         self,
         form,
         period_formset_with_days,
-        period_template_formset,
         resource_image_formset,
         resource_accessibility_formset,
     ):
@@ -476,7 +472,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             self.get_context_data(
                 form=form,
                 period_formset_with_days=period_formset_with_days,
-                period_template_formset=period_template_formset,
+                period_template_formset=get_period_template_formset(),
                 resource_image_formset=resource_image_formset,
                 resource_accessibility_formset=resource_accessibility_formset,
                 trans_fields=trans_fields,
