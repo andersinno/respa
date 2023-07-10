@@ -42,6 +42,10 @@
          role="tabpanel"
          id="collapse{{ id }}"
          aria-labelledby="heading{{ id }}">
+        <input type="hidden"
+               class="DELETE"
+               name="periods-{{ id }}-DELETE"
+               id="id_periods-{{ id }}-DELETE">
         <div class="container-fluid hours-wrapper">
             <div class="hours-table-header" id="period-list">
                 <div class="input-row period-input" id="period-input-{{ id }}">

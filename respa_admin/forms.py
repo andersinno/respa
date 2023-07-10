@@ -374,14 +374,15 @@ class PeriodFormset(forms.BaseInlineFormSet):
 
         if saved_form or self.forms:
             for form in self.forms:
-                period = form.save(commit=commit)
-                if period.template_src and (
-                    form.has_changed() or form.days.has_changed()
-                ):
-                    period.template_src = None
-                    period.save()
-                if hasattr(form, "days"):
-                    form.days.save(commit=commit)
+                if form not in self.deleted_forms:
+                    period = form.save(commit=commit)
+                    if period.template_src and (
+                        form.has_changed() or form.days.has_changed()
+                    ):
+                        period.template_src = None
+                        period.save()
+                    if hasattr(form, "days"):
+                        form.days.save(commit=commit)
 
         return saved_form
 
