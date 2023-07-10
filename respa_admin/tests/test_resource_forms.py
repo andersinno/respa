@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 from django.test import RequestFactory
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
@@ -10,7 +10,7 @@ from resources.models import Resource
 
 from ..forms import get_period_formset
 
-NEW_RESOURCE_URL = reverse("respa_admin:new-resource")
+NEW_RESOURCE_URL = reverse_lazy("respa_admin:new-resource")
 
 
 @pytest.mark.django_db
@@ -100,6 +100,44 @@ def test_resource_creation_with_valid_data(admin_client, valid_resource_form_dat
     assert new_resource.periods.count() == 1
     assert new_resource.periods.first().days.count() == 1
     assert new_resource.periods.first().days.first().weekday == 1
+
+
+@pytest.mark.django_db
+def test_resource_delete_period(admin_client, valid_resource_form_data):
+    assert Resource.objects.count() == 0  # No resources in the db
+    response = admin_client.post(
+        NEW_RESOURCE_URL, data=valid_resource_form_data, follow=True
+    )
+    assert response.status_code == 200
+    assert response.context["form"].errors == {}
+    assert Resource.objects.count() == 1  # One new resource in db
+    new_resource = Resource.objects.first()
+    assert new_resource.periods.count() == 1
+    period = new_resource.periods.first()
+
+    edit_data = {
+        **valid_resource_form_data,
+        "periods-INITIAL_FORMS": 1,
+        "periods-0-id": period.pk,
+        "periods-0-resource": new_resource.pk,
+        "periods-0-DELETE": "on",
+    }
+
+    response = admin_client.post(
+        reverse(
+            "respa_admin:edit-resource",
+            kwargs={
+                "resource_id": new_resource.pk,
+            },
+        ),
+        data=edit_data,
+        follow=True,
+    )
+
+    assert response.status_code == 200
+    assert response.context["form"].errors == {}
+    new_resource.refresh_from_db()
+    assert new_resource.periods.count() == 0
 
 
 @freeze_time("2018-06-12")
