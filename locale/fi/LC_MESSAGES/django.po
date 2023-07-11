@@ -1062,6 +1062,9 @@ msgstr "Käyttötarkoitukset"
 msgid "Need manual confirmation"
 msgstr "Tarvitsee virkailijan vahvistuksen"
 
+msgid "Need manual confirmation when price is zero"
+msgstr "Tarvitsee virkailijan vahvistuksen mikäli hinta on nolla"
+
 msgid "Authentication"
 msgstr "Tunnistautuminen"
 
