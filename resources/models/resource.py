@@ -295,9 +295,15 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     purposes = models.ManyToManyField(Purpose, verbose_name=_("Purposes"))
     name = models.CharField(verbose_name=_("Name"), max_length=200)
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
+
     need_manual_confirmation = models.BooleanField(
         verbose_name=_("Need manual confirmation"), default=False
     )
+
+    need_manual_confirmation_for_zero_price = models.BooleanField(
+        verbose_name=_("Need manual confirmation when price is zero"), default=False
+    )
+
     authentication = models.CharField(
         blank=False,
         verbose_name=_("Authentication"),
