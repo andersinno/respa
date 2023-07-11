@@ -342,7 +342,12 @@ class Reservation(ModifiableModel):
         return user == self.user
 
     def need_manual_confirmation(self):
-        return self.resource.need_manual_confirmation
+        if self.resource.need_manual_confirmation:
+            return True
+        order = self.get_order()
+        if order is None or order.get_price() == 0:
+            return self.resource.need_manual_confirmation_for_zero_price
+        return False
 
     def are_extra_fields_visible(self, user):
         # the following logic is used also implemented in ReservationQuerySet
