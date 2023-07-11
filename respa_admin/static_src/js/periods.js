@@ -517,20 +517,9 @@ function removePeriodEventHandlers(periodItem) {
 }
 
 function removePeriod(periodItem) {
+  // checks the DELETE input flag for this item.
   if (periodItem) {
-    periodItem.remove();
-
-    updatePeriodsTotalForms();
-    updatePeriodInputIds();
-    updateAllPeriodDaysIndices();
-    updateAllDaysMgmtFormIndices();
-
-    //Re-attach event handlers.
-    const periods = getPeriodsList();
-    for (let period of periods) {
-      removePeriodEventHandlers($(period));
-      attachPeriodEventHandlers($(period));
-    }
+    $(periodItem).hide().find(".DELETE").val("on");
   }
 }
 
