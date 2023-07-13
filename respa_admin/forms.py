@@ -241,6 +241,7 @@ class ResourceForm(forms.ModelForm):
             "reservable",
             "should_be_reserved_whole_day",
             "need_manual_confirmation",
+            "need_manual_confirmation_for_zero_price",
             "authentication",
             "access_code_type",
             "free_to_use",
@@ -263,6 +264,9 @@ class ResourceForm(forms.ModelForm):
             ),
             "slot_size": forms.Select(choices=(thirty_minute_increment_choices)),
             "need_manual_confirmation": RespaRadioSelect(
+                choices=((True, _("Yes")), (False, _("No")))
+            ),
+            "need_manual_confirmation_for_zero_price": RespaRadioSelect(
                 choices=((True, _("Yes")), (False, _("No")))
             ),
             "free_to_use": RespaRadioSelect(

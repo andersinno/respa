@@ -11,7 +11,11 @@ from django.utils.dateparse import parse_datetime
 from django.utils.translation import activate
 from freezegun import freeze_time
 
-from payments.factories import OrderFactory
+from payments.factories import (
+    OrderFactory,
+    OrderWithOrderLinesFactory,
+    OrderLineFactory,
+)
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (
     Day,
@@ -128,6 +132,57 @@ class ReservationTestCase(TestCase):
             resource=r1a, begin=begin, end=end + datetime.timedelta(hours=1)
         )
         reservation.clean()
+
+
+@pytest.mark.parametrize(
+    (
+        "need_manual_confirmation",
+        "need_manual_confirmation_for_zero_price",
+        "is_free",
+        "requires_confirmation",
+    ),
+    (
+        (True, True, False, True),
+        (True, True, True, True),
+        (True, False, False, True),
+        (True, False, True, True),
+        (False, True, False, False),
+        (False, True, True, True),
+        (False, False, True, False),
+        (False, False, False, False),
+    ),
+)
+@pytest.mark.django_db
+def test_need_reservation(
+    space_resource_type,
+    user,
+    need_manual_confirmation,
+    need_manual_confirmation_for_zero_price,
+    is_free,
+    requires_confirmation,
+):
+    resource = Resource.objects.create(
+        name="resource",
+        type=space_resource_type,
+        need_manual_confirmation=need_manual_confirmation,
+        need_manual_confirmation_for_zero_price=need_manual_confirmation_for_zero_price,
+    )
+    now = timezone.now()
+    reservation = Reservation.objects.create(
+        resource=resource,
+        begin=now,
+        user=user,
+        end=now + datetime.timedelta(hours=2),
+    )
+
+    if is_free:
+        order = OrderFactory(reservation=reservation)
+        OrderLineFactory(order=order, unit_price=0, total_price=0)
+
+    else:
+        OrderWithOrderLinesFactory(reservation=reservation)
+
+    assert reservation.need_manual_confirmation() is requires_confirmation
 
 
 class TestPaymentLink:
