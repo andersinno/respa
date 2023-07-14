@@ -11,9 +11,9 @@ from psycopg2.extras import DateRange, NumericRange
 
 
 STATE_BOOLS = {
-    False: _('open'),
-    True: _('closed'),
-    None: _('-'),
+    False: _("open"),
+    True: _("closed"),
+    None: _("-"),
 }
 
 
@@ -65,13 +65,15 @@ def get_opening_hours(time_zone, periods, begin, end=None):
     # Periods are taken into account the highest priority first, then
     # the shortest length.
     for p in periods:
-        if not hasattr(p, 'priority'):
+        if not hasattr(p, "priority"):
             p.priority = 0
     periods.sort(key=lambda x: (-x.priority, x.end - x.start))
 
     days = list(Day.objects.filter(period__in=periods))
     for period in periods:
-        period.range_days = {day.weekday: day for day in days if day.period_id == period.id}
+        period.range_days = {
+            day.weekday: day for day in days if day.period_id == period.id
+        }
 
     date = begin
     dates = OrderedDict()
@@ -96,7 +98,7 @@ def get_opening_hours(time_zone, periods, begin, end=None):
                 closes = None
             break
 
-        dates[date] = [{'opens': opens, 'closes': closes}]
+        dates[date] = [{"opens": opens, "closes": closes}]
         date += datetime.timedelta(days=1)
 
     return dates
@@ -107,21 +109,48 @@ class Period(models.Model):
     A period of time to express state of open or closed
     Days that specifies the actual activity hours link here
     """
-    resource = models.ForeignKey('Resource', verbose_name=_('Resource'), db_index=True,
-                                 null=True, blank=True, related_name='periods', on_delete=models.CASCADE)
-    unit = models.ForeignKey('Unit', verbose_name=_('Unit'), db_index=True,
-                             null=True, blank=True, related_name='periods', on_delete=models.CASCADE)
 
-    start = models.DateField(verbose_name=_('Start date'))
-    end = models.DateField(verbose_name=_('End date'))
+    resource = models.ForeignKey(
+        "Resource",
+        verbose_name=_("Resource"),
+        db_index=True,
+        null=True,
+        blank=True,
+        related_name="periods",
+        on_delete=models.CASCADE,
+    )
+    unit = models.ForeignKey(
+        "Unit",
+        verbose_name=_("Unit"),
+        db_index=True,
+        null=True,
+        blank=True,
+        related_name="periods",
+        on_delete=models.CASCADE,
+    )
 
-    name = models.CharField(max_length=200, verbose_name=_('Name'), blank=True, default='')
-    description = models.CharField(verbose_name=_('Description'), null=True,
-                                   blank=True, max_length=500)
-    closed = models.BooleanField(verbose_name=_('Closed'), default=False, editable=False)
-    is_template = models.BooleanField(verbose_name=_('Is period a template'), default=False)
-    template_src = models.ForeignKey('Period', verbose_name=_('Template'),
-                                     blank=True, null=True, on_delete=models.SET_NULL)
+    start = models.DateField(verbose_name=_("Start date"))
+    end = models.DateField(verbose_name=_("End date"))
+
+    name = models.CharField(
+        max_length=200, verbose_name=_("Name"), blank=True, default=""
+    )
+    description = models.CharField(
+        verbose_name=_("Description"), null=True, blank=True, max_length=500
+    )
+    closed = models.BooleanField(
+        verbose_name=_("Closed"), default=False, editable=False
+    )
+    is_template = models.BooleanField(
+        verbose_name=_("Is period a template"), default=False
+    )
+    template_src = models.ForeignKey(
+        "Period",
+        verbose_name=_("Template"),
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
     class Meta:
         verbose_name = _("period")
@@ -129,19 +158,30 @@ class Period(models.Model):
 
     def __str__(self):
         # FIXME: output date in locale-specific format
-        return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(self.name, self.start, self.end, STATE_BOOLS[self.closed])
+        return "{0}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}".format(
+            self.name, self.start, self.end, STATE_BOOLS[self.closed]
+        )
 
     def _validate_belonging(self):
         if self.is_template and (self.resource_id or self.unit_id):
-            raise ValidationError(_("Opening hours template can't belong to any unit or resource"), code="invalid_belonging")
+            raise ValidationError(
+                _("Opening hours template can't belong to any unit or resource"),
+                code="invalid_belonging",
+            )
         if not (self.resource_id or self.unit_id) and not self.is_template:
-            raise ValidationError(_("You must set 'resource' or 'unit'"), code="no_belonging")
+            raise ValidationError(
+                _("You must set 'resource' or 'unit'"), code="no_belonging"
+            )
 
         if self.resource_id and self.unit_id:
-            raise ValidationError(_("You must set either 'resource' or 'unit', but not both"), code="invalid_belonging")
+            raise ValidationError(
+                _("You must set either 'resource' or 'unit', but not both"),
+                code="invalid_belonging",
+            )
 
     def _check_closed(self):
-        # TODO: why is this automagically closing itself upon creation when there's no days added yet
+        # TOD: why is this automagically closing itself upon creation when
+        # there's no days added yet
         if self.pk:
             # The period is not `closed` if it has any `open` days
             self.closed = not self.days.filter(closed=False).exists()
@@ -152,18 +192,22 @@ class Period(models.Model):
         super(Period, self).clean()
 
         if self.start is None or self.end is None:
-            raise ValidationError(_("You must set 'start' and 'end' fields."), code="empty_start_end")
+            raise ValidationError(
+                _("You must set 'start' and 'end' fields."), code="empty_start_end"
+            )
 
         if self.start > self.end:
-            raise ValidationError("Period must start before its end", code="invalid_date_range")
+            raise ValidationError(
+                "Period must start before its end", code="invalid_date_range"
+            )
 
         self._check_closed()
 
     def save(self, *args, **kwargs):
-        ignore_overlap = kwargs.pop('ignore_overlap', False)
+        ignore_overlap = kwargs.pop("ignore_overlap", False)
         self._validate_belonging()
         self.clean(ignore_overlap=ignore_overlap)
-        self.duration = DateRange(self.start, self.end, '[]')
+        self.duration = DateRange(self.start, self.end, "[]")
         return super(Period, self).save(*args, **kwargs)
 
     def save_closedness(self):
@@ -178,28 +222,41 @@ class Day(models.Model):
     """
     Day of week and its active start and end time and whether it is open or closed
 
-    Kirjastot.fi API uses closed for both days and periods, don't know which takes precedence
+    Kirjastot.fi API uses closed for both days and periods, don't know which takes
+    precedence
     """
+
     DAYS_OF_WEEK = (
-        (0, _('Monday')),
-        (1, _('Tuesday')),
-        (2, _('Wednesday')),
-        (3, _('Thursday')),
-        (4, _('Friday')),
-        (5, _('Saturday')),
-        (6, _('Sunday'))
+        (0, _("Monday")),
+        (1, _("Tuesday")),
+        (2, _("Wednesday")),
+        (3, _("Thursday")),
+        (4, _("Friday")),
+        (5, _("Saturday")),
+        (6, _("Sunday")),
     )
 
-    period = models.ForeignKey(Period, verbose_name=_('Period'), db_index=True, related_name='days',
-                               on_delete=models.CASCADE)
-    weekday = models.IntegerField(verbose_name=_('Weekday'), choices=DAYS_OF_WEEK)
-    opens = models.TimeField(verbose_name=_('Time when opens'), null=True, blank=True)
-    closes = models.TimeField(verbose_name=_('Time when closes'), null=True, blank=True)
-    length = pgfields.IntegerRangeField(verbose_name=_('Range between opens and closes'), null=True,
-                                        blank=True, db_index=True)
+    period = models.ForeignKey(
+        Period,
+        verbose_name=_("Period"),
+        db_index=True,
+        related_name="days",
+        on_delete=models.CASCADE,
+    )
+    weekday = models.IntegerField(verbose_name=_("Weekday"), choices=DAYS_OF_WEEK)
+    opens = models.TimeField(verbose_name=_("Time when opens"), null=True, blank=True)
+    closes = models.TimeField(verbose_name=_("Time when closes"), null=True, blank=True)
+    length = pgfields.IntegerRangeField(
+        verbose_name=_("Range between opens and closes"),
+        null=True,
+        blank=True,
+        db_index=True,
+    )
     # NOTE: If this is true and the period is false, what then?
-    closed = models.NullBooleanField(verbose_name=_('Closed'), default=False)
-    description = models.CharField(max_length=200, verbose_name=_('description'), null=True, blank=True)
+    closed = models.NullBooleanField(verbose_name=_("Closed"), default=False)
+    description = models.CharField(
+        max_length=200, verbose_name=_("description"), null=True, blank=True
+    )
 
     class Meta:
         verbose_name = _("day")
@@ -208,12 +265,19 @@ class Day(models.Model):
     def __str__(self):
         # FIXME: output date in locale-specific format
         if self.opens and self.closes:
-            hours = ", {0} - {1}".format(time_format(self.opens, "G:i"), time_format(self.closes, "G:i"))
+            hours = ", {0} - {1}".format(
+                time_format(self.opens, "G:i"), time_format(self.closes, "G:i")
+            )
         else:
             hours = ""
         return "{4}, {3}: {1:%d.%m.%Y} - {2:%d.%m.%Y}, {0}: {3} {5}".format(
-            self.get_weekday_display(), self.period.start, self.period.end,
-            STATE_BOOLS[self.closed], self.period.name, hours)
+            self.get_weekday_display(),
+            self.period.start,
+            self.period.end,
+            STATE_BOOLS[self.closed],
+            self.period.name,
+            hours,
+        )
 
     def save(self, *args, **kwargs):
         if self.opens and self.closes:
