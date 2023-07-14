@@ -655,6 +655,9 @@ msgstr "aikaväli"
 msgid "periods"
 msgstr "aikavälit"
 
+msgid "Period must start before its end"
+msgstr "Aikavälin loppuaika on ennen sen alkuaikaa"
+
 msgid "Opening hours template can't belong to any unit or resource"
 msgstr ""
 "Aikavälipohja ei voi liittyä mihinkään yksittäiseen toimipaikkaan tai "

@@ -322,11 +322,10 @@ function restoreDaysMgmtFormValues(periodItem) {
 * in the corresponding period.
 * */
 function updateTotalDays($periodItem) {
-  let amountOfDays = $periodItem.find('#period-days-list').children().length;
-  let amountOfOriginalDays = $periodItem.find('#period-days-list').children('.weekday-row.original-day').length;
-  let daysMgmtForm = $periodItem.find('#days-management-form');
+  const daysMgmtForm = $periodItem.find('#days-management-form');
+
+  const amountOfDays = $periodItem.find('#period-days-list').children().length;
   daysMgmtForm.find("[id$='-TOTAL_FORMS']").val(amountOfDays);
-  daysMgmtForm.find("[id$='-INITIAL_FORMS']").val(amountOfOriginalDays);
 }
 
 /*
