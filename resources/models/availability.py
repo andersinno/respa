@@ -198,7 +198,7 @@ class Period(models.Model):
 
         if self.start > self.end:
             raise ValidationError(
-                "Period must start before its end", code="invalid_date_range"
+                _("Period must start before its end"), code="invalid_date_range"
             )
 
         self._check_closed()
