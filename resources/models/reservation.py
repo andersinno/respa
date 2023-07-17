@@ -770,6 +770,7 @@ class Reservation(ModifiableModel):
 
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
+        self.send_reservation_created_mail_to_officials()
 
     def send_reservation_created_mail_to_officials(self):
         # Send mail to unit admins and officials who can approve this reservation
@@ -811,6 +812,8 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(
             NotificationType.RESERVATION_CONFIRMED, attachments=[attachment]
         )
+
+        self.send_reservation_created_mail_to_officials()
 
     def send_reservation_cancelled_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)

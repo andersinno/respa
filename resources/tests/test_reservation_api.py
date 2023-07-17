@@ -1529,7 +1529,7 @@ def test_reservation_mails(
     reservation_data_extra["state"] = Reservation.CONFIRMED
     response = api_client.put(detail_url, data=reservation_data_extra, format="json")
     assert response.status_code == 200
-    assert len(mail.outbox) == 1
+    assert len(mail.outbox) == 2
     check_received_mail_exists(
         "Reservation confirmed",
         reservation_data_extra["reserver_email_address"],
@@ -1537,6 +1537,15 @@ def test_reservation_mails(
         clear_outbox=False,
     )
     assert "this resource rocks" in str(mail.outbox[0].message())
+
+    # should also be sent to official
+    check_received_mail_exists(
+        "Reservation requested",
+        general_admin.email,
+        "Process the reservation",
+        clear_outbox=False,
+    )
+
     mail.outbox = []
 
     # test CANCELLED
@@ -1637,7 +1646,7 @@ def test_reservation_mails_in_finnish(
     reservation_data_extra["state"] = Reservation.CONFIRMED
     response = api_client.put(detail_url, data=reservation_data_extra, format="json")
     assert response.status_code == 200
-    assert len(mail.outbox) == 1
+    assert len(mail.outbox) == 2
 
     check_received_mail_exists(
         "Varaus vahvistettu",
@@ -1646,6 +1655,16 @@ def test_reservation_mails_in_finnish(
         clear_outbox=False,
     )
     assert "this resource rocks" in str(mail.outbox[0].message())
+
+    #
+    # should also be sent to official
+    check_received_mail_exists(
+        "Alustava varaus tehty",
+        general_admin.email,
+        "Käsittele varaus",
+        clear_outbox=False,
+    )
+
     mail.outbox = []
 
     # test CANCELLED
@@ -1693,29 +1712,14 @@ def test_unit_admins_are_notified_when_reservation_is_created_along_with_officia
     assert response.status_code == 201
     # One mail to unit admin and another to official who can dis/approve
     # the reservation and one to reserver
-    assert len(mail.outbox) == 3
-    for sent_mail in mail.outbox:
-        if sent_mail.to == user.email:
-            check_received_mail_exists(
-                "Normal reservation created subject.",
-                user.email,
-                "Normal reservation created body.",
-                clear_outbox=False,
-            )
-        elif sent_mail.to == unit_admin.email:
-            check_received_mail_exists(
-                "Reservation requested",
-                unit_admin.email,
-                "A new preliminary reservation has been made",
-                clear_outbox=False,
-            )
-        else:
-            check_received_mail_exists(
-                "Reservation requested",
-                general_admin.email,
-                "A new preliminary reservation has been made",
-                clear_outbox=False,
-            )
+    assert len(mail.outbox) == 1
+
+    check_received_mail_exists(
+        "Normal reservation created subject.",
+        user.email,
+        "Normal reservation created body.",
+        clear_outbox=False,
+    )
 
 
 @override_settings(RESPA_MAILS_ENABLED=True)
