@@ -210,8 +210,20 @@ msgstr "Alustava varaus tehty virkailija"
 msgid "Reservation cancelled"
 msgstr "Varaus peruttu"
 
+msgid "Reservation cancelled official"
+msgstr "Varaus peruttu virkailija"
+
 msgid "Reservation confirmed"
 msgstr "Varaus vahvistettu"
+
+msgid "Reservation confirmed official"
+msgstr "Varaus vahvistettu virkailija"
+
+msgid "Paid reservation approved"
+msgstr "Maksettava varaus vahvistettu"
+
+msgid "Paid reservation approved official"
+msgstr "Maksettava varaus vahvistettu virkailija"
 
 msgid "Reservation created"
 msgstr "Varaus luotu"
@@ -221,6 +233,9 @@ msgstr "Varaus muutettu"
 
 msgid "Reservation denied"
 msgstr "Varaus hylätty"
+
+msgid "Reservation denied official"
+msgstr "Varaus hylätty virkailija"
 
 msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"

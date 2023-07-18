@@ -19,12 +19,17 @@ logger = logging.getLogger("respa.notifications")
 class NotificationType:
     RESERVATION_REQUESTED = "reservation_requested"
     RESERVATION_REQUESTED_OFFICIAL = "reservation_requested_official"
+    RESERVATION_CANCELLED_OFFICIAL = "reservation_cancelled_official"
     RESERVATION_CANCELLED = "reservation_cancelled"
     RESERVATION_CONFIRMED = "reservation_confirmed"
+    RESERVATION_CONFIRMED_OFFICIAL = "reservation_confirmed_official"
     RESERVATION_DENIED = "reservation_denied"
+    RESERVATION_DENIED_OFFICIAL = "reservation_denied_official"
     RESERVATION_CREATED = "reservation_created"
     RESERVATION_CHANGED = "reservation_changed"
+    # TODO: is this still used?
     PAID_RESERVATION_APPROVED = "paid_reservation_approved"
+    PAID_RESERVATION_APPROVED_OFFICIAL = "paid_reservation_approved_official"
     # If the access code is known at reservation time, this notification
     # type is used.
     RESERVATION_CREATED_WITH_ACCESS_CODE = "reservation_created_with_access_code"
@@ -53,10 +58,22 @@ class NotificationTemplate(TranslatableModel):
             _("Reservation requested official"),
         ),
         (NotificationType.RESERVATION_CANCELLED, _("Reservation cancelled")),
+        (
+            NotificationType.RESERVATION_CANCELLED_OFFICIAL,
+            _("Reservation cancelled official"),
+        ),
         (NotificationType.RESERVATION_CONFIRMED, _("Reservation confirmed")),
+        (
+            NotificationType.RESERVATION_CONFIRMED_OFFICIAL,
+            _("Reservation confirmed official"),
+        ),
         (NotificationType.RESERVATION_CREATED, _("Reservation created")),
         (NotificationType.RESERVATION_CHANGED, _("Reservation changed")),
         (NotificationType.RESERVATION_DENIED, _("Reservation denied")),
+        (
+            NotificationType.RESERVATION_DENIED_OFFICIAL,
+            _("Reservation denied official"),
+        ),
         (
             NotificationType.RESERVATION_CREATED_WITH_ACCESS_CODE,
             _("Reservation created with access code"),
@@ -66,6 +83,10 @@ class NotificationTemplate(TranslatableModel):
             _("Access code was created for a reservation"),
         ),
         (NotificationType.PAID_RESERVATION_APPROVED, _("Paid reservation approved")),
+        (
+            NotificationType.PAID_RESERVATION_APPROVED_OFFICIAL,
+            _("Paid reservation approved official"),
+        ),
         (NotificationType.CATERING_ORDER_CREATED, _("Catering order created")),
         (NotificationType.CATERING_ORDER_MODIFIED, _("Catering order modified")),
         (NotificationType.CATERING_ORDER_DELETED, _("Catering order deleted")),
