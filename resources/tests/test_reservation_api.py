@@ -1514,11 +1514,19 @@ def test_reservation_mails(
     api_client.force_authenticate(user=general_admin)
     response = api_client.put(detail_url, data=reservation_data_extra, format="json")
     assert response.status_code == 200
-    assert len(mail.outbox) == 1
+    assert len(mail.outbox) == 2
+
     check_received_mail_exists(
         "Reservation denied",
         reservation_data_extra["reserver_email_address"],
         "has been denied.",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Reservation denied",
+        general_admin.email,
+        "has been denied",
     )
 
     # reset to REQUESTED
@@ -1540,10 +1548,9 @@ def test_reservation_mails(
 
     # should also be sent to official
     check_received_mail_exists(
-        "Reservation requested",
+        "Reservation confirmed",
         general_admin.email,
-        "Process the reservation",
-        clear_outbox=False,
+        "has been confirmed",
     )
 
     mail.outbox = []
@@ -1552,11 +1559,19 @@ def test_reservation_mails(
     reservation_data_extra["state"] = Reservation.CANCELLED
     response = api_client.delete(detail_url, format="json")
     assert response.status_code == 204
-    assert len(mail.outbox) == 1
+    assert len(mail.outbox) == 2
+
     check_received_mail_exists(
         "Reservation cancelled",
         reservation_data_extra["reserver_email_address"],
         "has been cancelled.",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Reservation cancelled",
+        general_admin.email,
+        "has been cancelled",
     )
 
 
@@ -1578,6 +1593,12 @@ def test_reservation_mails_in_finnish(
     resource.reservation_metadata_set = ReservationMetadataSet.objects.get(
         name="default"
     )
+
+    # extra official email sent to third party
+
+    third_party_email = "customer@thirdparty.com"
+    resource.notification_email_addresses = third_party_email
+
     resource.save()
     if perm_type == "unit":
         assign_perm("unit:can_approve_reservation", general_admin, resource.unit)
@@ -1613,7 +1634,7 @@ def test_reservation_mails_in_finnish(
 
     # 2 mails should be sent, one to the customer, and one to the admin
     # who can approve the reservation (and no mail for the other admin)
-    assert len(mail.outbox) == 2
+    assert len(mail.outbox) == 3
 
     check_received_mail_exists(
         "Olet tehnyt alustavan varauksen",
@@ -1622,7 +1643,16 @@ def test_reservation_mails_in_finnish(
         clear_outbox=False,
     )
     check_received_mail_exists(
-        "Alustava varaus tehty", general_admin.email, "Uusi alustava varaus on tehty"
+        "Alustava varaus tehty",
+        general_admin.email,
+        "Uusi alustava varaus on tehty",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Alustava varaus tehty",
+        third_party_email,
+        "Uusi alustava varaus on tehty",
     )
 
     detail_url = "%s%s/" % (list_url, response.data["id"])
@@ -1632,11 +1662,26 @@ def test_reservation_mails_in_finnish(
     api_client.force_authenticate(user=general_admin)
     response = api_client.put(detail_url, data=reservation_data_extra, format="json")
     assert response.status_code == 200
-    assert len(mail.outbox) == 1
+    assert len(mail.outbox) == 3
+
     check_received_mail_exists(
         "Varaus hylätty",
         reservation_data_extra["reserver_email_address"],
         "Varauksesi on hylätty.",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Varaus hylätty",
+        general_admin.email,
+        "Varaus on hylätty",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Varaus hylätty",
+        third_party_email,
+        "Varaus on hylätty",
     )
 
     # reset to REQUESTED
@@ -1646,7 +1691,7 @@ def test_reservation_mails_in_finnish(
     reservation_data_extra["state"] = Reservation.CONFIRMED
     response = api_client.put(detail_url, data=reservation_data_extra, format="json")
     assert response.status_code == 200
-    assert len(mail.outbox) == 2
+    assert len(mail.outbox) == 3
 
     check_received_mail_exists(
         "Varaus vahvistettu",
@@ -1656,26 +1701,42 @@ def test_reservation_mails_in_finnish(
     )
     assert "this resource rocks" in str(mail.outbox[0].message())
 
-    #
     # should also be sent to official
     check_received_mail_exists(
-        "Alustava varaus tehty",
+        "Varaus vahvistettu",
         general_admin.email,
-        "Käsittele varaus",
+        "Varaus vahvistettu",
         clear_outbox=False,
     )
-
-    mail.outbox = []
+    check_received_mail_exists(
+        "Varaus vahvistettu",
+        third_party_email,
+        "Varaus vahvistettu",
+    )
 
     # test CANCELLED
     reservation_data_extra["state"] = Reservation.CANCELLED
     response = api_client.delete(detail_url, format="json")
     assert response.status_code == 204
-    assert len(mail.outbox) == 1
+    assert len(mail.outbox) == 3
+
     check_received_mail_exists(
         "Varaus peruttu",
         reservation_data_extra["reserver_email_address"],
         "Varauksesi on peruttu.",
+        clear_outbox=False,
+    )
+    check_received_mail_exists(
+        "Varaus peruttu",
+        general_admin.email,
+        "Varaus on peruttu",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Varaus peruttu",
+        third_party_email,
+        "Varaus on peruttu",
     )
 
 

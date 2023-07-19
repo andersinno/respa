@@ -95,6 +95,21 @@ def paid_reservation_approved_notification():
         )
 
 
+@pytest.fixture(autouse=True)
+def paid_reservation_approved_official_notification():
+    NotificationTemplate.objects.filter(
+        type=NotificationType.PAID_RESERVATION_APPROVED_OFFICIAL
+    ).delete()
+    with translation.override("fi"):
+        return NotificationTemplate.objects.create(
+            type=NotificationType.PAID_RESERVATION_APPROVED_OFFICIAL,
+            short_message="Paid reservation approved official short message.",
+            subject="Paid reservation approved official subject.",
+            body="Paid reservation approved official body. \n"
+            + get_body_with_all_template_vars(),
+        )
+
+
 @pytest.mark.django_db
 @override_settings(RESPA_MAILS_ENABLED=True)
 def test_reservation_created_notification(mailoutbox, order_with_products):

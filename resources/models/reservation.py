@@ -785,14 +785,14 @@ class Reservation(ModifiableModel):
         recipients |= self.resource.get_users_with_perm("can_approve_reservation")
 
         # resource may also include extra emails
-        extra_email_addresses = [
-            email
-            for email in [
+        extra_email_addresses = {
+            email.casefold()
+            for email in {
                 email.strip()
                 for email in self.resource.notification_email_addresses.split(",")
-            ]
+            }
             if email
-        ]
+        }
 
         num_recipients = len(recipients) + len(extra_email_addresses)
 
