@@ -1,10 +1,9 @@
-from unittest.mock import MagicMock, create_autospec, patch
-from urllib.parse import urlencode
-
 import pytest
 from guardian.shortcuts import assign_perm
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.reverse import reverse
+from unittest.mock import MagicMock, create_autospec, patch
+from urllib.parse import urlencode
 
 from notifications.tests.utils import check_received_mail_exists
 from resources.enums import UnitAuthorizationLevel
@@ -25,6 +24,7 @@ from ..factories import OrderWithOrderLinesFactory, ProductFactory
 from ..models import Order, Product
 from ..providers.base import PaymentProvider
 from .test_notifications import paid_reservation_approved_notification  # noqa
+from .test_notifications import paid_reservation_approved_official_notification  # noqa
 from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse("reservation-list")
@@ -643,6 +643,7 @@ def test_approve_paid_reservation(
     mailoutbox,
     settings,
     paid_reservation_approved_notification,
+    paid_reservation_approved_official_notification,
     staff_api_client,
     paid_resource,
     staff_user,
@@ -716,10 +717,17 @@ def test_approve_paid_reservation(
     mocked_provider.initiate_payment.assert_called()
 
     # check notification sent
-    assert len(mailoutbox) == 1
+    assert len(mailoutbox) == 2
 
     check_received_mail_exists(
         "Paid reservation approved subject.",
         user.email,
         "Paid reservation approved body.",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Paid reservation approved official subject.",
+        staff_user.email,
+        "Paid reservation approved official body.",
     )

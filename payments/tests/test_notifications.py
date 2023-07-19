@@ -4,35 +4,34 @@ from django.utils import translation
 
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
-from payments.utils import get_price_period_display
 from resources.models import Reservation
 
 from ..models import Order
 
 
 def localize_decimal(d):
-    return str(d).replace('.', ',')
+    return str(d).replace(".", ",")
 
 
 def get_body_with_all_template_vars():
     template_vars = (
-        'order.id',
-        'order.created_at',
-        'order.price',
-        'order_line.price',
-        'order_line.quantity',
-        'order_line.unit_price',
-        'product.id',
-        'product.name',
-        'product.description',
-        'product.type',
-        'product.type_display',
-        'product.price_type_display',
-        'product.price_period_display',
+        "order.id",
+        "order.created_at",
+        "order.price",
+        "order_line.price",
+        "order_line.quantity",
+        "order_line.unit_price",
+        "product.id",
+        "product.name",
+        "product.description",
+        "product.type",
+        "product.type_display",
+        "product.price_type_display",
+        "product.price_period_display",
     )
-    body = '{% set order_line=order.order_lines[0] %}{% set product=order_line.product %}\n'
+    body = "{% set order_line=order.order_lines[0] %}{% set product=order_line.product %}\n"
     for template_var in template_vars:
-        body += '{{ %s }}\n' % template_var
+        body += "{{ %s }}\n" % template_var
     return body
 
 
@@ -55,37 +54,59 @@ def get_expected_strings(order):
 
 @pytest.fixture(autouse=True)
 def reservation_created_notification():
-    NotificationTemplate.objects.filter(type=NotificationType.RESERVATION_CREATED).delete()
-    with translation.override('fi'):
+    NotificationTemplate.objects.filter(
+        type=NotificationType.RESERVATION_CREATED
+    ).delete()
+    with translation.override("fi"):
         return NotificationTemplate.objects.create(
             type=NotificationType.RESERVATION_CREATED,
-            short_message='Reservation created short message.',
-            subject='Reservation created subject.',
-            body='Reservation created body. \n' + get_body_with_all_template_vars()
+            short_message="Reservation created short message.",
+            subject="Reservation created subject.",
+            body="Reservation created body. \n" + get_body_with_all_template_vars(),
         )
 
 
 @pytest.fixture(autouse=True)
 def reservation_cancelled_notification():
-    NotificationTemplate.objects.filter(type=NotificationType.RESERVATION_CANCELLED).delete()
-    with translation.override('fi'):
+    NotificationTemplate.objects.filter(
+        type=NotificationType.RESERVATION_CANCELLED
+    ).delete()
+    with translation.override("fi"):
         return NotificationTemplate.objects.create(
             type=NotificationType.RESERVATION_CANCELLED,
-            short_message='Reservation cancelled short message.',
-            subject='Reservation cancelled subject.',
-            body='Reservation cancelled body. \n' + get_body_with_all_template_vars()
+            short_message="Reservation cancelled short message.",
+            subject="Reservation cancelled subject.",
+            body="Reservation cancelled body. \n" + get_body_with_all_template_vars(),
         )
 
 
 @pytest.fixture(autouse=True)
 def paid_reservation_approved_notification():
-    NotificationTemplate.objects.filter(type=NotificationType.PAID_RESERVATION_APPROVED).delete()
-    with translation.override('fi'):
+    NotificationTemplate.objects.filter(
+        type=NotificationType.PAID_RESERVATION_APPROVED
+    ).delete()
+    with translation.override("fi"):
         return NotificationTemplate.objects.create(
             type=NotificationType.PAID_RESERVATION_APPROVED,
-            short_message='Paid reservation approved short message.',
-            subject='Paid reservation approved subject.',
-            body='Paid reservation approved body. \n' + get_body_with_all_template_vars()
+            short_message="Paid reservation approved short message.",
+            subject="Paid reservation approved subject.",
+            body="Paid reservation approved body. \n"
+            + get_body_with_all_template_vars(),
+        )
+
+
+@pytest.fixture(autouse=True)
+def paid_reservation_approved_official_notification():
+    NotificationTemplate.objects.filter(
+        type=NotificationType.PAID_RESERVATION_APPROVED_OFFICIAL
+    ).delete()
+    with translation.override("fi"):
+        return NotificationTemplate.objects.create(
+            type=NotificationType.PAID_RESERVATION_APPROVED_OFFICIAL,
+            short_message="Paid reservation approved official short message.",
+            subject="Paid reservation approved official subject.",
+            body="Paid reservation approved official body. \n"
+            + get_body_with_all_template_vars(),
         )
 
 
@@ -93,14 +114,14 @@ def paid_reservation_approved_notification():
 @override_settings(RESPA_MAILS_ENABLED=True)
 def test_reservation_created_notification(mailoutbox, order_with_products):
     user = order_with_products.reservation.user
-    user.preferred_language = 'fi'
+    user.preferred_language = "fi"
     user.save()
 
     order_with_products.set_state(Order.CONFIRMED)
 
     assert len(mailoutbox) == 1
     check_received_mail_exists(
-        'Reservation created subject.',
+        "Reservation created subject.",
         order_with_products.reservation.user.email,
         get_expected_strings(order_with_products),
     )
@@ -108,34 +129,44 @@ def test_reservation_created_notification(mailoutbox, order_with_products):
 
 @pytest.mark.django_db
 @override_settings(RESPA_MAILS_ENABLED=True)
-def test_paid_reservation_approved_notification(mailoutbox, requested_reservation_with_order):
+def test_paid_reservation_approved_notification(
+    mailoutbox, requested_reservation_with_order
+):
     res = requested_reservation_with_order
     user = res.user
-    user.preferred_language = 'fi'
+    user.preferred_language = "fi"
     user.save()
 
     res.set_state(Reservation.WAITING_FOR_PAYMENT, user)
 
     assert len(mailoutbox) == 1
     check_received_mail_exists(
-        'Paid reservation approved subject.',
+        "Paid reservation approved subject.",
         res.user.email,
-        ('Paid reservation approved body.'),
+        ("Paid reservation approved body."),
     )
 
-@pytest.mark.parametrize('order_state, notification_expected', (
-    (Order.REJECTED, False),
-    (Order.EXPIRED, False),
-    (Order.CANCELLED, True),
-))
+
+@pytest.mark.parametrize(
+    "order_state, notification_expected",
+    (
+        (Order.REJECTED, False),
+        (Order.EXPIRED, False),
+        (Order.CANCELLED, True),
+    ),
+)
 @pytest.mark.django_db
 @override_settings(RESPA_MAILS_ENABLED=True)
-def test_reservation_cancelled_notification(mailoutbox, order_with_products, order_state, notification_expected):
+def test_reservation_cancelled_notification(
+    mailoutbox, order_with_products, order_state, notification_expected
+):
     user = order_with_products.reservation.user
-    user.preferred_language = 'fi'
+    user.preferred_language = "fi"
     user.save()
     if order_state == Order.CANCELLED:
-        Reservation.objects.filter(id=order_with_products.reservation.id).update(state=Reservation.CONFIRMED)
+        Reservation.objects.filter(id=order_with_products.reservation.id).update(
+            state=Reservation.CONFIRMED
+        )
         Order.objects.filter(id=order_with_products.id).update(state=Order.CONFIRMED)
         order_with_products.refresh_from_db()
 
@@ -144,7 +175,7 @@ def test_reservation_cancelled_notification(mailoutbox, order_with_products, ord
     if notification_expected:
         assert len(mailoutbox) == 1
         check_received_mail_exists(
-            'Reservation cancelled subject.',
+            "Reservation cancelled subject.",
             order_with_products.reservation.user.email,
             get_expected_strings(order_with_products),
         )

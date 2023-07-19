@@ -768,55 +768,79 @@ class Reservation(ModifiableModel):
             attachments,
         )
 
+    def send_mail_to_officials(self, notification_type, max_recipients=100):
+        # always send to all resource unit admins
+        recipients = set(
+            get_user_model().objects.filter(
+                pk__in=set(
+                    self.resource.unit.authorizations.admin_level().values_list(
+                        "authorized", flat=True
+                    )
+                )
+            )
+        )
+
+        # include anyone who can approve/reject reservation
+
+        recipients |= self.resource.get_users_with_perm("can_approve_reservation")
+
+        # resource may also include extra emails
+        extra_email_addresses = {
+            email.casefold()
+            for email in {
+                email.strip()
+                for email in self.resource.notification_email_addresses.split(",")
+            }
+            if email
+        }
+
+        num_recipients = len(recipients) + len(extra_email_addresses)
+
+        if num_recipients > max_recipients:
+            error_msg = f"{self} {notification_type}: {num_recipients} exceeds maximum limit of {max_recipients}"
+            raise ValueError(error_msg)
+
+        for recipient in recipients:
+            self.send_reservation_mail(notification_type, user=recipient)
+
+        for email in extra_email_addresses:
+            self.send_reservation_mail(notification_type, email=email)
+
     def send_reservation_requested_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_REQUESTED)
-        self.send_reservation_created_mail_to_officials()
-
-    def send_reservation_created_mail_to_officials(self):
-        # Send mail to unit admins and officials who can approve this reservation
-        officials_who_can_approve_reservation = self.resource.get_users_with_perm(
-            "can_approve_reservation"
+        self.send_mail_to_officials(
+            NotificationType.RESERVATION_REQUESTED_OFFICIAL,
         )
-        unit_admins_ids = self.resource.unit.authorizations.admin_level().values_list(
-            "authorized", flat=True
-        )
-        unit_admins = get_user_model().objects.filter(id__in=unit_admins_ids)
-        notify_users = officials_who_can_approve_reservation.union(unit_admins)
-        extra_notification_email_list = self.resource.notification_email_addresses
-
-        if len(notify_users) > 100:
-            raise Exception("Refusing to notify more than 100 users (%s)" % self)
-        for user in notify_users:
-            self.send_reservation_mail(
-                NotificationType.RESERVATION_REQUESTED_OFFICIAL, user=user
-            )
-
-        if extra_notification_email_list:
-            for email in extra_notification_email_list.split(","):
-                space_stripped_email = email.strip()
-                self.send_reservation_mail(
-                    NotificationType.RESERVATION_REQUESTED_OFFICIAL,
-                    email=space_stripped_email,
-                )
 
     def send_reservation_denied_mail(self):
         self.send_reservation_mail(NotificationType.RESERVATION_DENIED)
+        self.send_mail_to_officials(
+            NotificationType.RESERVATION_DENIED_OFFICIAL,
+        )
+
+    def send_reservation_cancelled_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
+        self.send_mail_to_officials(
+            NotificationType.RESERVATION_CANCELLED_OFFICIAL,
+        )
 
     def send_paid_reservation_approved_mail(self):
         self.send_reservation_mail(NotificationType.PAID_RESERVATION_APPROVED)
+        self.send_mail_to_officials(
+            NotificationType.PAID_RESERVATION_APPROVED_OFFICIAL,
+        )
 
     def send_reservation_confirmed_mail(self):
         reservations = [self]
         ical_file = build_reservations_ical_file(reservations)
         attachment = ("reservation.ics", ical_file, "text/calendar")
+
         self.send_reservation_mail(
             NotificationType.RESERVATION_CONFIRMED, attachments=[attachment]
         )
-
-        self.send_reservation_created_mail_to_officials()
-
-    def send_reservation_cancelled_mail(self):
-        self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
+        self.send_mail_to_officials(
+            NotificationType.RESERVATION_CONFIRMED_OFFICIAL,
+        )
 
     def send_reservation_created_mail(self):
         reservations = [self]
