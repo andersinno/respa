@@ -27,7 +27,6 @@ class NotificationType:
     RESERVATION_DENIED_OFFICIAL = "reservation_denied_official"
     RESERVATION_CREATED = "reservation_created"
     RESERVATION_CHANGED = "reservation_changed"
-    # TODO: is this still used?
     PAID_RESERVATION_APPROVED = "paid_reservation_approved"
     PAID_RESERVATION_APPROVED_OFFICIAL = "paid_reservation_approved_official"
     # If the access code is known at reservation time, this notification
