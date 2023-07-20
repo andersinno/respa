@@ -242,6 +242,7 @@ class ResourceForm(forms.ModelForm):
             "should_be_reserved_whole_day",
             "need_manual_confirmation",
             "need_manual_confirmation_for_zero_price",
+            "can_request_invoice",
             "authentication",
             "access_code_type",
             "free_to_use",
@@ -267,6 +268,9 @@ class ResourceForm(forms.ModelForm):
                 choices=((True, _("Yes")), (False, _("No")))
             ),
             "need_manual_confirmation_for_zero_price": RespaRadioSelect(
+                choices=((True, _("Yes")), (False, _("No")))
+            ),
+            "can_request_invoice": RespaRadioSelect(
                 choices=((True, _("Yes")), (False, _("No")))
             ),
             "free_to_use": RespaRadioSelect(

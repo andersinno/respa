@@ -1083,6 +1083,9 @@ msgstr "Tarvitsee virkailijan vahvistuksen"
 msgid "Need manual confirmation when price is zero"
 msgstr "Tarvitsee virkailijan vahvistuksen mikäli hinta on nolla"
 
+msgid "Customer can request payment with invoice"
+msgstr "Asiakas saa pyytää maksua laskulla"
+
 msgid "Authentication"
 msgstr "Tunnistautuminen"
 
