@@ -120,6 +120,7 @@ class Reservation(ModifiableModel):
     CONFIRMED = "confirmed"
     DENIED = "denied"
     REQUESTED = "requested"
+    INVOICE_REQUESTED = "invoice_requested"
     WAITING_FOR_PAYMENT = "waiting_for_payment"
 
     STATE_CHOICES = (
@@ -128,6 +129,7 @@ class Reservation(ModifiableModel):
         (CONFIRMED, _("confirmed")),
         (DENIED, _("denied")),
         (REQUESTED, _("requested")),
+        (INVOICE_REQUESTED, _("invoice requested")),
         (WAITING_FOR_PAYMENT, _("waiting for payment")),
     )
 
@@ -187,7 +189,20 @@ class Reservation(ModifiableModel):
     requested_at = models.DateTimeField(
         null=True, blank=True, verbose_name=_("Requested at")
     )
+
+    invoice_requested = models.BooleanField(
+        default=False,
+        verbose_name=_("Invoice requested by customer"),
+    )
+
+    invoice_requested_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice requested by customer"),
+    )
+
     staff_event = models.BooleanField(verbose_name=_("Is staff event"), default=False)
+
     type = models.CharField(
         blank=False,
         verbose_name=_("Type"),
@@ -241,10 +256,29 @@ class Reservation(ModifiableModel):
     reserver_address_city = models.CharField(
         verbose_name=_("Reserver address city"), max_length=100, blank=True
     )
+
     company = models.CharField(verbose_name=_("Company"), max_length=100, blank=True)
+
+    company_email_address = models.EmailField(
+        verbose_name=_("Company email address"), blank=True
+    )
+    company_phone_number = models.CharField(
+        verbose_name=_("Company phone number"), max_length=30, blank=True
+    )
+    company_address_street = models.CharField(
+        verbose_name=_("Company address street"), max_length=100, blank=True
+    )
+    company_address_zip = models.CharField(
+        verbose_name=_("Company address zip"), max_length=30, blank=True
+    )
+    company_address_city = models.CharField(
+        verbose_name=_("Company address city"), max_length=100, blank=True
+    )
+
     billing_first_name = models.CharField(
         verbose_name=_("Billing first name"), max_length=100, blank=True
     )
+
     billing_last_name = models.CharField(
         verbose_name=_("Billing last name"), max_length=100, blank=True
     )
