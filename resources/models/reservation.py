@@ -55,6 +55,11 @@ RESERVATION_EXTRA_FIELDS = (
     "billing_address_zip",
     "billing_address_city",
     "company",
+    "company_email_address",
+    "company_phone_number",
+    "company_address_city",
+    "company_address_street",
+    "company_address_zip",
     "event_description",
     "event_subject",
     "reserver_id",
@@ -423,10 +428,11 @@ class Reservation(ModifiableModel):
     def set_state(self, new_state, user):
         # Make sure it is a known state
         assert new_state in (
-            Reservation.REQUESTED,
+            Reservation.CANCELLED,
             Reservation.CONFIRMED,
             Reservation.DENIED,
-            Reservation.CANCELLED,
+            Reservation.INVOICE_REQUESTED,
+            Reservation.REQUESTED,
             Reservation.WAITING_FOR_PAYMENT,
         )
 
@@ -442,12 +448,19 @@ class Reservation(ModifiableModel):
         if new_state == Reservation.REQUESTED:
             self.requested_at = timezone.now()
 
-        if new_state in (Reservation.CONFIRMED, Reservation.WAITING_FOR_PAYMENT):
+        if new_state in (
+            Reservation.CONFIRMED,
+            Reservation.INVOICE_REQUESTED,
+            Reservation.WAITING_FOR_PAYMENT,
+        ):
             if old_state == Reservation.REQUESTED:
                 self.approver = user
                 self.approved_at = timezone.now()
                 if new_state == Reservation.WAITING_FOR_PAYMENT:
                     self.send_paid_reservation_approved_mail()
+            if new_state == Reservation.INVOICE_REQUESTED:
+                self.invoice_requested_at = timezone.now()
+                self.send_invoice_requested_mail()
 
         if new_state == Reservation.CONFIRMED:
             reservation_confirmed.send(sender=self.__class__, instance=self, user=user)
@@ -856,6 +869,12 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
         self.send_mail_to_officials(
             NotificationType.RESERVATION_CANCELLED_OFFICIAL,
+        )
+
+    def send_invoice_requested_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_INVOICE_REQUESTED)
+        self.send_mail_to_officials(
+            NotificationType.RESERVATION_INVOICE_REQUESTED_OFFICIAL,
         )
 
     def send_paid_reservation_approved_mail(self):
