@@ -237,6 +237,12 @@ msgstr "Varaus hylätty"
 msgid "Reservation denied official"
 msgstr "Varaus hylätty virkailija"
 
+msgid "Reservation invoice requested"
+msgstr "Lasku varauksesta pyydetty"
+
+msgid "Reservation invoice requested official"
+msgstr "Lasku varauksesta pyydetty virkailija"
+
 msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"
 
