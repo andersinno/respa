@@ -109,8 +109,10 @@ class DaysForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        is_empty_hours = not cleaned_data["opens"] or not cleaned_data["closes"]
-        is_closed = cleaned_data["closed"]
+        is_empty_hours = not cleaned_data.get("opens", False) or not cleaned_data.get(
+            "closes", False
+        )
+        is_closed = cleaned_data.get("closed", False)
         if is_empty_hours and not is_closed:
             raise ValidationError("Missing opening hours")
         return cleaned_data
