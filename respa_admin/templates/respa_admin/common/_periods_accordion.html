@@ -1,11 +1,6 @@
 {% load i18n templatetags %}
 <div class="accordion-item" id="accordion-item-{{ id }}">
     {{ period.id }}
-    {% if period.resource.value %}
-        Resource {{ period.resource }}
-    {% elif period.unit %}
-        Unit {{ period.unit }}
-    {% endif %}
     <div class="dropdown-time panel-group input-row"
          id="accordion{{ id }}"
          role="tablist"
@@ -48,33 +43,33 @@
                id="id_periods-{{ id }}-DELETE">
         <div class="container-fluid hours-wrapper{% if period.errors %} has-error{% endif %}">
             {% form_errors period %}
-                <div class="hours-table-header" id="period-list">
-                    <div class="input-row period-input" id="period-input-{{ id }}">
-                        <div class="form-group schedule">
-                            <label class="control-label input-label">{% trans "Name" %} *</label>
-                            {{ period.name }}
-                        </div>
-                        <div class="form-group time-interval">
-                            <label class="control-label input-label">{% trans "Time interval" %}</label>
-                            <div class="input-row range-input date-input" id="date-inputs-{{ id }}">
-                                {{ period.start }}
-                                <span class="glyphicon glyphicon-minus"></span>
-                                {{ period.end }}
-                            </div>
+            <div class="hours-table-header" id="period-list">
+                <div class="input-row period-input" id="period-input-{{ id }}">
+                    <div class="form-group schedule">
+                        <label class="control-label input-label">{% trans "Name" %} *</label>
+                        {{ period.name }}
+                    </div>
+                    <div class="form-group time-interval">
+                        <label class="control-label input-label">{% trans "Time interval" %}</label>
+                        <div class="input-row range-input date-input" id="date-inputs-{{ id }}">
+                            {{ period.start }}
+                            <span class="glyphicon glyphicon-minus"></span>
+                            {{ period.end }}
                         </div>
                     </div>
                 </div>
-                <div class="hidden" id="days-management-form">{{ period.days.management_form }}</div>
-                <div id="period-days-list">
-                    {% for day in period.days %}
-                        {% include "respa_admin/common/_period_day.html" with day=day %}
-                    {% endfor %}
-                </div>
-                <div class="footer-buttons">
-                    <button class="btn pull-left delete-time btn-danger"
-                            type="button"
-                            id="remove-button-{{ id }}">{% trans "Remove time period" %}</button>
-                </div>
+            </div>
+            <div class="hidden" id="days-management-form">{{ period.days.management_form }}</div>
+            <div id="period-days-list">
+                {% for day in period.days %}
+                    {% include "respa_admin/common/_period_day.html" with day=day %}
+                {% endfor %}
+            </div>
+            <div class="footer-buttons">
+                <button class="btn pull-left delete-time btn-danger"
+                        type="button"
+                        id="remove-button-{{ id }}">{% trans "Remove time period" %}</button>
             </div>
         </div>
     </div>
+</div>
