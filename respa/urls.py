@@ -28,6 +28,7 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include('allauth.urls')),
     path('grappelli/', include('grappelli.urls')),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
     path('resource_image/<int:pk>', ResourceImageView.as_view(), name='resource-image-view'),
     path('v1/', include(router.urls)),
     re_path(r'v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
