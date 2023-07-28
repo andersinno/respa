@@ -107,6 +107,7 @@ class ReservationSerializer(
             "is_own",
             "state",
             "need_manual_confirmation",
+            "invoice_requested",
             "staff_event",
             "access_code",
             "user_permissions",
@@ -139,6 +140,15 @@ class ReservationSerializer(
             is_staff_event = data.get("staff_event", False)
 
             required = resource.get_required_reservation_extra_field_names(cache=cache)
+
+            if data.get("invoice_requested", False):
+                required = set(required) | {
+                    "reserver_id",
+                    "company_address",
+                    "company_address_street",
+                    "company_address_zip",
+                    "company_address_city",
+                }
 
             # staff events always have the same set of required fields
             if is_staff_event and resource.can_create_staff_event(request_user):
@@ -209,6 +219,13 @@ class ReservationSerializer(
                 _("You are not allowed to make reservations in this resource.")
             )
 
+        is_staff = resource.can_create_staff_event(request_user)
+
+        can_request_invoice = resource.can_request_invoice and not is_staff
+
+        if data.get("invoice_requested", False) and not can_request_invoice:
+            raise ValidationError(_("You cannot request an invoice for this resource"))
+
         if data["end"] < timezone.now():
             raise ValidationError(_("You cannot make a reservation in the past"))
 
@@ -245,11 +262,10 @@ class ReservationSerializer(
         # Check user specific reservation restrictions relating to given period.
         resource.validate_reservation_period(reservation, request_user, data=data)
 
-        if data.get("staff_event", False):
-            if not resource.can_create_staff_event(request_user):
-                raise ValidationError(
-                    dict(staff_event=_("Only allowed to be set by resource managers"))
-                )
+        if data.get("staff_event", False) and not is_staff:
+            raise ValidationError(
+                dict(staff_event=_("Only allowed to be set by resource managers"))
+            )
 
         if "type" in data:
             if data[
@@ -904,6 +920,7 @@ class ReservationViewSet(
             state__in=(
                 Reservation.CONFIRMED,
                 Reservation.REQUESTED,
+                Reservation.INVOICE_REQUESTED,
                 Reservation.WAITING_FOR_PAYMENT,
             )
         )
@@ -923,17 +940,28 @@ class ReservationViewSet(
         if "user" not in serializer.validated_data:
             override_data["user"] = self.request.user
         override_data["state"] = Reservation.CREATED
+
         instance = serializer.save(**override_data)
 
         resource = serializer.validated_data["resource"]
+
+        order = instance.get_order()
+
+        request_invoice = instance.invoice_requested if order else False
+
         if (
             instance.need_manual_confirmation()
+            and not request_invoice
             and not resource.can_bypass_manual_confirmation(self.request.user)
         ):
             new_state = Reservation.REQUESTED
         else:
-            if instance.get_order():
-                new_state = Reservation.WAITING_FOR_PAYMENT
+            if order:
+                new_state = (
+                    Reservation.INVOICE_REQUESTED
+                    if request_invoice
+                    else Reservation.WAITING_FOR_PAYMENT
+                )
             else:
                 new_state = Reservation.CONFIRMED
 
@@ -945,12 +973,16 @@ class ReservationViewSet(
 
         order = old_instance.get_order()
 
+        # invoice requested should only be permitted when creating a new reservation
+        serializer.validated_data.pop("invoice_requested", False)
+
         new_state = serializer.validated_data.pop("state", old_state)
         new_order = serializer.validated_data.pop("order", None)
 
         new_instance = serializer.save(
             modified_by=self.request.user,
             order=new_order or order,
+            invoice_requested=old_instance.invoice_requested,
         )
 
         if (

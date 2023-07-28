@@ -19,6 +19,8 @@ logger = logging.getLogger("respa.notifications")
 class NotificationType:
     RESERVATION_REQUESTED = "reservation_requested"
     RESERVATION_REQUESTED_OFFICIAL = "reservation_requested_official"
+    RESERVATION_INVOICE_REQUESTED = "reservation_requested"
+    RESERVATION_INVOICE_REQUESTED_OFFICIAL = "reservation_requested_official"
     RESERVATION_CANCELLED_OFFICIAL = "reservation_cancelled_official"
     RESERVATION_CANCELLED = "reservation_cancelled"
     RESERVATION_CONFIRMED = "reservation_confirmed"
@@ -55,6 +57,14 @@ class NotificationTemplate(TranslatableModel):
         (
             NotificationType.RESERVATION_REQUESTED_OFFICIAL,
             _("Reservation requested official"),
+        ),
+        (
+            NotificationType.RESERVATION_INVOICE_REQUESTED,
+            _("Reservation invoice requested"),
+        ),
+        (
+            NotificationType.RESERVATION_INVOICE_REQUESTED_OFFICIAL,
+            _("Reservation invoice requested official"),
         ),
         (NotificationType.RESERVATION_CANCELLED, _("Reservation cancelled")),
         (

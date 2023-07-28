@@ -55,6 +55,11 @@ RESERVATION_EXTRA_FIELDS = (
     "billing_address_zip",
     "billing_address_city",
     "company",
+    "company_email_address",
+    "company_phone_number",
+    "company_address_city",
+    "company_address_street",
+    "company_address_zip",
     "event_description",
     "event_subject",
     "reserver_id",
@@ -120,6 +125,7 @@ class Reservation(ModifiableModel):
     CONFIRMED = "confirmed"
     DENIED = "denied"
     REQUESTED = "requested"
+    INVOICE_REQUESTED = "invoice_requested"
     WAITING_FOR_PAYMENT = "waiting_for_payment"
 
     STATE_CHOICES = (
@@ -128,6 +134,7 @@ class Reservation(ModifiableModel):
         (CONFIRMED, _("confirmed")),
         (DENIED, _("denied")),
         (REQUESTED, _("requested")),
+        (INVOICE_REQUESTED, _("invoice requested")),
         (WAITING_FOR_PAYMENT, _("waiting for payment")),
     )
 
@@ -187,7 +194,20 @@ class Reservation(ModifiableModel):
     requested_at = models.DateTimeField(
         null=True, blank=True, verbose_name=_("Requested at")
     )
+
+    invoice_requested = models.BooleanField(
+        default=False,
+        verbose_name=_("Invoice requested by customer"),
+    )
+
+    invoice_requested_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice requested by customer"),
+    )
+
     staff_event = models.BooleanField(verbose_name=_("Is staff event"), default=False)
+
     type = models.CharField(
         blank=False,
         verbose_name=_("Type"),
@@ -241,10 +261,29 @@ class Reservation(ModifiableModel):
     reserver_address_city = models.CharField(
         verbose_name=_("Reserver address city"), max_length=100, blank=True
     )
+
     company = models.CharField(verbose_name=_("Company"), max_length=100, blank=True)
+
+    company_email_address = models.EmailField(
+        verbose_name=_("Company email address"), blank=True
+    )
+    company_phone_number = models.CharField(
+        verbose_name=_("Company phone number"), max_length=30, blank=True
+    )
+    company_address_street = models.CharField(
+        verbose_name=_("Company address street"), max_length=100, blank=True
+    )
+    company_address_zip = models.CharField(
+        verbose_name=_("Company address zip"), max_length=30, blank=True
+    )
+    company_address_city = models.CharField(
+        verbose_name=_("Company address city"), max_length=100, blank=True
+    )
+
     billing_first_name = models.CharField(
         verbose_name=_("Billing first name"), max_length=100, blank=True
     )
+
     billing_last_name = models.CharField(
         verbose_name=_("Billing last name"), max_length=100, blank=True
     )
@@ -389,10 +428,11 @@ class Reservation(ModifiableModel):
     def set_state(self, new_state, user):
         # Make sure it is a known state
         assert new_state in (
-            Reservation.REQUESTED,
+            Reservation.CANCELLED,
             Reservation.CONFIRMED,
             Reservation.DENIED,
-            Reservation.CANCELLED,
+            Reservation.INVOICE_REQUESTED,
+            Reservation.REQUESTED,
             Reservation.WAITING_FOR_PAYMENT,
         )
 
@@ -408,12 +448,19 @@ class Reservation(ModifiableModel):
         if new_state == Reservation.REQUESTED:
             self.requested_at = timezone.now()
 
-        if new_state in (Reservation.CONFIRMED, Reservation.WAITING_FOR_PAYMENT):
+        if new_state in (
+            Reservation.CONFIRMED,
+            Reservation.INVOICE_REQUESTED,
+            Reservation.WAITING_FOR_PAYMENT,
+        ):
             if old_state == Reservation.REQUESTED:
                 self.approver = user
                 self.approved_at = timezone.now()
                 if new_state == Reservation.WAITING_FOR_PAYMENT:
                     self.send_paid_reservation_approved_mail()
+            if new_state == Reservation.INVOICE_REQUESTED:
+                self.invoice_requested_at = timezone.now()
+                self.send_invoice_requested_mail()
 
         if new_state == Reservation.CONFIRMED:
             reservation_confirmed.send(sender=self.__class__, instance=self, user=user)
@@ -822,6 +869,12 @@ class Reservation(ModifiableModel):
         self.send_reservation_mail(NotificationType.RESERVATION_CANCELLED)
         self.send_mail_to_officials(
             NotificationType.RESERVATION_CANCELLED_OFFICIAL,
+        )
+
+    def send_invoice_requested_mail(self):
+        self.send_reservation_mail(NotificationType.RESERVATION_INVOICE_REQUESTED)
+        self.send_mail_to_officials(
+            NotificationType.RESERVATION_INVOICE_REQUESTED_OFFICIAL,
         )
 
     def send_paid_reservation_approved_mail(self):

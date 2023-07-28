@@ -304,6 +304,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_("Need manual confirmation when price is zero"), default=False
     )
 
+    can_request_invoice = models.BooleanField(
+        verbose_name=_("Customer can request payment with invoice"),
+        default=False,
+    )
+
     authentication = models.CharField(
         blank=False,
         verbose_name=_("Authentication"),
