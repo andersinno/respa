@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(
                 blank=True,
                 null=True,
-                verbose_name="Invoice requested by customer",
+                verbose_name="Invoice requested by customer at",
             ),
         ),
         migrations.AlterField(

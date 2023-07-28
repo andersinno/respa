@@ -149,6 +149,9 @@ msgstr ""
 msgid "requested"
 msgstr "käsiteltävänä"
 
+msgid "invoice requested"
+msgstr "laskupyyntö käsiteltävänä"
+
 msgid "cancelled"
 msgstr "peruttu"
 
@@ -242,6 +245,12 @@ msgstr "Lasku varauksesta pyydetty"
 
 msgid "Reservation invoice requested official"
 msgstr "Lasku varauksesta pyydetty virkailija"
+
+msgid "Invoice requested by customer"
+msgstr "Asiakas on pyytänyt laskun"
+
+msgid "Invoice requested by customer at"
+msgstr "Asiakkaan laskupyyntöaika"
 
 msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"
@@ -536,6 +545,9 @@ msgstr "Varauksen teko tähän resurssiin ei ole sallittua."
 
 msgid "You cannot make a reservation in the past"
 msgstr "Varauksen teko menneisyyteen ei ole sallittua"
+
+msgid "You cannot request an invoice for this resource"
+msgstr "Ei ole sallittua pyytää laskua tästä resurssista"
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
@@ -916,6 +928,21 @@ msgstr "Varaajan kaupunki"
 
 msgid "Company"
 msgstr "Yhdistys"
+
+msgid "Company phone number"
+msgstr "Yrityksen puhelinnumero"
+
+msgid "Company email address"
+msgstr "Yrityksen sähköpostiosoite"
+
+msgid "Company address street"
+msgstr "Yrityksen katuosoite"
+
+msgid "Company address zip"
+msgstr "Yrityksen postinumero"
+
+msgid "Company address city"
+msgstr "Yrityksen kaupunki"
 
 msgid "Billing first name"
 msgstr "Laskutusosoite etunimi"
