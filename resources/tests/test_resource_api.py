@@ -746,7 +746,7 @@ def test_reservable_in_advance_fields(
     assert response.data["reservable_max_days_in_advance"] == 5
     before = timezone.now().replace(
         hour=0, minute=0, second=0, microsecond=0
-    ) + datetime.timedelta(days=6)
+    ) + datetime.timedelta(days=5)
     assert response.data["reservable_before"] == before
 
     resource_in_unit.reservable_max_days_in_advance = 10
@@ -760,7 +760,7 @@ def test_reservable_in_advance_fields(
     assert response.data["reservable_max_days_in_advance"] == 10
     before = timezone.now().replace(
         hour=0, minute=0, second=0, microsecond=0
-    ) + datetime.timedelta(days=11)
+    ) + datetime.timedelta(days=10)
     assert response.data["reservable_before"] == before
 
 

@@ -988,7 +988,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
     def get_reservable_before(self):
-        return create_datetime_days_from_now(self.get_reservable_max_days_in_advance())
+        return create_datetime_days_from_now(
+            self.get_reservable_max_days_in_advance(), exclude_extra_day=True
+        )
 
     def get_reservable_min_days_in_advance(self):
         return (
