@@ -203,7 +203,13 @@ class Reservation(ModifiableModel):
     invoice_requested_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name=_("Invoice requested by customer"),
+        verbose_name=_("Invoice requested by customer at"),
+    )
+
+    invoice_approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice approved by admin at"),
     )
 
     staff_event = models.BooleanField(verbose_name=_("Is staff event"), default=False)
