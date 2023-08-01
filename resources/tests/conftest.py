@@ -523,3 +523,17 @@ def requested_reservation(resource_with_opening_hours, user):
         state=Reservation.REQUESTED,
         requested_at=timezone.now(),
     )
+
+
+@pytest.fixture
+def invoice_requested_reservation(resource_with_opening_hours, user):
+    begin = timezone.now()
+    end = begin + datetime.timedelta(hours=2)
+    return Reservation.objects.create(
+        resource=resource_with_opening_hours,
+        begin=begin,
+        end=end,
+        user=user,
+        state=Reservation.INVOICE_REQUESTED,
+        invoice_requested_at=timezone.now(),
+    )

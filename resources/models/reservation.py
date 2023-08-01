@@ -432,6 +432,9 @@ class Reservation(ModifiableModel):
             else:
                 allowed_states += [self.CONFIRMED]
 
+        if self.state == self.INVOICE_REQUESTED:
+            allowed_states += [self.DENIED, self.CONFIRMED]
+
         elif self.need_manual_confirmation():
             allowed_states += [self.REQUESTED]
 
@@ -470,9 +473,17 @@ class Reservation(ModifiableModel):
                 self.approved_at = timezone.now()
                 if new_state == Reservation.WAITING_FOR_PAYMENT:
                     self.send_paid_reservation_approved_mail()
+
             if new_state == Reservation.INVOICE_REQUESTED:
                 self.invoice_requested_at = timezone.now()
                 self.send_invoice_requested_mail()
+
+            if (
+                new_state == Reservation.CONFIRMED
+                and old_state == Reservation.INVOICE_REQUESTED
+            ):
+                self.approver = user
+                self.invoice_approved_at = timezone.now()
 
         if new_state == Reservation.CONFIRMED:
             reservation_confirmed.send(sender=self.__class__, instance=self, user=user)
