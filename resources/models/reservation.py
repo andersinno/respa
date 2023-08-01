@@ -212,6 +212,12 @@ class Reservation(ModifiableModel):
         verbose_name=_("Invoice approved by admin at"),
     )
 
+    invoice_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice XML document generated at"),
+    )
+
     staff_event = models.BooleanField(verbose_name=_("Is staff event"), default=False)
 
     type = models.CharField(
