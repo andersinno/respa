@@ -1,6 +1,7 @@
 import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.core.validators import MinLengthValidator
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -98,7 +99,21 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_("Manager email"), max_length=100, null=True, blank=True
     )
     cost_center_code = models.CharField(
-        verbose_name=_("Cost center code"), max_length=100, blank=True, default=""
+        verbose_name=_("CeePos Cost center code"),
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    sap_cost_center_code = models.CharField(
+        verbose_name=_("SAP Cost center code"), max_length=100, blank=True
+    )
+
+    sap_sales_organization = models.CharField(
+        verbose_name=_("SAP Sales Organization code"),
+        max_length=4,
+        blank=True,
+        validators=[MinLengthValidator(4)],
     )
 
     street_address = models.CharField(
