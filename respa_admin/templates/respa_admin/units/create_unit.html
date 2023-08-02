@@ -9,14 +9,14 @@
             {% csrf_token %}
             {{ period_formset_with_days.management_form }}
             {% form_errors form period_formset_with_days %}
-                {% include "respa_admin/units/form/_general_info.html" %}
-                {% include "respa_admin/units/form/_unit_settings.html" %}
-                {% include "respa_admin/units/form/_periods.html" with formset=period_formset_with_days %}
-                <div class="navbar-fixed-bottom">{% include "respa_admin/units/form/_toolbar.html" %}</div>
-            </form>
-        </div>
-    {% endblock body %}
-    {% block js_extra %}
-        <script type="text/javascript"
-                src="{% static 'respa_admin/unitForm-bundle.js' %}"></script>
-    {% endblock js_extra %}
+            {% include "respa_admin/units/form/_general_info.html" %}
+            {% include "respa_admin/units/form/_unit_settings.html" %}
+            {% include "respa_admin/units/form/_periods.html" with formset=period_formset_with_days %}
+            <div class="navbar-fixed-bottom">{% include "respa_admin/units/form/_toolbar.html" %}</div>
+        </form>
+    </div>
+{% endblock body %}
+{% block js_extra %}
+    <script type="text/javascript"
+            src="{% static 'respa_admin/unitForm-bundle.js' %}"></script>
+{% endblock js_extra %}

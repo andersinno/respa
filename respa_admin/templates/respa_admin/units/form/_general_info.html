@@ -1,8 +1,7 @@
 {% load i18n %}
-
 <div id="general-info">
     <div class="form-section-header">
-        <h2>{% trans "General information"  %}</h2>
+        <h2>{% trans "General information" %}</h2>
         <span class="pull-right">{% trans "*Mandatory Fields" %}</span>
     </div>
     <div class="description">
@@ -10,7 +9,6 @@
         {% include "respa_admin/forms/_input.html" with field=form.name_fi %}
         {% include "respa_admin/forms/_input.html" with field=form.name_en %}
         {% include "respa_admin/forms/_input.html" with field=form.name_sv %}
-
         {% include "respa_admin/forms/_textarea_input.html" with field=form.description_fi %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.description_en %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.description_sv %}
@@ -35,5 +33,7 @@
     <div class="accounting">
         <h4>{% trans "Accounting" %}</h4>
         {% include "respa_admin/forms/_input.html" with field=form.cost_center_code %}
+        {% include "respa_admin/forms/_input.html" with field=form.sap_cost_center_code %}
+        {% include "respa_admin/forms/_input.html" with field=form.sap_sales_organization %}
     </div>
 </div>

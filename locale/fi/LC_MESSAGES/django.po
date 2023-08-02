@@ -2018,6 +2018,15 @@ msgstr "Kirjanpito"
 msgid "Cost center code"
 msgstr "Kustannuspaikkakoodi"
 
+msgid "CeePos Cost center code"
+msgstr "CeePoksen Kustannuspaikkakoodi"
+
+msgid "SAP Cost center code"
+msgstr "SAP:in Kustannuspaikkakoodi"
+
+msgid "SAP Sales Organization code"
+msgstr "SAP:in Myyntiorganisaatiokoodi"
+
 msgid ""
 "This resource's unit doesn't have a cost center code set. "
 "Please set one in the unit settings to ensure payments go through."
