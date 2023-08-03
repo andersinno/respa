@@ -149,6 +149,9 @@ msgstr ""
 msgid "requested"
 msgstr "käsiteltävänä"
 
+msgid "invoice requested"
+msgstr "laskupyyntö käsiteltävänä"
+
 msgid "cancelled"
 msgstr "peruttu"
 
@@ -210,8 +213,20 @@ msgstr "Alustava varaus tehty virkailija"
 msgid "Reservation cancelled"
 msgstr "Varaus peruttu"
 
+msgid "Reservation cancelled official"
+msgstr "Varaus peruttu virkailija"
+
 msgid "Reservation confirmed"
 msgstr "Varaus vahvistettu"
+
+msgid "Reservation confirmed official"
+msgstr "Varaus vahvistettu virkailija"
+
+msgid "Paid reservation approved"
+msgstr "Maksettava varaus vahvistettu"
+
+msgid "Paid reservation approved official"
+msgstr "Maksettava varaus vahvistettu virkailija"
 
 msgid "Reservation created"
 msgstr "Varaus luotu"
@@ -221,6 +236,21 @@ msgstr "Varaus muutettu"
 
 msgid "Reservation denied"
 msgstr "Varaus hylätty"
+
+msgid "Reservation denied official"
+msgstr "Varaus hylätty virkailija"
+
+msgid "Reservation invoice requested"
+msgstr "Lasku varauksesta pyydetty"
+
+msgid "Reservation invoice requested official"
+msgstr "Lasku varauksesta pyydetty virkailija"
+
+msgid "Invoice requested by customer"
+msgstr "Asiakas on pyytänyt laskun"
+
+msgid "Invoice requested by customer at"
+msgstr "Asiakkaan laskupyyntöaika"
 
 msgid "Reservation created with access code"
 msgstr "Varaus pääsykoodin kanssa tehty"
@@ -516,6 +546,9 @@ msgstr "Varauksen teko tähän resurssiin ei ole sallittua."
 msgid "You cannot make a reservation in the past"
 msgstr "Varauksen teko menneisyyteen ei ole sallittua"
 
+msgid "You cannot request an invoice for this resource"
+msgstr "Ei ole sallittua pyytää laskua tästä resurssista"
+
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
 msgstr "Tila on varattavissa vain ennen %(datetime)s"
@@ -654,6 +687,9 @@ msgstr "aikaväli"
 
 msgid "periods"
 msgstr "aikavälit"
+
+msgid "Period must start before its end"
+msgstr "Aikavälin loppuaika on ennen sen alkuaikaa"
 
 msgid "Opening hours template can't belong to any unit or resource"
 msgstr ""
@@ -893,6 +929,21 @@ msgstr "Varaajan kaupunki"
 msgid "Company"
 msgstr "Yhdistys"
 
+msgid "Company phone number"
+msgstr "Yrityksen puhelinnumero"
+
+msgid "Company email address"
+msgstr "Yrityksen sähköpostiosoite"
+
+msgid "Company address street"
+msgstr "Yrityksen katuosoite"
+
+msgid "Company address zip"
+msgstr "Yrityksen postinumero"
+
+msgid "Company address city"
+msgstr "Yrityksen kaupunki"
+
 msgid "Billing first name"
 msgstr "Laskutusosoite etunimi"
 
@@ -1062,6 +1113,12 @@ msgstr "Käyttötarkoitukset"
 msgid "Need manual confirmation"
 msgstr "Tarvitsee virkailijan vahvistuksen"
 
+msgid "Need manual confirmation when price is zero"
+msgstr "Tarvitsee virkailijan vahvistuksen mikäli hinta on nolla"
+
+msgid "Customer can request payment with invoice"
+msgstr "Asiakas saa pyytää maksua laskulla"
+
 msgid "Authentication"
 msgstr "Tunnistautuminen"
 
@@ -1124,6 +1181,9 @@ msgstr "Oletusminimihinta"
 
 msgid "Default max price"
 msgstr "Oletusmaksimihinta"
+
+msgid "Price type for default prices"
+msgstr "Hintatyyppi oletushinnoille"
 
 msgid "Price displayed if no price list info attached to this resource."
 msgstr "Hinta näytetään mikäli resurssilla ei ole hinnastoa."
@@ -1432,8 +1492,8 @@ msgstr "Aikaväli"
 msgid "Remove time period"
 msgstr "Poista ajanjakso"
 
-msgid "Tarkista seuraavat virheet"
-msgstr "Check the following errors"
+msgid "Check the following errors"
+msgstr "Tarkista seuraavat virheet"
 
 msgid "Choose image"
 msgstr "Valitse kuva"

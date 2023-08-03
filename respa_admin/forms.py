@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import inlineformset_factory
+from django.forms import inlineformset_factory, modelformset_factory
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.utils.translation import ugettext_lazy as _
 from guardian.core import ObjectPermissionChecker
@@ -109,8 +109,10 @@ class DaysForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        is_empty_hours = not cleaned_data["opens"] or not cleaned_data["closes"]
-        is_closed = cleaned_data["closed"]
+        is_empty_hours = not cleaned_data.get("opens", False) or not cleaned_data.get(
+            "closes", False
+        )
+        is_closed = cleaned_data.get("closed", False)
         if is_empty_hours and not is_closed:
             raise ValidationError("Missing opening hours")
         return cleaned_data
@@ -241,11 +243,14 @@ class ResourceForm(forms.ModelForm):
             "reservable",
             "should_be_reserved_whole_day",
             "need_manual_confirmation",
+            "need_manual_confirmation_for_zero_price",
+            "can_request_invoice",
             "authentication",
             "access_code_type",
             "free_to_use",
             "default_min_price",
             "default_max_price",
+            "price_type",
             "generic_terms",
             "payment_terms",
             "public",
@@ -262,6 +267,12 @@ class ResourceForm(forms.ModelForm):
             ),
             "slot_size": forms.Select(choices=(thirty_minute_increment_choices)),
             "need_manual_confirmation": RespaRadioSelect(
+                choices=((True, _("Yes")), (False, _("No")))
+            ),
+            "need_manual_confirmation_for_zero_price": RespaRadioSelect(
+                choices=((True, _("Yes")), (False, _("No")))
+            ),
+            "can_request_invoice": RespaRadioSelect(
                 choices=((True, _("Yes")), (False, _("No")))
             ),
             "free_to_use": RespaRadioSelect(
@@ -373,14 +384,15 @@ class PeriodFormset(forms.BaseInlineFormSet):
 
         if saved_form or self.forms:
             for form in self.forms:
-                period = form.save(commit=commit)
-                if period.template_src and (
-                    form.has_changed() or form.days.has_changed()
-                ):
-                    period.template_src = None
-                    period.save()
-                if hasattr(form, "days"):
-                    form.days.save(commit=commit)
+                if form not in self.deleted_forms:
+                    period = form.save(commit=commit)
+                    if period.template_src and (
+                        form.has_changed() or form.days.has_changed()
+                    ):
+                        period.template_src = None
+                        period.save()
+                    if hasattr(form, "days"):
+                        form.days.save(commit=commit)
 
         return saved_form
 
@@ -419,6 +431,39 @@ def get_resource_image_formset(request=None, extra=1, instance=None):
         return resource_image_formset(
             data=request.POST, files=request.FILES, instance=instance
         )
+
+
+def get_period_template_formset():
+    """Creates a read-only formset for rendering period templates.
+
+    The templates can be copied and amended with JS on the frontend and
+    added to the resource form.
+
+    As this formset is never validated or processed, we don't need to
+    worry about passing the resource instance.
+    """
+    forms = modelformset_factory(
+        Period,
+        form=PeriodForm,
+        extra=0,
+    )(
+        queryset=Period.objects.filter(is_template=True),
+        prefix="periods",
+    )
+
+    # add "days" formset to each form
+    for form in forms:
+        days_formset = inlineformset_factory(
+            Period, Day, form=DaysForm, extra=0, validate_max=True
+        )
+
+        form.days = days_formset(
+            instance=form.instance,
+            data=None,
+            prefix=f"days-{form.prefix}",
+        )
+
+    return forms
 
 
 def get_resource_accessibility_formset(request=None, extra=1, instance=None):

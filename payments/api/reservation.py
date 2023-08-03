@@ -232,8 +232,14 @@ class PaymentsReservationSerializer(ReservationSerializer):
 
     def validate(self, data):
         order_data = data.pop("order", None)
-        payment_return_url = data.pop("payment_return_url", None)
+
+        if data.get("invoice_requested", False):
+            payment_return_url = None
+        else:
+            payment_return_url = data.pop("payment_return_url", None)
+
         data = super().validate(data)
+
         data["order"] = order_data
         data["payment_return_url"] = payment_return_url
         return data

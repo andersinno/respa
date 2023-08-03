@@ -295,9 +295,20 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     purposes = models.ManyToManyField(Purpose, verbose_name=_("Purposes"))
     name = models.CharField(verbose_name=_("Name"), max_length=200)
     description = models.TextField(verbose_name=_("Description"), null=True, blank=True)
+
     need_manual_confirmation = models.BooleanField(
         verbose_name=_("Need manual confirmation"), default=False
     )
+
+    need_manual_confirmation_for_zero_price = models.BooleanField(
+        verbose_name=_("Need manual confirmation when price is zero"), default=False
+    )
+
+    can_request_invoice = models.BooleanField(
+        verbose_name=_("Customer can request payment with invoice"),
+        default=False,
+    )
+
     authentication = models.CharField(
         blank=False,
         verbose_name=_("Authentication"),
@@ -398,8 +409,8 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     )
 
     price_type = models.CharField(
+        verbose_name=_("Price type for default prices"),
         max_length=32,
-        verbose_name=_("price type"),
         choices=PRICE_TYPE_CHOICES,
         default=PRICE_TYPE_HOURLY,
     )
@@ -977,7 +988,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
     def get_reservable_before(self):
-        return create_datetime_days_from_now(self.get_reservable_max_days_in_advance())
+        return create_datetime_days_from_now(
+            self.get_reservable_max_days_in_advance(), exclude_extra_day=True
+        )
 
     def get_reservable_min_days_in_advance(self):
         return (

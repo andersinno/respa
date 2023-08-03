@@ -8,6 +8,14 @@
         <span class="control-label input-label">{{ form.need_manual_confirmation.label }}</span>
         {{ form.need_manual_confirmation }}
     </div>
+    <div class="official-confirmation">
+        <span class="control-label input-label">{{ form.need_manual_confirmation_for_zero_price.label }}</span>
+        {{ form.need_manual_confirmation_for_zero_price }}
+    </div>
+    <div class="official-confirmation">
+        <span class="control-label input-label">{{ form.can_request_invoice.label }}</span>
+        {{ form.can_request_invoice }}
+    </div>
     {% trans "Booking form" as metadata_custom_label %}
     {% include "respa_admin/forms/_select.html" with field=form.authentication %}
     {% include "respa_admin/forms/_select.html" with field=form.generic_terms %}
@@ -28,6 +36,7 @@
             <div class="price-list-link" style="margin-top: 1em;">
                 {% include "respa_admin/forms/_input.html" with field=form.default_min_price %}
                 {% include "respa_admin/forms/_input.html" with field=form.default_max_price %}
+                {% include "respa_admin/forms/_select.html" with field=form.price_type %}
                 {% if not form.instance.id %}
                     {% trans "Save the resource first to manage prices" %}
                 {% elif price_list_id %}

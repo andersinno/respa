@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import FieldDoesNotExist, Q
 from django.forms import model_to_dict
@@ -25,6 +26,7 @@ from resources.models import (
 from respa_admin import accessibility_api, forms
 from respa_admin.forms import (
     ResourceForm,
+    get_period_template_formset,
     get_resource_accessibility_formset,
     get_resource_image_formset,
     get_unit_authorization_formset,
@@ -311,6 +313,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         resource_accessibility_formset = get_resource_accessibility_formset(
             self.request, instance=self.object
         )
+        period_template_formset = get_period_template_formset()
 
         trans_fields = forms.get_translated_field_count(resource_image_formset)
 
@@ -322,6 +325,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
                 form=form,
                 resource_accessibility_formset=resource_accessibility_formset,
                 resource_image_formset=resource_image_formset,
+                period_template_formset=period_template_formset,
                 trans_fields=trans_fields,
                 page_headline=page_headline,
             )
@@ -418,14 +422,27 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
         resource_image_formset,
         resource_accessibility_formset,
     ):
-        self.object = form.save()
-        self._save_resource_purposes()
-        self._delete_extra_images(resource_image_formset)
-        self._save_resource_images(resource_image_formset)
-        self.save_period_formset(period_formset_with_days)
-        self._save_or_update_opening_hours_via_period_templates()
-        self._delete_extra_resource_accessibility(resource_accessibility_formset)
-        self._save_resource_accessibility(resource_accessibility_formset)
+        try:
+            with transaction.atomic():
+                self.object = form.save()
+                self._save_resource_purposes()
+                self._delete_extra_images(resource_image_formset)
+                self._save_resource_images(resource_image_formset)
+                self.save_period_formset(period_formset_with_days)
+                self._save_or_update_opening_hours_via_period_templates()
+                self._delete_extra_resource_accessibility(
+                    resource_accessibility_formset
+                )
+                self._save_resource_accessibility(resource_accessibility_formset)
+        except ValidationError:
+            messages.error(self.request, _("Please check the opening hours"))
+            return self.forms_invalid(
+                form,
+                period_formset_with_days,
+                resource_image_formset,
+                resource_accessibility_formset,
+            )
+
         return HttpResponseRedirect(self.get_success_url())
 
     def forms_invalid(
@@ -455,6 +472,7 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
             self.get_context_data(
                 form=form,
                 period_formset_with_days=period_formset_with_days,
+                period_template_formset=get_period_template_formset(),
                 resource_image_formset=resource_image_formset,
                 resource_accessibility_formset=resource_accessibility_formset,
                 trans_fields=trans_fields,
@@ -465,17 +483,22 @@ class SaveResourceView(ExtraContextMixin, PeriodMixin, CreateView):
     def _validate_forms(
         self, form, period_formset, image_formset, resource_accessibility_formset
     ):
-        valid_form = form.is_valid()
-        valid_period_form = period_formset.is_valid()
-        valid_image_formset = image_formset.is_valid()
-        valid_resource_accessibility_formset = resource_accessibility_formset.is_valid()
+        try:
+            valid_form = form.is_valid()
+            valid_period_form = period_formset.is_valid()
+            valid_image_formset = image_formset.is_valid()
+            valid_resource_accessibility_formset = (
+                resource_accessibility_formset.is_valid()
+            )
 
-        return (
-            valid_form
-            and valid_period_form
-            and valid_image_formset
-            and valid_resource_accessibility_formset
-        )
+            return (
+                valid_form
+                and valid_period_form
+                and valid_image_formset
+                and valid_resource_accessibility_formset
+            )
+        except ValidationError:
+            return False
 
     def _save_resource_purposes(self):
         checked_purposes = self.request.POST.getlist("purposes")

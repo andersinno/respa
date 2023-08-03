@@ -1,10 +1,9 @@
-from unittest.mock import MagicMock, create_autospec, patch
-from urllib.parse import urlencode
-
 import pytest
 from guardian.shortcuts import assign_perm
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.reverse import reverse
+from unittest.mock import MagicMock, create_autospec, patch
+from urllib.parse import urlencode
 
 from notifications.tests.utils import check_received_mail_exists
 from resources.enums import UnitAuthorizationLevel
@@ -25,6 +24,7 @@ from ..factories import OrderWithOrderLinesFactory, ProductFactory
 from ..models import Order, Product
 from ..providers.base import PaymentProvider
 from .test_notifications import paid_reservation_approved_notification  # noqa
+from .test_notifications import paid_reservation_approved_official_notification  # noqa
 from .test_order_api import ORDER_LINE_FIELDS, PRODUCT_FIELDS
 
 LIST_URL = reverse("reservation-list")
@@ -495,99 +495,120 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
 
 
 @pytest.mark.parametrize(
-    "reservation_type,level,has_order,success,new_state,num_orders",
+    "params",
     (
-        # NORMAL, no authorization, has order, OK+payment
-        (Reservation.TYPE_NORMAL, None, True, True, Reservation.WAITING_FOR_PAYMENT, 1),
-        # INTERNAL USE, no authorization, has order, FAIL
-        (Reservation.TYPE_INTERNAL_USE, None, True, False, None, 0),
-        # NORMAL, no authorization, no order, FAIL
-        (Reservation.TYPE_NORMAL, None, False, False, None, 0),
-        # INTERNAL USE, no authorization, no order, FAIL
-        (Reservation.TYPE_INTERNAL_USE, None, False, False, None, 0),
-        # NORMAL, viewer, has order, OK+payment
-        (
-            Reservation.TYPE_NORMAL,
-            UnitAuthorizationLevel.viewer,
-            True,
-            True,
-            Reservation.WAITING_FOR_PAYMENT,
-            1,
-        ),
-        # INTERNAL USE, viewer, has order, FAIL
-        (
-            Reservation.TYPE_INTERNAL_USE,
-            UnitAuthorizationLevel.viewer,
-            True,
-            False,
-            None,
-            0,
-        ),
-        # NORMAL, viewer, no order, FAIL
-        (Reservation.TYPE_NORMAL, UnitAuthorizationLevel.viewer, False, False, None, 0),
-        # INTERNAL USE, viewer, no order, FAIL
-        (
-            Reservation.TYPE_INTERNAL_USE,
-            UnitAuthorizationLevel.viewer,
-            False,
-            False,
-            None,
-            0,
-        ),
-        # NORMAL, manager, has order, OK+payment
-        (
-            Reservation.TYPE_NORMAL,
-            UnitAuthorizationLevel.manager,
-            True,
-            True,
-            Reservation.WAITING_FOR_PAYMENT,
-            1,
-        ),
-        # NORMAL, manager, no order, FAIL
-        (
-            Reservation.TYPE_NORMAL,
-            UnitAuthorizationLevel.manager,
-            False,
-            False,
-            None,
-            0,
-        ),
-        # INTERNAL USE, manager, no order, OK+confirmed
-        (
-            Reservation.TYPE_INTERNAL_USE,
-            UnitAuthorizationLevel.manager,
-            False,
-            True,
-            Reservation.CONFIRMED,
-            0,
-        ),
-        # NORMAL, admin, has order, OK+payment
-        (
-            Reservation.TYPE_NORMAL,
-            UnitAuthorizationLevel.admin,
-            True,
-            True,
-            Reservation.WAITING_FOR_PAYMENT,
-            1,
-        ),
-        # NORMAL, admin, no order, FAIL
-        (
-            Reservation.TYPE_NORMAL,
-            UnitAuthorizationLevel.admin,
-            False,
-            False,
-            None,
-            0,
-        ),
-        # INTERNAL USE, admin, no order, OK+confirmed
-        (
-            Reservation.TYPE_INTERNAL_USE,
-            UnitAuthorizationLevel.admin,
-            False,
-            True,
-            Reservation.CONFIRMED,
-            0,
-        ),
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": None,
+            "has_order": True,
+            "success": True,
+            "new_state": Reservation.WAITING_FOR_PAYMENT,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": None,
+            "has_order": True,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": None,
+            "has_order": False,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": None,
+            "has_order": False,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": True,
+            "success": True,
+            "new_state": Reservation.WAITING_FOR_PAYMENT,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": True,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": False,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": True,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.manager,
+            "has_order": True,
+            "success": True,
+            "new_state": Reservation.WAITING_FOR_PAYMENT,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.manager,
+            "has_order": False,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.manager,
+            "has_order": False,
+            "success": True,
+            "new_state": Reservation.CONFIRMED,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.admin,
+            "has_order": True,
+            "success": True,
+            "new_state": Reservation.WAITING_FOR_PAYMENT,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.admin,
+            "has_order": False,
+            "success": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.admin,
+            "has_order": False,
+            "success": True,
+            "new_state": Reservation.CONFIRMED,
+            "num_orders": 0,
+        },
     ),
 )
 def test_user_may_bypass_payment_on_paid_resource(
@@ -595,24 +616,22 @@ def test_user_may_bypass_payment_on_paid_resource(
     paid_resource,
     mock_provider,
     user,
-    reservation_type,
-    level,
-    has_order,
-    success,
-    new_state,
-    num_orders,
+    params,
 ):
     """Checks that certain users bypass order processing and payment
     if granted specific authorizations on the resource.
     """
     reservation_data = build_reservation_data(paid_resource)
+    reservation_type = params["reservation_type"]
+
     reservation_data["type"] = reservation_type
 
     product = ProductFactory(type=Product.RENT, resources=[paid_resource])
 
-    if has_order:
+    if params["has_order"]:
         reservation_data["order"] = build_order_data(product)
 
+    level = params["level"]
     if level:
         UnitAuthorization.objects.create(
             subject=paid_resource.unit,
@@ -621,16 +640,18 @@ def test_user_may_bypass_payment_on_paid_resource(
         )
     response = user_api_client.post(LIST_URL, reservation_data)
 
-    if success:
+    if params["success"]:
         assert response.status_code == 201
 
         new_reservation = Reservation.objects.last()
         assert new_reservation.type == reservation_type
-        assert new_reservation.state == new_state
+        assert new_reservation.state == params["new_state"]
 
     else:
         assert response.status_code == 400
         assert Reservation.objects.count() == 0
+
+    num_orders = params["num_orders"]
 
     assert Order.objects.count() == num_orders
 
@@ -638,11 +659,226 @@ def test_user_may_bypass_payment_on_paid_resource(
         mock_provider.initiate_payment.assert_called()
 
 
+@pytest.mark.parametrize(
+    "params",
+    (
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": None,
+            "has_order": True,
+            "success": True,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": Reservation.INVOICE_REQUESTED,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": None,
+            "has_order": True,
+            "success": True,
+            "need_manual_confirmation": True,
+            "can_request_invoice": True,
+            "new_state": Reservation.INVOICE_REQUESTED,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": None,
+            "has_order": True,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": False,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": None,
+            "has_order": True,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": None,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": None,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": True,
+            "success": True,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": Reservation.INVOICE_REQUESTED,
+            "num_orders": 1,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": True,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.viewer,
+            "has_order": True,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.manager,
+            "has_order": True,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.manager,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.manager,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.admin,
+            "has_order": True,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_NORMAL,
+            "level": UnitAuthorizationLevel.admin,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": None,
+            "num_orders": 0,
+        },
+        {
+            "reservation_type": Reservation.TYPE_INTERNAL_USE,
+            "level": UnitAuthorizationLevel.admin,
+            "has_order": False,
+            "success": False,
+            "need_manual_confirmation": False,
+            "can_request_invoice": True,
+            "new_state": Reservation.CONFIRMED,
+            "num_orders": 0,
+        },
+    ),
+)
+def test_request_invoice(
+    user_api_client,
+    paid_resource,
+    user,
+    params,
+):
+    """Checks that certain users bypass order processing and payment
+    if granted specific authorizations on the resource.
+    """
+    paid_resource.can_request_invoice = params["can_request_invoice"]
+    paid_resource.need_manual_confirmation = params["need_manual_confirmation"]
+    paid_resource.save()
+
+    reservation_type = params["reservation_type"]
+
+    reservation_data = {
+        **build_reservation_data(paid_resource),
+        "type": reservation_type,
+        "invoice_requested": True,
+    }
+
+    product = ProductFactory(type=Product.RENT, resources=[paid_resource])
+
+    if params["has_order"]:
+        reservation_data["order"] = build_order_data(product)
+
+    level = params["level"]
+    if level:
+        UnitAuthorization.objects.create(
+            subject=paid_resource.unit,
+            level=level,
+            authorized=user,
+        )
+    response = user_api_client.post(LIST_URL, reservation_data)
+
+    if params["success"]:
+        assert response.status_code == 201
+
+        new_reservation = Reservation.objects.last()
+        assert new_reservation.type == reservation_type
+        assert new_reservation.state == params["new_state"]
+
+    else:
+        assert response.status_code == 400
+        assert Reservation.objects.count() == 0
+
+    assert Order.objects.count() == params["num_orders"]
+
+
 @pytest.mark.django_db
 def test_approve_paid_reservation(
     mailoutbox,
     settings,
     paid_reservation_approved_notification,
+    paid_reservation_approved_official_notification,
     staff_api_client,
     paid_resource,
     staff_user,
@@ -716,10 +952,17 @@ def test_approve_paid_reservation(
     mocked_provider.initiate_payment.assert_called()
 
     # check notification sent
-    assert len(mailoutbox) == 1
+    assert len(mailoutbox) == 2
 
     check_received_mail_exists(
         "Paid reservation approved subject.",
         user.email,
         "Paid reservation approved body.",
+        clear_outbox=False,
+    )
+
+    check_received_mail_exists(
+        "Paid reservation approved official subject.",
+        staff_user.email,
+        "Paid reservation approved official body.",
     )
