@@ -2,11 +2,10 @@
 Django settings for respa project.
 """
 
-import os
-import subprocess
-
 import environ
+import os
 import sentry_sdk
+import subprocess
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext_lazy as _
 from django_jinja.builtins import DEFAULT_EXTENSIONS  # noqa
@@ -397,6 +396,8 @@ RESPA_PAYMENTS_PROVIDER_CLASS = env("RESPA_PAYMENTS_PROVIDER_CLASS")
 
 # amount of minutes before orders in state "waiting" will be set to state "expired"
 RESPA_PAYMENTS_PAYMENT_WAITING_TIME = env("RESPA_PAYMENTS_PAYMENT_WAITING_TIME")
+
+RESPA_SAP_INTERFACE_ID = env("RESPA_SAP_INTERFACE_ID", default="NOTSET")
 
 # local_settings.py can be used to override environment-specific settings
 # like database and email that differ between development and production.
