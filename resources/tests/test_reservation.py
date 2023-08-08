@@ -2,19 +2,18 @@ import arrow
 import datetime
 import pytest
 from datetime import timedelta
-
-from guardian.shortcuts import assign_perm
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.translation import activate
 from freezegun import freeze_time
+from guardian.shortcuts import assign_perm
 
 from payments.factories import (
     OrderFactory,
-    OrderWithOrderLinesFactory,
     OrderLineFactory,
+    OrderWithOrderLinesFactory,
 )
 from resources.enums import UnitAuthorizationLevel
 from resources.models import (
@@ -359,6 +358,23 @@ def test_state_change_from_requested_to_confirmed_sets_approval_time(
     requested_reservation.set_state(Reservation.CONFIRMED, user)
     assert requested_reservation.approver == user
     assert requested_reservation.approved_at == parse_datetime(
+        "2023-01-01T11:00:00+02:00"
+    )
+
+
+@freeze_time("2023-01-01T11:00:00+02:00")
+@pytest.mark.django_db
+def test_state_change_from_invoice_requested_to_confirmed(
+    invoice_requested_reservation, user
+):
+    assert invoice_requested_reservation.approver is None
+    assert invoice_requested_reservation.invoice_approved_at is None
+
+    invoice_requested_reservation.set_state(Reservation.CONFIRMED, user)
+
+    assert invoice_requested_reservation.state == Reservation.CONFIRMED
+    assert invoice_requested_reservation.approver == user
+    assert invoice_requested_reservation.invoice_approved_at == parse_datetime(
         "2023-01-01T11:00:00+02:00"
     )
 
