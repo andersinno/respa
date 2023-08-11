@@ -143,6 +143,10 @@ class CPUCeeposProvider(PaymentProvider):
             resource = order.reservation.resource
             return resource.unit.cost_center_code
 
+        def _get_order_line_description(order: Order) -> str:
+            resource = order.reservation.resource
+            return resource.name
+
         def _get_ceepos_tax_code(order_line: OrderLine) -> str:
             tax_pct = order_line.tax_percentage
             ceepos_tax_codes = {
@@ -174,7 +178,7 @@ class CPUCeeposProvider(PaymentProvider):
                     "Code": _get_ceepos_product_code(order),
                     "Amount": order_line.quantity,
                     "Price": price_as_sub_units(order_line.total_price),
-                    "Description": order_line.product.name,
+                    "Description": _get_order_line_description(order),
                     "Taxcode": _get_ceepos_tax_code(order_line)
                 }
             )
