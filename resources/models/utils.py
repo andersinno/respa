@@ -1,26 +1,120 @@
+import arrow
 import base64
 import csv
 import datetime
-import struct
-import time
 import io
 import logging
-
-import arrow
-from django.conf import settings
-from django.utils import formats
-from django.utils.translation import ungettext
-from django.core.mail import EmailMultiAlternatives
-from django.contrib.sites.models import Site
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
-from django.utils.timezone import localtime
-from rest_framework.reverse import reverse
-from icalendar import Calendar, Event, vDatetime, vText, vGeo
+import struct
+import time
 import xlsxwriter
-
+from django.conf import settings
+from django.contrib.sites.models import Site
+from django.core.mail import EmailMultiAlternatives
+from django.utils import formats, timezone
+from django.utils.timezone import localtime
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ungettext
+from icalendar import Calendar, Event, vDatetime, vGeo, vText
+from rest_framework.reverse import reverse
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
+
+RESERVATION_FIELDS = [
+    ("unit", "Unit", 30),
+    ("resource", "Resource", 30),
+    ("begin", "Begin time", 15),
+    ("end", "End time", 15),
+    ("created_at", "Created at", 15),
+    ("user", "User", 30),
+    ("comments", "Comments", 30),
+    ("staff_event", "Is staff event", 10),
+    ("state", "State", 15),
+]
+
+RESERVATION_ACCOUNTING_FIELDS = [
+    ("user_group", "User group", 15),
+    ("event_type", "Event type", 15),
+    ("quantity", "Quantity", 15),
+    ("unit_price", "Unit price", 15),
+    ("total_price", "Total price", 15),
+    ("cost_center_code", "CeePos Cost center code", 30),
+    ("sap_cost_center_code", "SAP Cost center code", 30),
+    ("sap_sales_organization", "SAP Sales Organization code", 30),
+    ("invoice_generated_at", "Invoice created", 15),
+    ("tax_percentage", "Tax percentage", 15),
+]
+
+RESERVATION_DATETIME_FIELDS = [
+    "begin",
+    "end",
+    "created_at",
+    "invoice_generated_at",
+]
+
+
+XLSX_HEADER_FORMAT = {"bold": True}
+XLSX_DATE_FORMAT = {"num_format": "dd.mm.yyyy hh:mm", "align": "left"}
+
+
+def get_default_fields(include_accounting_fields):
+    fields = RESERVATION_FIELDS[::]
+    if include_accounting_fields:
+        fields += RESERVATION_ACCOUNTING_FIELDS[::]
+    return fields
+
+
+def get_headers(*, include_extra_fields, include_accounting_fields):
+    """Returns list of tuples of (text, width).
+
+    Text values should be translated.
+
+    If `include_extra_fields` is True will also include `RESERVATION_EXTRA_FIELDS`.
+    """
+    from resources.models import RESERVATION_EXTRA_FIELDS, Reservation
+
+    fields = get_default_fields(include_accounting_fields)
+
+    headers = [(_(header), size) for _field_name, header, size in fields]
+
+    if include_extra_fields:
+        headers += [
+            (Reservation._meta.get_field(field).verbose_name, 20)
+            for field in RESERVATION_EXTRA_FIELDS
+        ]
+
+    return headers
+
+
+def get_row_data(reservation, *, include_extra_fields, include_accounting_fields):
+    """Returns list of tuples of (field_name, value).
+
+    If field is missing from reservation data, or empty, inserts empty string.
+
+    Any date values should be converted automatically.
+
+    If `include_extra_fields` is True will also include `RESERVATION_EXTRA_FIELDS`.
+    """
+    from resources.models import RESERVATION_EXTRA_FIELDS
+
+    row = [
+        (name, convert_value(reservation, name))
+        for name, _, _ in get_default_fields(include_accounting_fields)
+    ]
+
+    if include_extra_fields:
+        row += [
+            (name, convert_value(reservation, name))
+            for name in RESERVATION_EXTRA_FIELDS
+        ]
+
+    return row
+
+
+def convert_value(reservation, name):
+    value = reservation.get(name) or ""
+    if value and name in RESERVATION_DATETIME_FIELDS:
+        return localtime(value).replace(tzinfo=None)
+    return value
 
 
 def save_dt(obj, attr, dt, orig_tz="UTC"):
@@ -51,13 +145,13 @@ def get_translated(obj, attr):
 
 # Needed for slug fields populating
 def get_translated_name(obj):
-    return get_translated(obj, 'name')
+    return get_translated(obj, "name")
 
 
 def generate_id():
     t = time.time() * 1000000
-    b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b'\x00')).strip(b'=').lower()
-    return b.decode('utf8')
+    b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b"\x00")).strip(b"=").lower()
+    return b.decode("utf8")
 
 
 def time_to_dtz(time, date=None, arr=None):
@@ -66,7 +160,9 @@ def time_to_dtz(time, date=None, arr=None):
         if date:
             return tz.localize(datetime.datetime.combine(date, time))
         elif arr:
-            return tz.localize(datetime.datetime(arr.year, arr.month, arr.day, time.hour, time.minute))
+            return tz.localize(
+                datetime.datetime(arr.year, arr.month, arr.day, time.hour, time.minute)
+            )
     else:
         return None
 
@@ -94,63 +190,83 @@ def humanize_duration(duration):
     """
     hours = duration.days * 24 + duration.seconds // 3600
     mins = duration.seconds // 60 % 60
-    hours_string = ungettext('%(count)d hour', '%(count)d hours', hours) % {'count': hours} if hours else None
-    mins_string = ungettext('%(count)d minute', '%(count)d minutes', mins) % {'count': mins} if mins else None
-    return ' '.join(filter(None, (hours_string, mins_string)))
+    hours_string = (
+        ungettext("%(count)d hour", "%(count)d hours", hours) % {"count": hours}
+        if hours
+        else None
+    )
+    mins_string = (
+        ungettext("%(count)d minute", "%(count)d minutes", mins) % {"count": mins}
+        if mins
+        else None
+    )
+    return " ".join(filter(None, (hours_string, mins_string)))
 
 
-notification_logger = logging.getLogger('respa.notifications')
+notification_logger = logging.getLogger("respa.notifications")
 
 
 def send_respa_mail(email_address, subject, body, html_body=None, attachments=None):
-    if not getattr(settings, 'RESPA_MAILS_ENABLED', False):
+    if not getattr(settings, "RESPA_MAILS_ENABLED", False):
         return
 
-    from_address = (getattr(settings, 'RESPA_MAILS_FROM_ADDRESS', None) or
-                    'noreply@%s' % Site.objects.get_current().domain)
+    from_address = (
+        getattr(settings, "RESPA_MAILS_FROM_ADDRESS", None)
+        or "noreply@%s" % Site.objects.get_current().domain
+    )
 
-    notification_logger.info('Sending notification email to %s: "%s"' % (email_address, subject))
+    notification_logger.info(
+        'Sending notification email to %s: "%s"' % (email_address, subject)
+    )
 
     text_content = body
-    msg = EmailMultiAlternatives(subject, text_content, from_address, [email_address], attachments=attachments)
+    msg = EmailMultiAlternatives(
+        subject, text_content, from_address, [email_address], attachments=attachments
+    )
     if html_body:
-        msg.attach_alternative(html_body, 'text/html')
+        msg.attach_alternative(html_body, "text/html")
     msg.send()
 
 
-def generate_reservation_csv(reservations):
+def generate_reservation_csv(
+    reservations,
+    exclude_reservation_extra_fields=False,
+    include_accounting_fields=False,
+):
+    include_extra_fields = not (exclude_reservation_extra_fields)
+
     output = io.StringIO()
     csv_writer = csv.writer(output)
-    headers = [
-        'Unit',
-        'Resource',
-        'Begin time',
-        'End time',
-        'Created at',
-        'User',
-        'Comments',
-        'Staff event',
-        'State',
-    ]
-    csv_writer.writerow([_(header) for header in headers])
+
+    csv_writer.writerow(
+        [
+            header
+            for header, _ in get_headers(
+                include_extra_fields=include_extra_fields,
+                include_accounting_fields=include_accounting_fields,
+            )
+        ]
+    )
 
     for reservation in reservations:
-        row_data = [
-            reservation['unit'],
-            reservation['resource'],
-            localtime(reservation['begin']).replace(tzinfo=None),
-            localtime(reservation['end']).replace(tzinfo=None),
-            localtime(reservation['created_at']).replace(tzinfo=None),
-            reservation['user'] if reservation['user'] else '',
-            reservation['comments'] if reservation['comments'] else '',
-            reservation['staff_event'],
-            reservation['state'],
-        ]
-        csv_writer.writerow(row_data)
+        csv_writer.writerow(
+            [
+                value
+                for _, value in get_row_data(
+                    reservation,
+                    include_extra_fields=include_extra_fields,
+                    include_accounting_fields=include_accounting_fields,
+                )
+            ]
+        )
     return output.getvalue()
 
 
-def generate_reservation_xlsx(reservations, exclude_reservation_extra_fields=False):
+def generate_reservation_xlsx(
+    reservations,
+    exclude_reservation_extra_fields=False,
+    include_accounting_fields=False,
+):
     """
     Return reservations in Excel xlsx format
 
@@ -166,49 +282,38 @@ def generate_reservation_xlsx(reservations, exclude_reservation_extra_fields=Fal
 
     :rtype: bytes
     """
-    from resources.models import Reservation, RESERVATION_EXTRA_FIELDS
 
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
+    include_extra_fields = not (exclude_reservation_extra_fields)
 
-    headers = [
-        ('Unit', 30),
-        ('Resource', 30),
-        ('Begin time', 15),
-        ('End time', 15),
-        ('Created at', 15),
-        ('User', 30),
-        ('Comments', 30),
-        ('Staff event', 10),
-        ('State', 15),
-    ]
+    header_format = workbook.add_format(XLSX_HEADER_FORMAT)
 
-    if not exclude_reservation_extra_fields:
-        for field in RESERVATION_EXTRA_FIELDS:
-            headers.append((Reservation._meta.get_field(field).verbose_name, 20))
+    for column, (header, width) in enumerate(
+        get_headers(
+            include_extra_fields=include_extra_fields,
+            include_accounting_fields=include_accounting_fields,
+        )
+    ):
+        worksheet.write(0, column, str(_(header)), header_format)
+        worksheet.set_column(column, column, width)
 
-    header_format = workbook.add_format({'bold': True})
-    for column, header in enumerate(headers):
-        worksheet.write(0, column, str(_(header[0])), header_format)
-        worksheet.set_column(column, column, header[1])
+    date_format = workbook.add_format(XLSX_DATE_FORMAT)
 
-    date_format = workbook.add_format({'num_format': 'dd.mm.yyyy hh:mm', 'align': 'left'})
     for row, reservation in enumerate(reservations, 1):
-        worksheet.write(row, 0, reservation['unit'])
-        worksheet.write(row, 1, reservation['resource'])
-        worksheet.write(row, 2, localtime(reservation['begin']).replace(tzinfo=None), date_format)
-        worksheet.write(row, 3, localtime(reservation['end']).replace(tzinfo=None), date_format)
-        worksheet.write(row, 4, localtime(reservation['created_at']).replace(tzinfo=None), date_format)
-        if 'user' in reservation:
-            worksheet.write(row, 5, reservation['user'])
-        if 'comments' in reservation:
-            worksheet.write(row, 6, reservation['comments'])
-        worksheet.write(row, 7, reservation['staff_event'])
-        worksheet.write(row, 8, reservation['state'])
-        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 9):
-            if field in reservation:
-                worksheet.write(row, i, reservation[field])
+        for column, (name, value) in enumerate(
+            get_row_data(
+                reservation,
+                include_extra_fields=include_extra_fields,
+                include_accounting_fields=include_accounting_fields,
+            )
+        ):
+            if name in RESERVATION_DATETIME_FIELDS:
+                worksheet.write(row, column, value, date_format)
+            else:
+                worksheet.write(row, column, value)
+
     workbook.close()
     return output.getvalue()
 
@@ -233,32 +338,42 @@ def create_datetime_days_from_now(days_from_now, exclude_extra_day=False):
 
 
 def localize_datetime(dt):
-    return formats.date_format(timezone.localtime(dt), 'DATETIME_FORMAT')
+    return formats.date_format(timezone.localtime(dt), "DATETIME_FORMAT")
 
 
 def format_dt_range(language, begin, end):
-    if language == 'fi':
+    if language == "fi":
         # ma 1.1.2017 klo 12.00
-        begin_format = r'D j.n.Y \k\l\o G.i'
+        begin_format = r"D j.n.Y \k\l\o G.i"
         if begin.date() == end.date():
-            end_format = 'G.i'
-            sep = '–'
+            end_format = "G.i"
+            sep = "–"
         else:
             end_format = begin_format
-            sep = ' – '
+            sep = " – "
 
-        res = sep.join([formats.date_format(begin, begin_format), formats.date_format(end, end_format)])
+        res = sep.join(
+            [
+                formats.date_format(begin, begin_format),
+                formats.date_format(end, end_format),
+            ]
+        )
     else:
         # default to English
-        begin_format = r'D j/n/Y G:i'
+        begin_format = r"D j/n/Y G:i"
         if begin.date() == end.date():
-            end_format = 'G:i'
-            sep = '–'
+            end_format = "G:i"
+            sep = "–"
         else:
             end_format = begin_format
-            sep = ' – '
+            sep = " – "
 
-        res = sep.join([formats.date_format(begin, begin_format), formats.date_format(end, end_format)])
+        res = sep.join(
+            [
+                formats.date_format(begin, begin_format),
+                formats.date_format(end, end_format),
+            ]
+        )
 
     return res
 
@@ -273,14 +388,16 @@ def build_reservations_ical_file(reservations):
         event = Event()
         begin_utc = timezone.localtime(reservation.begin, timezone.utc)
         end_utc = timezone.localtime(reservation.end, timezone.utc)
-        event['uid'] = 'respa_reservation_{}'.format(reservation.id)
-        event['dtstart'] = vDatetime(begin_utc)
-        event['dtend'] = vDatetime(end_utc)
+        event["uid"] = "respa_reservation_{}".format(reservation.id)
+        event["dtstart"] = vDatetime(begin_utc)
+        event["dtend"] = vDatetime(end_utc)
         unit = reservation.resource.unit
-        event['location'] = vText('{} {} {}'.format(unit.name, unit.street_address, unit.address_zip))
+        event["location"] = vText(
+            "{} {} {}".format(unit.name, unit.street_address, unit.address_zip)
+        )
         if unit.location:
-            event['geo'] = vGeo(unit.location)
-        event['summary'] = vText('{} {}'.format(unit.name, reservation.resource.name))
+            event["geo"] = vGeo(unit.location)
+        event["summary"] = vText("{} {}".format(unit.name, reservation.resource.name))
         cal.add_component(event)
     return cal.to_ical()
 
@@ -290,5 +407,5 @@ def build_ical_feed_url(ical_token, request):
     Return iCal feed url for given token without query parameters
     """
 
-    url = reverse('ical-feed', kwargs={'ical_token': ical_token}, request=request)
-    return url[:url.find('?')]
+    url = reverse("ical-feed", kwargs={"ical_token": ical_token}, request=request)
+    return url[: url.find("?")]
