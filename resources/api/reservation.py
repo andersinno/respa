@@ -690,7 +690,7 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     MID_AUTHENTICATION = ("phone",)
     WEAK_AUTHENTICATION = ("google", "github", "facebook", "yletunnus")
     PIKI_AUTHENTICATION = ("axiell_aurora",)
-    TAMPERE_CITY_AUTHENTICATION = ("tampere_adfs",)
+    TAMPERE_CITY_AUTHENTICATION = ("tampere_adfs", "tampereazuread")
 
     def has_permission(self, request, view):
         resource_id = request.data.get("resource")
