@@ -87,7 +87,7 @@ class Product(models.Model):
     type = models.CharField(
         max_length=32, verbose_name=_("type"), choices=TYPE_CHOICES, default=RENT
     )
-    sku = models.CharField(max_length=255, verbose_name=_("SKU"))
+    sku = models.CharField(max_length=255, verbose_name=_("SKU"), blank=True)
     name = models.CharField(max_length=100, verbose_name=_("name"), blank=True)
     description = models.TextField(verbose_name=_("description"), blank=True)
     resources = models.ManyToManyField(
