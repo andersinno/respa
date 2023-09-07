@@ -339,6 +339,8 @@ class UnitForm(forms.ModelForm):
             "phone",
             "disallow_overlapping_reservations",
             "cost_center_code",
+            "sap_cost_center_code",
+            "sap_sales_organization",
         ] + translated_fields
 
         widgets = {
@@ -346,6 +348,12 @@ class UnitForm(forms.ModelForm):
                 choices=((True, _("Yes")), (False, _("No")))
             ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["municipality"].queryset = self.fields[
+            "municipality"
+        ].queryset.prefetch_related("translations")
 
 
 class PeriodFormset(forms.BaseInlineFormSet):

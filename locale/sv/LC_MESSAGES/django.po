@@ -1758,6 +1758,15 @@ msgstr "Exchange reservation"
 msgid "Exchange reservations"
 msgstr "Exchange reservationer"
 
+msgid "Title"
+msgstr "Titel"
+
+msgid "Applicable for"
+msgstr "Gäller för"
+
+msgid "Active"
+msgstr "Aktiva"
+
 msgid "Favorite resources"
 msgstr "Favorit resurser"
 

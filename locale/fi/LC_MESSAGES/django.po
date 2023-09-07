@@ -549,6 +549,12 @@ msgstr "Varauksen teko menneisyyteen ei ole sallittua"
 msgid "You cannot request an invoice for this resource"
 msgstr "Ei ole sallittua pyytää laskua tästä resurssista"
 
+msgid "Invoice from %(begin)s to %(end)s"
+msgstr "Lasku ajalta %(begin)s - %(end)s"
+
+msgid "Invoice for %(begin)s"
+msgstr "Lasku ajalta %(begin)s"
+
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
 msgstr "Tila on varattavissa vain ennen %(datetime)s"
@@ -1471,6 +1477,9 @@ msgstr "Käyttäjien hallinta"
 msgid "Contact us"
 msgstr "Ota yhteyttä"
 
+msgid "Instruction"
+msgstr "Ohje"
+
 msgid "Instructions"
 msgstr "Ohjeet"
 
@@ -1848,6 +1857,21 @@ msgstr "Exchange varaus"
 msgid "Exchange reservations"
 msgstr "Exchange varaukset"
 
+msgid "Ordering"
+msgstr "Järjestysnumero"
+
+msgid "Title"
+msgstr "Otsikko"
+
+msgid "Applicable for"
+msgstr "Sovellettavissa"
+
+msgid "Content"
+msgstr "Sisältö"
+
+msgid "Active"
+msgstr "Aktiivinen"
+
 msgid "Favorite resources"
 msgstr "Suosikkiresurssit"
 
@@ -1999,6 +2023,15 @@ msgstr "Kirjanpito"
 
 msgid "Cost center code"
 msgstr "Kustannuspaikkakoodi"
+
+msgid "CeePos Cost center code"
+msgstr "CeePoksen Kustannuspaikkakoodi"
+
+msgid "SAP Cost center code"
+msgstr "SAP:in Kustannuspaikkakoodi"
+
+msgid "SAP Sales Organization code"
+msgstr "SAP:in Myyntiorganisaatiokoodi"
 
 msgid ""
 "This resource's unit doesn't have a cost center code set. "

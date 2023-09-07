@@ -221,7 +221,13 @@ class ReservationSerializer(
 
         is_staff = resource.can_create_staff_event(request_user)
 
-        can_request_invoice = resource.can_request_invoice and not is_staff
+        is_staff_reserver = is_staff and (
+            reservation is None
+            or reservation.user is None
+            or reservation.user == request_user
+        )
+
+        can_request_invoice = resource.can_request_invoice and not is_staff_reserver
 
         if data.get("invoice_requested", False) and not can_request_invoice:
             raise ValidationError(_("You cannot request an invoice for this resource"))
@@ -684,7 +690,7 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
     MID_AUTHENTICATION = ("phone",)
     WEAK_AUTHENTICATION = ("google", "github", "facebook", "yletunnus")
     PIKI_AUTHENTICATION = ("axiell_aurora",)
-    TAMPERE_CITY_AUTHENTICATION = ("tampere_adfs",)
+    TAMPERE_CITY_AUTHENTICATION = ("tampere_adfs", "tampereazuread")
 
     def has_permission(self, request, view):
         resource_id = request.data.get("resource")
