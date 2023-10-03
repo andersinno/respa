@@ -374,23 +374,11 @@ class ReservationSerializer(
     def to_representation(self, instance):
         data = super(ReservationSerializer, self).to_representation(instance)
         resource = instance.resource
-        prefetched_user = self.context.get("prefetched_user", None)
-        user = prefetched_user or self.context["request"].user
+        request = self.context["request"]
+        user = self.context.get("prefetched_user", request.user)
 
-        if self.context["request"].accepted_renderer.format in ["xlsx", "csv"]:
-            # Return somewhat different data in case we are dealing with xlsx.
-            # The excel renderer needs datetime objects, so begin and end are passed
-            # as objects to avoid needing to convert them back and forth.
-            data.update(
-                **{
-                    "unit": resource.unit.name,  # additional
-                    "resource": resource.name,  # resource name instead of id
-                    "begin": instance.begin,  # datetime object
-                    "end": instance.end,  # datetime object
-                    "user": instance.user.email if instance.user else "",  # just email
-                    "created_at": instance.created_at,
-                }
-            )
+        if request.accepted_renderer.format in ["xlsx", "csv"]:
+            data = self.add_report_data(request, instance, data)
 
         if not resource.can_access_reservation_comments(user):
             del data["comments"]
@@ -421,6 +409,43 @@ class ReservationSerializer(
         if instance.can_view_catering_orders(user):
             data["has_catering_order"] = instance.catering_orders.exists()
 
+        return data
+
+    def add_report_data(self, request, instance, data):
+        data = {
+            **data,
+            "unit": instance.resource.unit.name,  # additional
+            "resource": instance.resource.name,  # resource name instead of id
+            "begin": instance.begin,  # datetime object
+            "end": instance.end,  # datetime object
+            "user": instance.user.email if instance.user else "",  # just email
+            "created_at": instance.created_at,
+            # make sure state is translated
+            "state": instance.get_state_display(),
+        }
+
+        if request.data.get("includeAccountingFields") == "1":
+            order = instance.get_order()
+            if order:
+                price = order.get_price()
+                if price:
+                    order_line = order.order_lines.first()
+                    user_group = order_line.user_group if order_line else None
+                    event_type = order_line.event_type if order_line else None
+
+                    data = {
+                        **data,
+                        "total_price": price,
+                        "cost_center_code": instance.resource.unit.cost_center_code,
+                        "sap_cost_center_code": instance.resource.unit.sap_cost_center_code,
+                        "sap_sales_organization": instance.resource.unit.sap_sales_organization,
+                        "invoice_generated_at": instance.invoice_generated_at,
+                        "tax_percentage": order.tax_percentage,
+                        "quantity": order.quantity,
+                        "unit_price": order.unit_price,
+                        "user_group": user_group,
+                        "event_type": event_type,
+                    }
         return data
 
     def get_is_own(self, obj):
@@ -761,42 +786,55 @@ class ReservationAuthenticationLevelPermission(permissions.BasePermission):
         return False
 
 
-class ReservationExcelRenderer(renderers.BaseRenderer):
+class BaseReportRenderer(renderers.BaseRenderer):
+    def render(self, data, media_type=None, renderer_context=None):
+        if not renderer_context or renderer_context["response"].status_code == 404:
+            return bytes()
+
+        action = renderer_context["view"].action
+        if action not in ("retrieve", "list"):
+            return NotAcceptable()
+
+        request = renderer_context["request"]
+
+        kwargs = {
+            "exclude_reservation_extra_fields": request.query_params.get(
+                "excludeReservationExtraFields"
+            )
+            == "1",
+            "include_accounting_fields": request.query_params.get(
+                "includeAccountingFields"
+            )
+            == "1",
+        }
+
+        rows = [data] if action == "retrieve" else data["results"]
+        return self.render_report(rows, **kwargs)
+
+    def render_report(
+        self, rows, *, exclude_reservation_extra_fields, include_accounting_fields
+    ):
+        raise NotImplementedError()
+
+
+class ReservationExcelRenderer(BaseReportRenderer):
     media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     format = "xlsx"
     charset = None
     render_style = "binary"
 
-    def render(self, data, media_type=None, renderer_context=None):
-        exclude_reservation_extra_fields_param = renderer_context[
-            "request"
-        ].query_params.get("excludeReservationExtraFields")
-        exclude_reservation_extra_fields = exclude_reservation_extra_fields_param == "1"
-        if not renderer_context or renderer_context["response"].status_code == 404:
-            return bytes()
-        if renderer_context["view"].action == "retrieve":
-            return generate_reservation_xlsx([data])
-        elif renderer_context["view"].action == "list":
-            return generate_reservation_xlsx(
-                data["results"], exclude_reservation_extra_fields
-            )
-        else:
-            return NotAcceptable()
+    def render_report(self, rows, **kwargs):
+        return generate_reservation_xlsx(rows, **kwargs)
 
 
-class ReservationCSVRenderer(renderers.BaseRenderer):
+class ReservationCSVRenderer(BaseReportRenderer):
     media_type = "text/csv"
     format = "csv"
     charset = "utf-8"
     render_style = "binary"
 
-    def render(self, data, media_type=None, renderer_context=None):
-        if not renderer_context or renderer_context["response"].status_code == 404:
-            return bytes()
-        if renderer_context["view"].action == "list":
-            return generate_reservation_csv(data["results"])
-        else:
-            return NotAcceptable()
+    def render_report(self, rows, **kwargs):
+        return generate_reservation_csv(rows, **kwargs)
 
 
 class ReservationCacheMixin:
@@ -1018,22 +1056,21 @@ class ReservationViewSet(
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        if request.accepted_renderer.format == "xlsx":
-            response["Content-Disposition"] = "attachment; filename={}.xlsx".format(
-                _("reservations")
-            )
-        if request.accepted_renderer.format == "csv":
-            response["Content-Disposition"] = "attachment; filename={}.csv".format(
-                _("reservations")
-            )
-        return response
+        return self._set_content_disposition(request, response)
 
     def retrieve(self, request, *args, **kwargs):
         response = super().retrieve(request, *args, **kwargs)
-        if request.accepted_renderer.format == "xlsx":
-            response["Content-Disposition"] = "attachment; filename={}-{}.xlsx".format(
-                _("reservation"), kwargs["pk"]
+        return self._set_content_disposition(request, response, kwargs["pk"])
+
+    def _set_content_disposition(self, request, response, object_id=None):
+        format = request.accepted_renderer.format
+        if format in ("csv", "xlsx"):
+            disposition = (
+                f"attachment; filename={_('reservation')}-{object_id}.{format}"
+                if object_id
+                else f"attachment; filename={_('reservations')}.{format}"
             )
+            response["Content-Disposition"] = disposition
         return response
 
 

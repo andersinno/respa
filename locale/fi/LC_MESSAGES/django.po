@@ -335,8 +335,18 @@ msgstr "hinta sisältäen ALV:n"
 msgid "unit price"
 msgstr "yksikköhinta"
 
+msgid "Unit price"
+msgstr "Yksikköhinta"
+
+
 msgid "tax percentage"
 msgstr "veroprosentti"
+
+msgid "Tax percentage"
+msgstr "Veroprosentti"
+
+msgid "Total price"
+msgstr "Kokohinta"
 
 msgid "timestamp"
 msgstr "aikaleima"
@@ -548,6 +558,9 @@ msgstr "Varauksen teko menneisyyteen ei ole sallittua"
 
 msgid "You cannot request an invoice for this resource"
 msgstr "Ei ole sallittua pyytää laskua tästä resurssista"
+
+msgid "Invoice created"
+msgstr "Lasku luotu"
 
 msgid "Invoice from %(begin)s to %(end)s"
 msgstr "Lasku ajalta %(begin)s - %(end)s"
@@ -843,7 +856,10 @@ msgid "Can ignore resources max period rule"
 msgstr ""
 
 msgid "created"
-msgstr "luoja"
+msgstr "luotu"
+
+msgid "Created at"
+msgstr "Luotu"
 
 msgid "denied"
 msgstr "hylätty"
