@@ -4,13 +4,12 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from jsonschema.exceptions import ValidationError as JsonSchemaValidationError
-from urllib.parse import urljoin
 
 from .base import AccessControlDriver
 
 
 class SecuritasDriver(AccessControlDriver):
-    BASE_URL = "https://extapi.flow.securitas.com/v1"
+    BASE_URL = "https://extapi.flow.securitas.com/v1/"
 
     SYSTEM_CONFIG_SCHEMA = {
         "type": "object",
@@ -24,15 +23,98 @@ class SecuritasDriver(AccessControlDriver):
     RESOURCE_CONFIG_SCHEMA = {
         "type": "object",
         "properties": {
-            "resource_id": {
-                "type": "string",
-            },
             "uses_pincode": {
                 "type": "boolean",
                 "default": True,
             },
         },
     }
+
+    DEFAULT_RESOURCE_CONFIG = {
+        "uses_pincode": True,
+    }
+
+    def install_grant(self, grant):
+        self.logger.info("[%s] Installing Securitas grant", grant)
+
+        assert grant.state == grant.INSTALLING
+
+        user = grant.reservation.user
+
+        user_id = str(user.pk)
+
+        params = {
+            "resourceId": grant.resource.identifier,
+            "validFrom": grant.starts_at.isoformat(),
+            "validTo": grant.ends_at.isoformat(),
+        }
+
+        access_params = {
+            **params,
+            "email": user.email,
+            "notifyUser": True,
+        }
+
+        access_user, created = self.system.users.get_or_create(
+            identifier=user_id,
+            user=user,
+        )
+
+        # NOTE: when user is created the first time, we want to create a user in Securitas.
+        # this works by passing in userExtId. Subsequent requests for same userfor same user should not pass in this param.
+
+        if created:
+            access_params["userExtId"] = user_id
+
+        response = self._api_post("access", access_params)
+        grant.identifier = response.json()["accessId"]
+
+        # now try and create pincode
+        if self.get_resource_setting(grant.resource, "uses_pincode"):
+            response = self._api_post("codes", params)
+            data = response.json()
+            grant.access_code = data["code"]
+            # save the Securitas ID to driver data so we can delete later
+            grant.driver_data = {"code_id": data["id"]}
+
+        grant.user = access_user
+        grant.state = grant.INSTALLED
+        grant.remove_at = grant.ends_at
+        grant.save()
+
+        if grant.access_code:
+            grant.notify_access_code()
+
+    def remove_grant(self, grant):
+        self.logger.info("[%s] Removing Securitas grant", grant)
+
+        assert grant.state == grant.REMOVING
+
+        # send DELETE for access right and pincode
+
+        self._api_delete(f"access/{grant.identifier}")
+
+        if grant.driver_data and "code_id" in grant.driver_data:
+            self._api_delete(f"codes/{grant.driver_data['code_id']}")
+
+        grant.state = grant.REMOVED
+        grant.removed_at = timezone.now()
+        grant.save(update_fields=["state", "removed_at"])
+
+        self.logger.info(
+            "[%s] Securitas access with ID %s and PIN %s removed",
+            grant,
+            grant.identifier,
+            grant.access_code or "NONE",
+        )
+
+    def prepare_install_grant(self, grant):
+        # Because of a bug in SiPass API, the changes are not synchronized
+        # to the building units automatically. We install the grants one day
+        # before their start time and schedule a re-install of the units
+        # every nightly.
+        grant.install_at = grant.starts_at - timedelta(days=1)
+        grant.save(update_fields=["install_at"])
 
     def get_system_config_schema(self):
         return self.SYSTEM_CONFIG_SCHEMA
@@ -52,130 +134,37 @@ class SecuritasDriver(AccessControlDriver):
         except JsonSchemaValidationError as e:
             raise ValidationError(e.message)
 
-    def install_grant(self, grant):
-        self.logger.info("[%s] Installing Securitas grant", grant)
-
-        assert grant.state == grant.INSTALLING
-
-        valid_from = grant.starts_at.isoformat()
-        valid_to = grant.ends_at.isoformat()
-
-        resource_id = self.get_setting("resource_id")
-
-        # NOTE: when user is created the first time, we want to create a user in Securitas.
-        # this works by passing in userExtId. Subsequent requests should not pass in this param.
-
-        user = grant.reservation.user
-
-        user_id = str(user.pk)
-
-        access_user, created = self.system_users.get_or_create(
-            identifier=user_id, user=user
-        )
-
-        data = {
-            "email": user.email,
-            "notifyUser": True,
-            "resourceId": resource_id,
-            "validFrom": valid_from,
-            "validTo": valid_to,
-        }
-
-        if not created:
-            data["userExtId"] = user_id
-
+    def _api_post(self, endpoint, params=None):
         try:
-            response = self._api_post("access", data)
-        except requests.RequestException:
-            access_user.delete()
+            response = requests.post(
+                self._get_api_endpoint(endpoint),
+                **self._get_api_params(params),
+            )
+            response.raise_for_status()
+            return response
+        except requests.RequestException as e:
+            self.logger.exception(e)
             raise
 
-        driver_data = {"access": response.json()}
-        grant.identifier = driver_data["accessId"]
-
-        # now try and create pincode
-        if self.get_setting("uses_pincode"):
-            try:
-                response = self._api_post(
-                    "access",
-                    {
-                        "resourceId": resource_id,
-                        "validFrom": valid_from,
-                        "validTo": valid_to,
-                    },
-                )
-            except requests.RequestException as e:
-                self.logger.exception(e)
-
-            driver_data = {**driver_data, "code": response.json()}
-            grant.access_code = driver_data["code"]["code"]
-
-        grant.driver_data = driver_data
-        grant.user = access_user
-        grant.state = grant.INSTALLED
-        grant.remove_at = grant.ends_at
-        grant.save()
-
-        if grant.access_code:
-            grant.notify_access_code()
-
-    def remove_grant(self, grant):
-        self.logger.info("[%s] Removing Securitas grant", grant)
-
-        assert grant.state == grant.REMOVING
-
-        # send DELETE for access right and user
-
-        self._api_delete(f"access/{grant.identifier}")
-
-        code_data = grant.driver_data.get("code", {})
-        code_id = code_data.get("id", None)
-
-        if code_id:
-            self._api_delete(f"codes/{code_id}")
-
-        grant.state = grant.REMOVED
-        grant.removed_at = timezone.now()
-        grant.save()
-
-        self.logger.info(
-            "[%s] Securitas access with ID %s and PIN %s removed",
-            grant,
-            grant.identifier,
-            grant.access_code or "NONE",
-        )
-
-    def prepare_install_grant(self, grant):
-        # Because of a bug in SiPass API, the changes are not synchronized
-        # to the building units automatically. We install the grants one day
-        # before their start time and schedule a re-install of the units
-        # every nightly.
-        grant.install_at = grant.starts_at - timedelta(days=1)
-        grant.save(update_fields=["install_at"])
-
-    def _api_post(self, endpoint, data=None):
-        response = requests.post(
-            self._get_endpoint(endpoint),
-            **self._get_api_params(data),
-        )
-        response.raise_for_status()
-        return response
-
     def _api_delete(self, endpoint):
-        response = requests.post(
-            self._get_endpoint(endpoint),
-            **self._get_api_params(),
-        )
-        response.raise_for_status()
-        return response
+        try:
+            response = requests.delete(
+                self._get_api_endpoint(endpoint),
+                **self._get_api_params(),
+            )
+            response.raise_for_status()
+            return response
+        except requests.RequestException as e:
+            self.logger.exception(e)
+            raise
 
-    def _get_api_params(self, data=None):
+    def _get_api_params(self, params=None):
         return {
-            "json": data,
+            "json": params,
             "headers": {
                 "x-api-key": self.get_setting("api_key"),
             },
         }
 
-    def _get_endpoint(self, endpoint):
-        return urljoin(self.BASE_URL, endpoint)
+    def _get_api_endpoint(self, endpoint):
+        return self.BASE_URL + endpoint

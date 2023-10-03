@@ -21,6 +21,11 @@ DRIVERS = (
         "Siemens SiPass",
         "kulkunen.drivers.sipass.SiPassDriver",
     ),
+    (
+        "securitas",
+        "Securitas Bitwards",
+        "kulkunen.drivers.securitas.SecuritasDriver",
+    ),
 )
 
 driver_classes = {}
