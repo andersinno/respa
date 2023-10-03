@@ -1,7 +1,6 @@
 import logging
 import random
 from datetime import timedelta
-
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ImproperlyConfigured
@@ -17,7 +16,11 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 DRIVERS = (
-    ('sipass', 'Siemens SiPass', 'kulkunen.drivers.sipass.SiPassDriver'),
+    (
+        "sipass",
+        "Siemens SiPass",
+        "kulkunen.drivers.sipass.SiPassDriver",
+    ),
 )
 
 driver_classes = {}
@@ -30,20 +33,29 @@ class AccessControlUserQuerySet(models.QuerySet):
 
 
 class AccessControlUser(models.Model):
-    INSTALLED = 'installed'
-    REMOVED = 'removed'
+    INSTALLED = "installed"
+    REMOVED = "removed"
     STATE_CHOICES = (
-        (INSTALLED, _('installed')),
-        (REMOVED, _('removed')),
+        (INSTALLED, _("installed")),
+        (REMOVED, _("removed")),
     )
 
-    system = models.ForeignKey('AccessControlSystem', related_name='users', on_delete=models.CASCADE)
+    system = models.ForeignKey(
+        "AccessControlSystem", related_name="users", on_delete=models.CASCADE
+    )
     user = models.ForeignKey(
-        User, related_name='access_control_users', on_delete=models.SET_NULL, null=True, blank=True
+        User,
+        related_name="access_control_users",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     state = models.CharField(
-        max_length=20, choices=STATE_CHOICES, default=INSTALLED, editable=False,
-        help_text=_('State of the user')
+        max_length=20,
+        choices=STATE_CHOICES,
+        default=INSTALLED,
+        editable=False,
+        help_text=_("State of the user"),
     )
 
     first_name = models.CharField(max_length=100, null=True, blank=True)
@@ -51,8 +63,11 @@ class AccessControlUser(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     removed_at = models.DateTimeField(null=True, blank=True)
     identifier = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name=_('identifier'),
-        help_text=_('Identifier of user in the access control system (if any)')
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name=_("identifier"),
+        help_text=_("Identifier of user in the access control system (if any)"),
     )
 
     driver_data = JSONField(null=True, blank=True)
@@ -60,10 +75,10 @@ class AccessControlUser(models.Model):
     objects = AccessControlUserQuerySet.as_manager()
 
     class Meta:
-        index_together = (('system', 'state'),)
+        index_together = (("system", "state"),)
 
     def __str__(self) -> str:
-        name = ' '.join([x for x in (self.first_name, self.last_name) if x])
+        name = " ".join([x for x in (self.first_name, self.last_name) if x])
         user_uuid = str(self.user.uuid) if self.user.uuid else _("[No identifier]")
         if name:
             return _("{uuid}: {name}").format(uuid=user_uuid, name=name)
@@ -74,33 +89,44 @@ class AccessControlUser(models.Model):
 class AccessControlGrantQuerySet(models.QuerySet):
     def active(self):
         m = self.model
-        return self.filter(state__in=(m.REQUESTED, m.INSTALLING, m.INSTALLED, m.REMOVING))
+        return self.filter(
+            state__in=(m.REQUESTED, m.INSTALLING, m.INSTALLED, m.REMOVING)
+        )
 
 
 class AccessControlGrant(models.Model):
-    REQUESTED = 'requested'
-    INSTALLING = 'installing'
-    INSTALLED = 'installed'
-    CANCELLED = 'cancelled'
-    REMOVING = 'removing'
-    REMOVED = 'removed'
+    REQUESTED = "requested"
+    INSTALLING = "installing"
+    INSTALLED = "installed"
+    CANCELLED = "cancelled"
+    REMOVING = "removing"
+    REMOVED = "removed"
     STATE_CHOICES = (
-        (REQUESTED, _('requested')),
-        (INSTALLED, _('installed')),
-        (CANCELLED, _('cancelled')),
-        (REMOVING, _('removing')),
-        (REMOVED, _('removed')),
+        (REQUESTED, _("requested")),
+        (INSTALLED, _("installed")),
+        (CANCELLED, _("cancelled")),
+        (REMOVING, _("removing")),
+        (REMOVED, _("removed")),
     )
 
     user = models.ForeignKey(
-        AccessControlUser, related_name='grants', null=True, blank=True, on_delete=models.SET_NULL
+        AccessControlUser,
+        related_name="grants",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
-    resource = models.ForeignKey('AccessControlResource', related_name='grants', on_delete=models.CASCADE)
+    resource = models.ForeignKey(
+        "AccessControlResource", related_name="grants", on_delete=models.CASCADE
+    )
 
     # If a Respa reservation is deleted, it will be marked as None here.
     # AccessControlReservation with reservation == None should be deleted.
     reservation = models.ForeignKey(
-        'resources.Reservation', on_delete=models.SET_NULL, null=True, related_name='access_control_grants'
+        "resources.Reservation",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="access_control_grants",
     )
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)
@@ -112,20 +138,36 @@ class AccessControlGrant(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     removed_at = models.DateTimeField(auto_now_add=True)
 
-    access_code = models.CharField(verbose_name=_('access code'), max_length=32, null=True, blank=True)
+    access_code = models.CharField(
+        verbose_name=_("access code"), max_length=32, null=True, blank=True
+    )
     state = models.CharField(
-        max_length=20, choices=STATE_CHOICES, default=REQUESTED, editable=False,
-        help_text=_('State of the grant')
+        max_length=20,
+        choices=STATE_CHOICES,
+        default=REQUESTED,
+        editable=False,
+        help_text=_("State of the grant"),
     )
     identifier = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name=_('identifier'),
-        help_text=_('Identifier of grant in the access control system (if any)')
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name=_("identifier"),
+        help_text=_("Identifier of grant in the access control system (if any)"),
     )
     installation_failures = models.PositiveIntegerField(
-        default=0, editable=False, help_text=_('How many times the system has tried to install this grant and failed')
+        default=0,
+        editable=False,
+        help_text=_(
+            "How many times the system has tried to install this grant and failed"
+        ),
     )
     removal_failures = models.PositiveIntegerField(
-        default=0, editable=False, help_text=_('How many times the system has tried to remove this grant (and failed)')
+        default=0,
+        editable=False,
+        help_text=_(
+            "How many times the system has tried to remove this grant (and failed)"
+        ),
     )
 
     driver_data = JSONField(null=True, blank=True)
@@ -133,7 +175,7 @@ class AccessControlGrant(models.Model):
     objects = AccessControlGrantQuerySet.as_manager()
 
     class Meta:
-        index_together = (('resource', 'state'),)
+        index_together = (("resource", "state"),)
 
     def __str__(self) -> str:
         return _("{user} {reservation} ({state})").format(
@@ -147,47 +189,50 @@ class AccessControlGrant(models.Model):
         already and asks for its revocation is it was. Otherwise the grant is just marked
         as removed.
         """
-        logger.info('[%s] Canceling' % self)
+        logger.info("[%s] Canceling" % self)
         if self.state not in (self.REQUESTED, self.INSTALLED):
-            logger.warn('[%s] Cancel called in invalid state')
+            logger.warn("[%s] Cancel called in invalid state")
             return
 
         if self.state == self.REQUESTED:
             self.state = self.REMOVED
         else:
             self.state = self.CANCELLED
-        self.save(update_fields=['state'])
+        self.save(update_fields=["state"])
         if self.state == self.CANCELLED:
             self.resource.system.prepare_remove_grant(self)
 
     def install(self):
-        """Installs the grant to the remote access control system.
-        """
-        logger.info('[%s] Installing' % self)
+        """Installs the grant to the remote access control system."""
+        logger.info("[%s] Installing" % self)
         assert self.state == self.REQUESTED
         # Sanity check to make sure we don't try to install grants
         # for past reservations.
         if self.ends_at < timezone.now():
-            logger.error('[%s] Attempted to install grant for a past reservation')
+            logger.error("[%s] Attempted to install grant for a past reservation")
             self.cancel()
             return
 
         with transaction.atomic():
             # Set the state while locking the resource to protect against race
             # conditions.
-            db_self = AccessControlGrant.objects.select_related('resource').select_for_update().get(id=self.id)
+            db_self = (
+                AccessControlGrant.objects.select_related("resource")
+                .select_for_update()
+                .get(id=self.id)
+            )
             if db_self.state != self.REQUESTED:
-                logger.error('[%s] Race condition with grant' % self)
+                logger.error("[%s] Race condition with grant" % self)
                 return
 
             self.state = self.INSTALLING
             # After the state is set to 'installing', we have exclusive access.
-            self.save(update_fields=['state'])
+            self.save(update_fields=["state"])
 
         try:
             self.resource.system.install_grant(self)
         except Exception as e:
-            logger.exception('[%s] Failed to grant access' % self)
+            logger.exception("[%s] Failed to grant access" % self)
 
             # If we fail, we retry after a while
             self.installation_failures += 1
@@ -195,28 +240,31 @@ class AccessControlGrant(models.Model):
             min_delay = min(1 << self.installation_failures, 30 * 60)
             retry_delay = random.randint(min_delay, 2 * min_delay)
             self.install_at = timezone.now() + timedelta(seconds=retry_delay)
-            self.save(update_fields=['state', 'installation_failures', 'install_at'])
-            logger.info('[%s] Retrying after %d seconds' % (self, retry_delay))
+            self.save(update_fields=["state", "installation_failures", "install_at"])
+            logger.info("[%s] Retrying after %d seconds" % (self, retry_delay))
 
     def remove(self):
-        """Removes the grant from the remote access control system.
-        """
-        logger.info('[%s] Removing' % self)
+        """Removes the grant from the remote access control system."""
+        logger.info("[%s] Removing" % self)
         assert self.state in (self.INSTALLED, self.CANCELLED)
         old_state = self.state
         with transaction.atomic():
-            db_self = AccessControlGrant.objects.select_related('resource').select_for_update().get(id=self.id)
+            db_self = (
+                AccessControlGrant.objects.select_related("resource")
+                .select_for_update()
+                .get(id=self.id)
+            )
             if db_self.state != old_state:
-                logger.error('[%s] Race condition with grant' % self)
+                logger.error("[%s] Race condition with grant" % self)
                 return
 
             self.state = self.REMOVING
-            self.save(update_fields=['state'])
+            self.save(update_fields=["state"])
 
         try:
             self.resource.system.remove_grant(self)
         except Exception as e:
-            logger.exception('[%s] Failed to revoke access' % self)
+            logger.exception("[%s] Failed to revoke access" % self)
 
             # If we fail, we retry after a while
             self.removal_failures += 1
@@ -224,38 +272,50 @@ class AccessControlGrant(models.Model):
             min_delay = min(1 << self.removal_failures, 30 * 60)
             retry_delay = random.randint(min_delay, 2 * min_delay)
             self.remove_at = timezone.now() + timedelta(seconds=retry_delay)
-            self.save(update_fields=['state', 'removal_failures', 'remove_at'])
-            logger.info('[%s] Retrying after %d seconds' % (self, retry_delay))
+            self.save(update_fields=["state", "removal_failures", "remove_at"])
+            logger.info("[%s] Retrying after %d seconds" % (self, retry_delay))
 
     def notify_access_code(self):
         reservation = self.reservation
         reservation.access_code = self.access_code
-        reservation.save(update_fields=['access_code'])
-        logger.info('Notifying access code creation')
+        reservation.save(update_fields=["access_code"])
+        logger.info("Notifying access code creation")
         reservation.send_access_code_created_mail()
 
 
 class AccessControlResource(models.Model):
     system = models.ForeignKey(
-        'AccessControlSystem', related_name='resources', on_delete=models.CASCADE,
-        verbose_name=_('system')
+        "AccessControlSystem",
+        related_name="resources",
+        on_delete=models.CASCADE,
+        verbose_name=_("system"),
     )
     # If a Respa resource is deleted, it will be marked as None here.
     # AccessControlResources with resource == None should be deleted.
     resource = models.ForeignKey(
-        'resources.Resource', related_name='access_control_resources', on_delete=models.SET_NULL,
-        verbose_name=_('resource'), null=True
+        "resources.Resource",
+        related_name="access_control_resources",
+        on_delete=models.SET_NULL,
+        verbose_name=_("resource"),
+        null=True,
     )
     identifier = models.CharField(
-        max_length=100, null=True, blank=True, verbose_name=_('identifier'),
-        help_text=_('Identifier of resource in the access control system (if any)')
+        max_length=100,
+        null=True,
+        blank=True,
+        verbose_name=_("identifier"),
+        help_text=_("Identifier of resource in the access control system (if any)"),
     )
 
-    driver_config = JSONField(null=True, blank=True, help_text=_('Driver-specific configuration'))
-    driver_data = JSONField(null=True, editable=False, help_text=_('Internal driver data'))
+    driver_config = JSONField(
+        null=True, blank=True, help_text=_("Driver-specific configuration")
+    )
+    driver_data = JSONField(
+        null=True, editable=False, help_text=_("Internal driver data")
+    )
 
     class Meta:
-        unique_together = (('system', 'resource'),)
+        unique_together = (("system", "resource"),)
 
     def __str__(self) -> str:
         return "%s: %s" % (self.system, self.resource)
@@ -288,11 +348,17 @@ class AccessControlResource(models.Model):
         grant = AccessControlGrant(
             resource=self, reservation=reservation, state=AccessControlGrant.REQUESTED
         )
-        grant.starts_at, grant.ends_at = self.pad_start_and_end_times(reservation.begin, reservation.end)
+        grant.starts_at, grant.ends_at = self.pad_start_and_end_times(
+            reservation.begin, reservation.end
+        )
 
         with transaction.atomic():
-            existing_grants = reservation.access_control_grants\
-                .filter(resource=self).active().select_related('resource').select_for_update()
+            existing_grants = (
+                reservation.access_control_grants.filter(resource=self)
+                .active()
+                .select_related("resource")
+                .select_for_update()
+            )
             old_grant = None
             assert len(existing_grants) <= 1
             if existing_grants:
@@ -309,8 +375,12 @@ class AccessControlResource(models.Model):
     def revoke_access(self, reservation):
         assert reservation.resource == self.resource
         with transaction.atomic():
-            existing_grants = reservation.access_control_grants\
-                .filter(resource=self).active().select_related('resource').select_for_update()
+            existing_grants = (
+                reservation.access_control_grants.filter(resource=self)
+                .active()
+                .select_related("resource")
+                .select_for_update()
+            )
             assert len(existing_grants) <= 1
             if not existing_grants:
                 return
@@ -329,12 +399,20 @@ class AccessControlSystem(models.Model):
     driver = models.CharField(max_length=30, choices=[(x[0], x[1]) for x in DRIVERS])
 
     reservation_leeway = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name=_('reservation leeway'),
-        help_text=_('How many minutes before and after the reservation the access will be allowed')
+        null=True,
+        blank=True,
+        verbose_name=_("reservation leeway"),
+        help_text=_(
+            "How many minutes before and after the reservation the access will be allowed"
+        ),
     )
 
-    driver_config = JSONField(null=True, blank=True, help_text=_('Driver-specific configuration'))
-    driver_data = JSONField(null=True, editable=False, help_text=_('Internal driver data'))
+    driver_config = JSONField(
+        null=True, blank=True, help_text=_("Driver-specific configuration")
+    )
+    driver_data = JSONField(
+        null=True, editable=False, help_text=_("Internal driver data")
+    )
 
     # Cached driver instance
     _driver = None
@@ -385,7 +463,9 @@ class AccessControlSystem(models.Model):
     def get_resource_identifier(self, resource: AccessControlResource):
         return self._get_driver().get_resource_identifier(resource)
 
-    def save_respa_resource(self, resource: AccessControlResource, respa_resource: Resource):
+    def save_respa_resource(
+        self, resource: AccessControlResource, respa_resource: Resource
+    ):
         """Notify driver about saving a Respa resource
 
         Allows for driver-specific customization of the Respa resource or the
