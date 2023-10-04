@@ -2041,13 +2041,16 @@ msgid "Cost center code"
 msgstr "Kustannuspaikkakoodi"
 
 msgid "CeePos Cost center code"
-msgstr "CeePoksen Kustannuspaikkakoodi"
+msgstr "CeePoksen kustannuspaikkakoodi"
 
 msgid "SAP Cost center code"
-msgstr "SAP:in Kustannuspaikkakoodi"
+msgstr "SAP:in kustannuspaikkakoodi"
 
 msgid "SAP Sales Organization code"
-msgstr "SAP:in Myyntiorganisaatiokoodi"
+msgstr "SAP:in myyntiorganisaatiokoodi"
+
+msgid "SAP Unit ID"
+msgstr "SAP:in yksikön tunniste"
 
 msgid ""
 "This resource's unit doesn't have a cost center code set. "
