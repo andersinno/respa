@@ -341,6 +341,7 @@ class UnitForm(forms.ModelForm):
             "cost_center_code",
             "sap_cost_center_code",
             "sap_sales_organization",
+            "sap_unit_id",
         ] + translated_fields
 
         widgets = {
