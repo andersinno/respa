@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import freezegun
 import pytest
 from decimal import Decimal
 from django.core.exceptions import ValidationError
@@ -9,7 +10,7 @@ from PIL import Image
 
 from resources.enums import UnitAuthorizationLevel
 from resources.errors import InvalidImage
-from resources.models import Resource, ResourceImage
+from resources.models import Resource, ResourceImage, Unit
 from resources.tests.utils import (
     create_resource_image,
     get_field_errors,
@@ -31,6 +32,32 @@ def priced_product(space_resource):
 @pytest.fixture
 def space_resource_with_product(priced_product, space_resource):
     return space_resource
+
+
+@freezegun.freeze_time("2023-10-5 15:40")
+def test_get_reservable_before_none():
+    resource = Resource(
+        reservable_max_days_in_advance=None,
+        unit=Unit(reservable_max_days_in_advance=None),
+    )
+    assert resource.get_reservable_before() is None
+
+
+@freezegun.freeze_time("2023-10-5 15:40")
+def test_get_reservable_before_not_none():
+    resource = Resource(
+        reservable_max_days_in_advance=7,
+    )
+    # should be start of 13th
+    dt = resource.get_reservable_before()
+    assert dt
+
+    assert dt.year == 2023
+    assert dt.month == 10
+    assert dt.day == 13
+
+    assert dt.hour == 0
+    assert dt.minute == 0
 
 
 @pytest.mark.django_db

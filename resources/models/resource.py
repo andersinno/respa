@@ -34,6 +34,7 @@ from .gistindex import GistIndex
 from .permissions import RESOURCE_GROUP_PERMISSIONS, UNIT_ROLE_PERMISSIONS
 from .unit import Unit
 from .utils import (
+    add_days,
     create_datetime_days_from_now,
     get_translated,
     get_translated_name,
@@ -988,9 +989,18 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
     def get_reservable_before(self):
-        return create_datetime_days_from_now(
-            self.get_reservable_max_days_in_advance(), exclude_extra_day=True
-        )
+        """Return the max date up to which you can reserve
+        the resource.
+
+        Should include the number of days equal to
+        resource max days in advance (or unit max days in advance)
+        (inclusive).
+
+        If max days is None, returns None.
+        """
+        num_days = self.get_reservable_max_days_in_advance()
+        # add an extra day so we include that day as well
+        return add_days(num_days + 1) if num_days else None
 
     def get_reservable_min_days_in_advance(self):
         return (

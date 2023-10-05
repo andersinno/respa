@@ -3733,10 +3733,22 @@ auth_resource_and_user_auth_combo = [
         "tampereazuread",
         201,
     ),  # Resource auth -> strong; User auth -> tampereazuread
-    ("PIKI", "tampereazuread", 201),  # Resource_auth -> PIKI; User auth -> tampereazuread
+    (
+        "PIKI",
+        "tampereazuread",
+        201,
+    ),  # Resource_auth -> PIKI; User auth -> tampereazuread
     ("mid", "tampereazuread", 201),  # Resource auth -> mid; User auth -> tampereazuread
-    ("weak", "tampereazuread", 201),  # Resource auth -> weak; User auth -> tampereazuread
-    ("none", "tampereazuread", 201),  # Resouce auth -> none; User auth -> tampereazuread
+    (
+        "weak",
+        "tampereazuread",
+        201,
+    ),  # Resource auth -> weak; User auth -> tampereazuread
+    (
+        "none",
+        "tampereazuread",
+        201,
+    ),  # Resouce auth -> none; User auth -> tampereazuread
 ]
 
 
