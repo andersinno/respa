@@ -245,15 +245,35 @@ def get_object_or_none(cls, **kwargs):
 
 
 def create_datetime_days_from_now(days_from_now, exclude_extra_day=False):
+    """DEPRECATED: use add_days().
+    If days_from_now is None, returns None.
+
+    If exclude_extra_day is True, returns current datetime + number of days,
+    otherwise returns from start of day + number of days + 1.
+    """
     if days_from_now is None:
         return None
-    if exclude_extra_day:
-        return timezone.now() + datetime.timedelta(days=days_from_now)
 
-    dt = timezone.now() + datetime.timedelta(days=days_from_now + 1)
-    dt = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    return (
+        add_days(days_from_now, from_start_of_day=False)
+        if exclude_extra_day
+        else add_days(days_from_now + 1, from_start_of_day=True)
+    )
 
-    return dt
+
+def add_days(days_from_now, *, from_start_of_day=True):
+    """
+    Adds days to current time.
+
+    If from_start_of_day is True, count from start of today.
+    """
+
+    now = timezone.now()
+
+    if from_start_of_day:
+        now = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    return now + datetime.timedelta(days=days_from_now)
 
 
 def localize_datetime(dt):
