@@ -212,6 +212,13 @@ class Reservation(ModifiableModel):
         verbose_name=_("Invoice approved by admin at"),
     )
 
+    invoice_marked_ready_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice marked ready at"),
+        help_text=_("When the invoice was marked as ready to be sent to SAP"),
+    )
+
     invoice_generated_at = models.DateTimeField(
         null=True,
         blank=True,
