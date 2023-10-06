@@ -141,6 +141,7 @@ class AccessControlGrant(models.Model):
     remove_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+    # this looks like a bug: should be null
     removed_at = models.DateTimeField(auto_now_add=True)
 
     access_code = models.CharField(

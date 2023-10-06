@@ -43,30 +43,28 @@ class SecuritasDriver(AccessControlDriver):
 
         user_id = str(user.pk)
 
+        access_user, _ = self.system.users.get_or_create(
+            identifier=user_id,
+            user=user,
+        )
+
         params = {
             "resourceId": grant.resource.identifier,
             "validFrom": grant.starts_at.isoformat(),
             "validTo": grant.ends_at.isoformat(),
         }
 
-        access_params = {
-            **params,
-            "email": user.email,
-            "notifyUser": True,
-        }
-
-        access_user, created = self.system.users.get_or_create(
-            identifier=user_id,
-            user=user,
+        response = self._api_post(
+            "access",
+            {
+                "userExtId": user_id,
+                "firstName": user.first_name,
+                "lastName": user.last_name,
+                "email": user.email,
+                "notifyUser": True,
+                **params,
+            },
         )
-
-        # NOTE: when user is created the first time, we want to create a user in Securitas.
-        # this works by passing in userExtId. Subsequent requests for same userfor same user should not pass in this param.
-
-        if created:
-            access_params["userExtId"] = user_id
-
-        response = self._api_post("access", access_params)
         grant.identifier = response.json()["accessId"]
 
         # now try and create pincode
@@ -143,6 +141,9 @@ class SecuritasDriver(AccessControlDriver):
             response.raise_for_status()
             return response
         except requests.RequestException as e:
+            print(params)
+            print(e)
+            print(e.response.json())
             self.logger.exception(e)
             raise
 
@@ -155,6 +156,8 @@ class SecuritasDriver(AccessControlDriver):
             response.raise_for_status()
             return response
         except requests.RequestException as e:
+            print(e)
+            print(e.response.json())
             self.logger.exception(e)
             raise
 

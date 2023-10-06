@@ -19,13 +19,14 @@ class AccessControlDriver:
         self.logger = logging.getLogger(str(self.__class__))
 
     def get_setting(self, name: str, missing_none=False):
-        if name not in self.system.driver_config and hasattr(self, "DEFAULT_CONFIG"):
+        config = self.system.driver_config or {}
+        if name not in config and hasattr(self, "DEFAULT_CONFIG"):
             if missing_none and name not in self.DEFAULT_CONFIG:
                 return None
             return self.DEFAULT_CONFIG[name]
-        if missing_none and name not in self.system.driver_config:
+        if missing_none and name not in config:
             return None
-        return self.system.driver_config[name]
+        return config[name]
 
     def get_resource_setting(self, resource, name, missing_none=False):
         config = resource.driver_config or {}
