@@ -2075,3 +2075,9 @@ msgstr ""
 "varaaja voi valita tapahtumatyypiksi myös \"Ei mikään\n"
 "edellisistä\". Tällöin hinta määräytyy valitun käyttäjäryhmän "
 "perusteella."
+
+msgid "Invoice marked ready at"
+msgstr "Lasku merkattu lähetettäväksi"
+
+msgid "When the invoice was marked as ready to be sent to SAP"
+msgstr "Aika, jolloin lasku on merkattu lähetettäväksi SAP:iin"
