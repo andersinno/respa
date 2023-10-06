@@ -367,6 +367,10 @@ class Reservation(ModifiableModel):
         return status
 
     @property
+    def is_invoice_to_be_marked_ready(self):
+        return self.invoice_status == ReservationInvoiceStatus.TO_BE_MARKED_AS_READY
+
+    @property
     def begin_tz(self):
         return self.begin
 
