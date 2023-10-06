@@ -2081,3 +2081,21 @@ msgstr "Lasku merkattu lähetettäväksi"
 
 msgid "When the invoice was marked as ready to be sent to SAP"
 msgstr "Aika, jolloin lasku on merkattu lähetettäväksi SAP:iin"
+
+msgid "Invoiceable reservations"
+msgstr "Laskutettavat varaukset"
+
+msgid "Price (€)"
+msgstr "Hinta (€)"
+
+msgid "Reserver"
+msgstr "Varaaja"
+
+msgid "Business ID"
+msgstr "Y-tunnus"
+
+msgid "Send to SAP"
+msgstr "Lähetä SAP:iin"
+
+msgid "Send"
+msgstr "Lähetä"

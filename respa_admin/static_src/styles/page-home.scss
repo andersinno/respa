@@ -156,7 +156,8 @@ main {
     }
 
     .resource-list ul li,
-    .unit-list ul li {
+    .unit-list ul li,
+    .invoiceable-reservations ul li {
       $list-item-height: 100px;
       $table-template: $list-item-height 4fr 3fr 3fr 2fr;
 
@@ -253,6 +254,16 @@ main {
     .unit-list ul li div.panel div.panel-body,
     .unit-list ul li.list-group-item.sort-bar {
       grid-template-columns: 6fr 2fr 2fr 2fr;
+    }
+  }
+
+  section.invoiceable-reservations {
+    @extend .main-section;
+
+    /* Invoiceable reservation list has six columns */
+    .invoiceable-reservations ul li div.panel div.panel-body,
+    .invoiceable-reservations ul li.list-group-item.sort-bar {
+      grid-template-columns: 3fr 2fr 2fr 3fr 2fr;
     }
   }
 }
