@@ -2093,3 +2093,9 @@ msgstr "Laskun XML luotu"
 
 msgid "Sent to SAP at"
 msgstr "Lähetetty SAP:iin"
+
+msgid "Invoice marked ready at"
+msgstr "Lasku merkattu lähetettäväksi"
+
+msgid "When the invoice was marked as ready to be sent to SAP"
+msgstr "Aika, jolloin lasku on merkattu lähetettäväksi SAP:iin"
