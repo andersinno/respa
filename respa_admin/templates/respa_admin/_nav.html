@@ -97,6 +97,9 @@
                 <li>
                   <a href="{% url 'respa_admin:price-list' %}">{% trans "Price lists" %}</a>
                 </li>
+                <li>
+                    <a href="{% url 'respa_admin:invoiceable-reservations' %}">{% trans "Laskutettavat varaukset" %}</a>
+                </li>
                 {% if SUPPORT_EMAIL %}
                 <li>
                     <a href="mailto:{{ SUPPORT_EMAIL }}">
