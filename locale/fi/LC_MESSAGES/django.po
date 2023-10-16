@@ -2081,3 +2081,15 @@ msgstr ""
 "varaaja voi valita tapahtumatyypiksi myös \"Ei mikään\n"
 "edellisistä\". Tällöin hinta määräytyy valitun käyttäjäryhmän "
 "perusteella."
+
+msgid "invoice"
+msgstr "lasku"
+
+msgid "invoices"
+msgstr "laskut"
+
+msgid "Invoice XML generated at"
+msgstr "Laskun XML luotu"
+
+msgid "Sent to SAP at"
+msgstr "Lähetetty SAP:iin"

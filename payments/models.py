@@ -1,26 +1,20 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
-
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import OuterRef, Q, Subquery
-from django.utils import translation
+from django.utils import timezone, translation
 from django.utils.formats import localize
 from django.utils.functional import cached_property
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from resources.models import Reservation, Resource
 from resources.models.utils import generate_id
 
-from .exceptions import (
-    OrderStateTransitionError,
-    PaymentAlreadyCompletedError,
-    PaymentCancellationFailedError,
-)
+from .exceptions import OrderStateTransitionError, PaymentAlreadyCompletedError, PaymentCancellationFailedError
 from .utils import convert_aftertax_to_pretax, get_price_period_display, rounded
 
 # The best way for representing non existing archived_at would be using None for it,
@@ -204,6 +198,31 @@ class OrderQuerySet(models.QuerySet):
         return (num_of_orders_expired, num_of_order_confirmed)
 
 
+class Invoice(models.Model):
+    created_at = models.DateTimeField(
+        verbose_name=_("created at"),
+        auto_now_add=True,
+    )
+    xml = models.TextField(
+        verbose_name=_("XML"),
+        blank=True,
+    )
+    xml_generated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice XML generated at"),
+    )
+    sent_to_sap_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Sent to SAP at"),
+    )
+
+    class Meta:
+        verbose_name = _("invoice")
+        verbose_name_plural = _("invoices")
+
+
 class Order(models.Model):
     WAITING = "waiting"
     CONFIRMED = "confirmed"
@@ -233,6 +252,15 @@ class Order(models.Model):
         verbose_name=_("reservation"),
         related_name="order",
         on_delete=models.PROTECT,
+    )
+
+    invoice = models.ForeignKey(
+        Invoice,
+        verbose_name=_("invoice"),
+        related_name="orders",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     objects = OrderQuerySet.as_manager()
