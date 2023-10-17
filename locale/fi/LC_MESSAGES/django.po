@@ -2108,3 +2108,18 @@ msgstr "Lasku merkattu lähetettäväksi"
 
 msgid "When the invoice was marked as ready to be sent to SAP"
 msgstr "Aika, jolloin lasku on merkattu lähetettäväksi SAP:iin"
+
+msgid "To be confirmed"
+msgstr "Vahvistettava"
+
+msgid "Marked as ready"
+msgstr "Merkattu lähetettäväksi"
+
+msgid "Invoice created, waiting to be sent"
+msgstr "Lasku luotu, odottaa lähetystä"
+
+msgid "Sent to SAP"
+msgstr "Lähetetty SAP:iin"
+
+msgid "Error"
+msgstr "Virhe"
