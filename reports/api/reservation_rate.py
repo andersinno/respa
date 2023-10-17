@@ -158,6 +158,8 @@ class ReservationRateReportExcelRenderer(renderers.BaseRenderer):
             (1, "Varauksen nimi"),
             (2, "Alkoi"),
             (3, "Päättyi"),
+            (4, "Osallistujamäärä"),
+            (5, "Lisätiedot"),
         ]
 
         sheet_name_pattern = re.compile("[\\[\\]:*?/\\\\]")
@@ -212,9 +214,12 @@ class ReservationRateReportExcelRenderer(renderers.BaseRenderer):
                     sheet.write(row_pos, 1, reservation["event_subject"])
                     sheet.write(row_pos, 2, reservation["begin"])
                     sheet.write(row_pos, 3, reservation["end"])
+                    sheet.write(row_pos, 4, reservation["number_of_participants"])
+                    sheet.write(row_pos, 5, reservation["event_description"])
+
                     row_pos += 1
                 
-                row_pos += 4
+                row_pos += 5
 
         workbook.close()
 
@@ -234,6 +239,8 @@ class ReservationSerializer(serializers.ModelSerializer):
             "reserver_name",
             "event_subject",
             "reserved_time",
+            "number_of_participants",
+            "event_description",
         )
 
     def get_reserved_time(self, obj):
