@@ -122,6 +122,12 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         blank=True,
     )
 
+    sap_income_account_identifier = models.CharField(
+        verbose_name=_("SAP Income Account Identifier"),
+        max_length=15,
+        blank=True,
+    )
+
     street_address = models.CharField(
         verbose_name=_("Street address"), max_length=100, null=True
     )
