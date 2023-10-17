@@ -1,11 +1,10 @@
-import datetime
 from django.conf import settings
 from django.template import loader
-from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from payments.utils import round_price
 from resources.models import Reservation
+
+from .models import SAPMaterialCode
 
 
 def get_reservations_for_invoicing():
@@ -34,47 +33,48 @@ def get_reservations_for_invoicing():
     )
 
 
+def get_sap_material_code(order_line):
+    reservation = order_line.order.reservation
+    unit = reservation.resource.unit
+    income_account = unit.sap_income_account
+
+    return SAPMaterialCode.objects.get(
+        tax_percentage=order_line.tax_percentage, sap_income_account=income_account
+    ).material_code
+
+
 def get_sales_order_items(reservation):
-    cost_center_code = reservation.resource.unit.sap_cost_center_code
+    unit = reservation.resource.unit
 
     for line in reservation.get_order().order_lines.all():
         yield {
             "currency": "EUR",
-            "description": line.product.name,
+            "description": reservation.resource.name,
             # always use "1" as SAP will calculate total price based on units
             "quantity": 1,
-            "unit_price": round_price(line.total_price),
-            "profit_center": cost_center_code,
-            # dummy value
-            "material": "1111",
-            # before tax
-            "price_condition": "ZYMH",
+            "unit_price": line.get_pretax_price(),
+            "profit_center": unit.sap_cost_center_code,
+            "material": get_sap_material_code(line),
+            "price_condition": "ZMYH",  # before tax
+            "plant_id": unit.sap_unit_id,
         }
 
 
 def get_sales_orders(reservations):
     """Returns the sales order context data."""
-    now = timezone.now()
 
     for reservation in reservations:
+        unit = reservation.resource.unit
         address = {
             "street": reservation.company_address_street,
             "town": reservation.company_address_city,
             "postcode": reservation.company_address_zip,
         }
 
-        if (
-            reservation.begin
-            and reservation.end
-            and (reservation.end - reservation.begin) > datetime.timedelta(hours=24)
-        ):
+        if reservation.begin and reservation.end:
             billing_period = _("Invoice from %(begin)s to %(end)s") % {
-                "begin": reservation.begin.strftime("%d.%m.%Y"),
-                "end": reservation.end.strfime("%d.%m.%Y"),
-            }
-        elif reservation.begin:
-            billing_period = _("Invoice for %(begin)s") % {
-                "begin": reservation.begin.strftime("%d.%m.%Y"),
+                "begin": reservation.begin.strftime("%d.%m.%Y %H:%M"),
+                "end": reservation.end.strftime("%d.%m.%Y %H:%M"),
             }
         else:
             billing_period = ""
@@ -84,21 +84,21 @@ def get_sales_orders(reservations):
             "business_id": reservation.reserver_id,
             "company_name": reservation.company,
             "address": address,
-            "billing_date": now,
             "billing_period": billing_period,
             "interface_id": settings.RESPA_SAP_INTERFACE_ID,
             # assumed defaults
             "distribution_channel": "00",
             "division": "00",
-            "sales_order_type": "Z001",
+            "sales_organization": unit.sap_sales_organization,
+            "sales_order_type": "ZVRV",  # TODO: Use "ZVSV" for internal reservations
             "items": get_sales_order_items(reservation),
         }
 
 
 def generate_sales_order(reservations):
-    """Generates XML document as a string containing all invoices.
+    """Generates the XML as a string containing all invoices.
 
-    This document can be then sent to SAP for processing.
+    This XML can be then sent to SAP for processing.
 
     If no available invoiceable reservations, returns `None`.
     """

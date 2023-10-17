@@ -1,43 +1,43 @@
 {% load l10n %}
 <?xml version="1.0" encoding="UTF-8"?>
 <SalesOrder>
-{% for order in orders %}
-    <header>
-        <Customer>
-        <SapID></SapID>
-        <Company>
+  {% for order in orders %}
+  <Header>
+    <Customer>
+      <SapID></SapID>
+      <Company>
         <BusinessID>{{ order.business_id }}</BusinessID>
         <CompanyName>{{ order.company_name }}</CompanyName>
-        </Company>
-        <address>
-            <Street>{{ order.address.street }}</Street>
-            <Town>{{ order.address.town }}</Town>
-            <PostCode>{{ order.address.postcode }}</PostCode>
-        </address>
-        </Customer>
-        <BillingDate>{{ order.billing_date }}</BillingDate>
-        <YourReference>{{ order.reference }}</YourReference>
-        <SalesOrganisation>{{ order.sales_organization }}</SalesOrganisation>
-        <DistributionChannel>{{ order.distribution_channel }}</DistributionChannel>
-        <Division>{{ order.division }}</Division>
-        <SalesOrderType>{{ order.sales_order_type }}</SalesOrderType>
-        <InterfaceID>{{ order.interface_id }}</InterfaceID>
-        <Text>
-        <TextRow>{{ billing_period }}</TextRow>
-        </Text>
-        <Items>
-        {% for item in order.items %}
-            <Item>
-            <Description>{{ item.description }}</Description>
-            <ProfitCenter>{{ item.cost_center_code }}</ProfitCenter>
-            <Material>{{ item.material }}</Material>
-            <PriceCondition>{{ item.price_condition }}</PriceCondition>
-            <Currency>{{ item.currency }}</Currency>
-            <Quantity>{{ item.quantity }}</Quantity>
-            <UnitPrice>{{ item.unit_price|unlocalize }}</UnitPrice>
-            </Item>
-        {% endfor %}
-        </Items>
-    </header>
-{% endfor %}
+      </Company>
+      <Address>
+        <Street>{{ order.address.street }}</Street>
+        <Town>{{ order.address.town }}</Town>
+        <PostCode>{{ order.address.postcode }}</PostCode>
+      </Address>
+    </Customer>
+    <YourReference>{{ order.reference }}</YourReference>
+    <SalesOrganisation>{{ order.sales_organization }}</SalesOrganisation>
+    <DistributionChannel>{{ order.distribution_channel }}</DistributionChannel>
+    <Division>{{ order.division }}</Division>
+    <SalesOrderType>{{ order.sales_order_type }}</SalesOrderType>
+    <InterfaceID>{{ order.interface_id }}</InterfaceID>
+    <Text>
+      <TextRow>{{ order.billing_period }}</TextRow>
+    </Text>
+    <Items>
+      {% for item in order.items %}
+      <Item>
+        <Description>{{ item.description }}</Description>
+        <ProfitCenter>{{ item.profit_center }}</ProfitCenter>
+        <Material>{{ item.material }}</Material>
+        <PriceCondition>{{ item.price_condition }}</PriceCondition>
+        <Currency>{{ item.currency }}</Currency>
+        <Quantity>{{ item.quantity }}</Quantity>
+        <UnitPrice>{{ item.unit_price|unlocalize }}</UnitPrice>
+        <Plant>{{ item.plant_id }}</Plant>
+      </Item>
+      {% endfor %}
+    </Items>
+  </Header>
+  {% endfor %}
 </SalesOrder>
