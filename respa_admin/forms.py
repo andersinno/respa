@@ -341,6 +341,8 @@ class UnitForm(forms.ModelForm):
             "cost_center_code",
             "sap_cost_center_code",
             "sap_sales_organization",
+            "sap_unit_id",
+            "sap_income_account_identifier",
         ] + translated_fields
 
         widgets = {
@@ -354,6 +356,23 @@ class UnitForm(forms.ModelForm):
         self.fields["municipality"].queryset = self.fields[
             "municipality"
         ].queryset.prefetch_related("translations")
+        self._make_fields_readonly([
+            "sap_cost_center_code",
+            "sap_sales_organization",
+            "sap_unit_id",
+            "sap_income_account_identifier",
+        ])
+
+    def _make_fields_readonly(self, fields):
+        for field in fields:
+            if field in self.fields:
+                self.fields[field].widget.attrs.update(
+                    {
+                        "disabled": True,
+                        "readonly": True,
+                    }
+                )
+        return fields
 
 
 class PeriodFormset(forms.BaseInlineFormSet):
