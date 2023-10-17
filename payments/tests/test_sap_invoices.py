@@ -9,6 +9,7 @@ from payments.sap_invoices import (
     generate_sales_order,
     get_reservations_for_invoicing,
     get_sales_orders,
+    get_sap_material_code,
 )
 from resources.models import Reservation
 
@@ -34,7 +35,7 @@ def invoice_reservation(resource_with_opening_hours, user):
     )
 
     order = OrderFactory(reservation=reservation, state=Order.CONFIRMED)
-    OrderLineFactory(order=order)
+    OrderLineFactory(order=order, tax_percentage=Decimal("10.00"))
     return reservation
 
 
@@ -66,15 +67,25 @@ def test_get_sales_orders(invoice_reservation):
     assert len(items) == 1
     item = items[0]
     assert item["quantity"] == 1
-    assert item["unit_price"] == Decimal("100.00")
+    assert item["unit_price"] == Decimal("90.91")  # pre-tax
 
 
 @pytest.mark.django_db()
 def test_generate_sales_order(invoice_reservation):
     xml_str = generate_sales_order(get_reservations_for_invoicing())
     assert "<BusinessID>Y-12456" in xml_str
-    assert "<UnitPrice>100.00" in xml_str
+    assert "<UnitPrice>90.91" in xml_str
     assert "<Town>Helsinki" in xml_str
+    assert "<ProfitCenter>CC123" in xml_str
+    assert "<SalesOrganisation>O123" in xml_str
+    assert "<Plant>U123" in xml_str
+
+
+@pytest.mark.django_db()
+def test_get_sap_material_code(invoice_reservation):
+    order_line = invoice_reservation.order.order_lines.first()
+    sap_material_code = get_sap_material_code(order_line)
+    assert sap_material_code == "ACC1_10"  # "<income_account>_<tax_class>"
 
 
 @pytest.mark.django_db()

@@ -1,17 +1,16 @@
-import pathlib
 from django.core.management.base import BaseCommand
-from django.template import loader
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from payments.models import Invoice
 from payments.sap_invoices import generate_sales_order, get_reservations_for_invoicing
 
 
 class Command(BaseCommand):
-    help = "Generates SAP XML Sales Order documents."
+    help = "Generates SAP XML content for invoices."
 
     def add_arguments(self, parser):
-        parser.add_argument("--target_dir", help="Target directory")
         parser.add_argument(
             "--stdout",
             help="Write to STDOUT",
@@ -20,28 +19,25 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        """Should generate SAP XML documents for all reservations where an
-        invoice has been requested and approved.
-
-        Documents are written to the target directory, using timestamped folders.
-
-        TBD: provide optional URL for (s)ftp transfer instead of writing to dir.
+        """Should generate SAP XML for all reservations where an invoice
+        has been requested and approved. The XML content is saved to a
+        related Invoice object.
         """
         reservations = get_reservations_for_invoicing()
         sales_order_xml = generate_sales_order(reservations)
 
         if sales_order_xml:
             now = timezone.now()
-            # mark reservations invoices as done
-            reservations.update(invoice_generated_at=now)
+            with transaction.atomic():
+                invoice = Invoice.objects.create(
+                    xml=sales_order_xml,
+                    xml_generated_at=now,
+                )
+                orders = [res.order for res in reservations]
+                invoice.orders.set(orders)
 
-            if options["target_dir"]:
-                filename = now.strftime("%d-%m-%Y-%H-%M.xml")
-                target_dir = pathlib.Path(options["target_dir"])
-                target_dir.mkdir(exist_ok=True, parents=True)
-
-                with open(target_dir / filename, "w") as fp:
-                    fp.write(sales_order_xml)
+                # mark reservations invoices as done
+                reservations.update(invoice_generated_at=now)
 
             if options["stdout"]:
                 self.stdout.write(sales_order_xml)

@@ -80,7 +80,14 @@ def space_resource(space_resource_type):
 @pytest.mark.django_db
 @pytest.fixture
 def test_unit():
-    return Unit.objects.create(name="unit", time_zone="Europe/Helsinki")
+    return Unit.objects.create(
+        name="unit",
+        time_zone="Europe/Helsinki",
+        sap_cost_center_code="CC123",
+        sap_sales_organization="O123",
+        sap_unit_id="U123",
+        sap_income_account_identifier="ACC1",
+    )
 
 
 @pytest.fixture
