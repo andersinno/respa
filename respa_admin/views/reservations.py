@@ -1,4 +1,9 @@
+from django.contrib import messages
 from django.db.models import FieldDoesNotExist, Q
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import ListView
 
 from resources.models import Reservation, Resource
@@ -43,3 +48,58 @@ class InvoiceableReservationListView(ExtraContextMixin, ListView):
             except FieldDoesNotExist:
                 pass
         return qs
+
+
+def mark_reservation_ready_for_invoicing(request, reservation_id):
+    """
+    Mark the reservation as ready for invoicing by
+    setting invoice_marked_ready_at.
+
+    Also checks that the reservation has the data needed for
+    generating the invoice XML for SAP.
+    """
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+
+    # Check we have the data needed for the XML
+    valid, invalid_fields = validate_data_required_by_sap(reservation)
+
+    if valid:
+        reservation.invoice_marked_ready_at = timezone.now()
+        reservation.save()
+    else:
+        messages.error(
+            request, _("Missing information required by SAP: {}").format(invalid_fields)
+        )
+
+    return HttpResponseRedirect(request.META.get("HTTP_REFERER"))
+
+
+def validate_data_required_by_sap(reservation):
+    invalid_fields = []
+    unit = reservation.resource.unit
+    required_reservation_fields = [
+        "reserver_id",
+        "company",
+        "company_address_street",
+        "company_address_city",
+        "company_address_zip",
+    ]
+    required_unit_fields = [
+        "sap_cost_center_code",
+        "sap_sales_organization",
+        "sap_unit_id",
+        "sap_income_account_identifier",
+    ]
+
+    for field in required_reservation_fields:
+        if not getattr(reservation, field):
+            invalid_fields.append(field)
+
+    for field in required_unit_fields:
+        if not getattr(unit, field):
+            invalid_fields.append(field)
+
+    if invalid_fields:
+        return False, invalid_fields
+
+    return True, invalid_fields

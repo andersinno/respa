@@ -11,7 +11,7 @@ from .views.prices import (
     PriceListTemplateView,
     PriceListView,
 )
-from .views.reservations import InvoiceableReservationListView
+from .views.reservations import InvoiceableReservationListView, mark_reservation_ready_for_invoicing
 from .views.resources import (
     ManageUserPermissionsListView,
     ManageUserPermissionsSearchView,
@@ -95,5 +95,10 @@ urlpatterns = [
         r"^invoiceable_reservations/$",
         InvoiceableReservationListView.as_view(),
         name="invoiceable-reservations",
+    ),
+    url(
+        r"^invoiceable_reservations/(?P<reservation_id>\w+)/ready/$",
+        mark_reservation_ready_for_invoicing,
+        name="mark-reservation-ready-for-invoicing",
     ),
 ]

@@ -2135,3 +2135,7 @@ msgstr "Lähetä"
 
 msgid "Confirm"
 msgstr "Vahvista"
+
+#, python-brace-format
+msgid "Missing information required by SAP: {}"
+msgstr "SAP:n vaatimia tietoja puuttuu: {}"
