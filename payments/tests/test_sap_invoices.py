@@ -39,14 +39,15 @@ def invoice_reservation(
     resource_with_opening_hours.unit.save()
     reservation = Reservation.objects.create(
         resource=resource_with_opening_hours,
-        begin=now,
-        end=now + timedelta(hours=2),
+        begin=now - timedelta(hours=3),
+        end=now - timedelta(hours=2),
         user=user,
         state=Reservation.CONFIRMED,
         invoice_requested=True,
         invoice_requested_at=now,
         invoice_approved_at=now,
         invoice_generated_at=None,
+        invoice_marked_ready_at=now,
         reserver_id="Y-12456",
         company="test",
         company_address_street="123 Pihlajakatu",
@@ -67,6 +68,18 @@ def test_get_reservations_for_invoicing(invoice_reservation):
 @pytest.mark.django_db()
 def test_get_reservations_for_invoicing_not_approved(invoice_reservation):
     Reservation.objects.update(invoice_approved_at=None)
+    assert get_reservations_for_invoicing().count() == 0
+
+
+@pytest.mark.django_db()
+def test_get_reservations_for_invoicing_not_marked_ready(invoice_reservation):
+    Reservation.objects.update(invoice_marked_ready_at=None)
+    assert get_reservations_for_invoicing().count() == 0
+
+
+@pytest.mark.django_db()
+def test_get_reservations_for_invoicing_not_in_the_past(invoice_reservation):
+    Reservation.objects.update(end=timezone.now() + timedelta(hours=2))
     assert get_reservations_for_invoicing().count() == 0
 
 

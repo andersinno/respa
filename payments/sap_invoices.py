@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.template import loader
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from resources.models import Reservation
@@ -10,7 +11,7 @@ from .models import SAPMaterialCode
 def get_reservations_for_invoicing():
     """Returns reservations that are eligible for invoice generation.
 
-    This should include all CONFIRMED reservations marked invoice approved.
+    This should include all past CONFIRMED reservations marked ready for invoicing.
     """
     return (
         Reservation.objects.filter(
@@ -18,7 +19,9 @@ def get_reservations_for_invoicing():
             order__isnull=False,
             invoice_requested=True,
             invoice_approved_at__isnull=False,
+            invoice_marked_ready_at__isnull=False,
             invoice_generated_at__isnull=True,
+            end__lt=timezone.now(),
         )
         .select_related(
             "resource",
@@ -29,7 +32,7 @@ def get_reservations_for_invoicing():
             "order__order_lines",
             "order__order_lines__product",
         )
-        .order_by("invoice_approved_at")
+        .order_by("invoice_marked_ready_at")
     )
 
 
