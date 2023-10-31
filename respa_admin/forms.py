@@ -11,6 +11,7 @@ from resources.models import (
     Period,
     Purpose,
     Resource,
+    ResourceAccess,
     ResourceAccessibility,
     ResourceImage,
     TermsOfUse,
@@ -193,6 +194,12 @@ class ResourceForm(forms.ModelForm):
         required=False,
     )
 
+    access_methods = forms.ModelMultipleChoiceField(
+        required=False,
+        widget=RespaCheckboxSelect,
+        queryset=ResourceAccess.objects.all(),
+    )
+
     class Meta:
         model = Resource
 
@@ -229,6 +236,7 @@ class ResourceForm(forms.ModelForm):
             "type",
             "purposes",
             "equipment",
+            "access_methods",
             "external_reservation_url",
             "people_capacity",
             "area",
