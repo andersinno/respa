@@ -241,6 +241,21 @@ class ResourceQuerySet(models.QuerySet):
             return queryset.filter(free_to_use=False, has_pricing=True)
 
 
+class ResourceAccess(models.Model):
+    ACCESS_METHODS = (
+        ("pincode", _("Pincode")),
+        ("mobile_app", _("Mobile app")),
+        ("physical_key", _("Physical keykkeycard")),
+        ("staff_member", _("Staff member (e.g. security guard or janitor)")),
+        ("open_door", _("Door is always open")),
+    )
+
+    access_method = models.CharField(max_length=15, choices=ACCESS_METHODS, unique=True)
+
+    def __str__(self):
+        return self.get_access_method_display()
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ("none", _("None")),
@@ -292,6 +307,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_("Resource type"),
         db_index=True,
         on_delete=models.PROTECT,
+    )
+    access_methods = models.ManyToManyField(
+        ResourceAccess, blank=True, verbose_name=_("Access methods")
     )
     purposes = models.ManyToManyField(Purpose, verbose_name=_("Purposes"))
     name = models.CharField(verbose_name=_("Name"), max_length=200)
@@ -529,6 +547,10 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
         return product.pricedproduct.price_list if product else None
+
+    def get_access_methods(self):
+        """Returns ordered list of access methods."""
+        return sorted([str(method) for method in self.access_methods.distinct()])
 
     def validate_reservation_period(self, reservation, user, data=None):
         """
