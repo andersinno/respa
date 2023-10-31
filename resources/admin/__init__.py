@@ -36,6 +36,7 @@ from ..models import (
     ReservationMetadataField,
     ReservationMetadataSet,
     Resource,
+    ResourceAccess,
     ResourceAccessibility,
     ResourceEquipment,
     ResourceGroup,
@@ -130,6 +131,11 @@ class UnitIdentifierInline(admin.StackedInline):
     extra = 0
 
 
+class ResourceAccessAdmin(admin.ModelAdmin):
+    verbose_name = _("Resource access method")
+    verbose_name_plural = _("Resource access methods")
+
+
 class ResourceAdmin(
     PopulateCreatedAndModifiedMixin,
     CommonExcludeMixin,
@@ -150,6 +156,12 @@ class ResourceAdmin(
     list_filter = ("unit", "public", "reservable")
     list_select_related = ("unit",)
     ordering = ("unit", "name")
+    raw_id_fields = (
+        "access_methods",
+        "purposes",
+        "reservation_metadata_set",
+        "unit",
+    )
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -533,6 +545,7 @@ class RespaTokenAdmin(admin.ModelAdmin):
 
 admin_site.register(ResourceImage, ResourceImageAdmin)
 admin_site.register(Resource, ResourceAdmin)
+admin_site.register(ResourceAccess, ResourceAccessAdmin)
 admin_site.register(Reservation, ReservationAdmin)
 admin_site.register(ResourceType, ResourceTypeAdmin)
 admin_site.register(Purpose, PurposeAdmin)

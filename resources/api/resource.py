@@ -13,6 +13,7 @@ from django.contrib.gis.geos import Point
 from django.db.models import OuterRef, Prefetch, Q, Subquery, Value
 from django.db.models.functions import Coalesce, Least
 from django.urls import reverse
+from django.utils import translation
 from guardian.core import ObjectPermissionChecker
 from munigeo import api as munigeo_api
 from rest_framework import (
@@ -233,6 +234,8 @@ class ResourceSerializer(
 
     price_type = serializers.SerializerMethodField()
 
+    access_methods = serializers.SerializerMethodField()
+
     min_price = serializers.SerializerMethodField()
     max_price = serializers.SerializerMethodField()
 
@@ -256,6 +259,18 @@ class ResourceSerializer(
             "access_code_type",
             "reservation_metadata_set",
         )
+
+    def get_access_methods(self, obj):
+        """Returns ordered list of access methods."""
+
+        for method in obj.access_methods.all():
+            names = {}
+
+            for code, _ in settings.LANGUAGES:
+                with translation.override(code):
+                    names[code] = str(method)
+
+            yield {"id": method.access_method, "name": names}
 
     def get_can_only_be_reserved_externally(self, obj):
         today = datetime.datetime.today()
@@ -1059,6 +1074,7 @@ class ResourceListViewSet(
     queryset = queryset.prefetch_related(
         "accessibility_summaries",
         "accessibility_summaries__viewpoint",
+        "access_methods",
         "favorited_by",
         "resource_equipment",
         "resource_equipment__equipment",

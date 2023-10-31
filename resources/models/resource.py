@@ -245,9 +245,9 @@ class ResourceAccess(models.Model):
     ACCESS_METHODS = (
         ("pincode", _("Pincode")),
         ("mobile_app", _("Mobile app")),
-        ("physical_key", _("Physical keykkeycard")),
-        ("staff_member", _("Staff member (e.g. security guard or janitor)")),
-        ("open_door", _("Door is always open")),
+        ("physical_key", _("Traditional key/keycard")),
+        ("staff_member", _("Security guard/janitor")),
+        ("open_door", _("Door open")),
     )
 
     access_method = models.CharField(max_length=15, choices=ACCESS_METHODS, unique=True)
@@ -547,10 +547,6 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         )
 
         return product.pricedproduct.price_list if product else None
-
-    def get_access_methods(self):
-        """Returns ordered list of access methods."""
-        return sorted([str(method) for method in self.access_methods.distinct()])
 
     def validate_reservation_period(self, reservation, user, data=None):
         """

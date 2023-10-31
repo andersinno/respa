@@ -1102,6 +1102,21 @@ msgstr "Vahva"
 msgid "PIKI"
 msgstr ""
 
+msgid "Pincode"
+msgstr "PIN-koodi"
+
+msgid "Mobile app"
+msgstr "Mobiilisovellus"
+
+msgid "Physical key/keycard"
+msgstr "Perinteinen avain/tunnistelätkä"
+
+msgid "Staff member (e.g. security guard or janitor)"
+msgstr "Vahtimestari/Valvooja"
+
+msgid "Door open"
+msgstr "Ovi auki"
+
 msgid "4-digit PIN code"
 msgstr "4-numeroinen pin-koodi"
 
