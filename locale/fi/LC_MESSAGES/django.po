@@ -2052,6 +2052,18 @@ msgstr "SAP:in myyntiorganisaatiokoodi"
 msgid "SAP Unit ID"
 msgstr "SAP:in yksikön tunniste"
 
+msgid "SAP Income Account"
+msgstr "SAP:n tulotili"
+
+msgid "SAP Income Accounts"
+msgstr "SAP:n tulotilit"
+
+msgid "SAP Material Code"
+msgstr "SAP:n nimikekoodi"
+
+msgid "SAP Material Codes"
+msgstr "SAP:n nimikekoodit"
+
 msgid ""
 "This resource's unit doesn't have a cost center code set. "
 "Please set one in the unit settings to ensure payments go through."

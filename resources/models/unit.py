@@ -122,6 +122,15 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         blank=True,
     )
 
+    sap_income_account = models.ForeignKey(
+        "payments.SAPIncomeAccount",
+        verbose_name=_("SAP Income Account"),
+        related_name="units",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
     street_address = models.CharField(
         verbose_name=_("Street address"), max_length=100, null=True
     )

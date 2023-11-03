@@ -444,6 +444,73 @@ class OrderLogEntry(models.Model):
         )
 
 
+class SAPIncomeAccount(models.Model):
+    """
+    Models an SAP income account. Each material code (see SAPMaterialCode)
+    correspond to a combination of an income account and a tax class.
+    The SAP income account is selected per unit. Multiple units can use the same
+    income account. These are managed by the client.
+
+    When generating the SAP invoice XML, we check the income account of the unit
+    for each order and get the correct SAP material code based on that and the
+    tax class of the order line.
+    """
+
+    identifier = models.CharField(
+        verbose_name=_("Identifier"),
+        max_length=32,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = _("SAP Income Account")
+        verbose_name_plural = _("SAP Income Accounts")
+
+    def __str__(self):
+        return self.identifier
+
+
+class SAPMaterialCode(models.Model):
+    """
+    Models a material or product code (nimike) in SAP. These are configured
+    in SAP. The material code is included in the SAP invoice XML for each
+    invoice line.
+
+    There are four material codes per income account in SAP, one for each
+    possible tax class (0/10/14/24%).
+    """
+
+    tax_percentage = models.DecimalField(
+        verbose_name=_("tax percentage"),
+        max_digits=5,
+        decimal_places=2,
+        default=DEFAULT_TAX_PERCENTAGE,
+        choices=[(tax, str(tax)) for tax in TAX_PERCENTAGES],
+    )
+    sap_income_account = models.ForeignKey(
+        SAPIncomeAccount,
+        verbose_name=_("SAP Income Account"),
+        related_name="sap_material_codes",
+        on_delete=models.PROTECT,
+    )
+    material_code = models.CharField(
+        max_length=18,
+        verbose_name=_("SAP Material Code"),
+    )
+
+    class Meta:
+        verbose_name = _("SAP Material Code")
+        verbose_name_plural = _("SAP Material Codes")
+        ordering = ("material_code",)
+
+    def __str__(self):
+        return "{} ({}: {}%)".format(
+            self.material_code,
+            self.sap_income_account,
+            self.tax_percentage
+        )
+
+
 class LocalizedSerializerField(serializers.Field):
     def __init__(self, *args, **kwargs):
         kwargs["read_only"] = True
