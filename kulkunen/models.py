@@ -270,7 +270,8 @@ class AccessControlGrant(models.Model):
         try:
             self.resource.system.remove_grant(self)
         except Exception as e:
-            logger.exception("[%s] Failed to revoke access" % self)
+            logger.error("[%s] Failed to revoke access", self)
+            logger.exception(e)
 
             # If we fail, we retry after a while
             self.removal_failures += 1
