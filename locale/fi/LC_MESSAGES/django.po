@@ -2097,6 +2097,9 @@ msgstr "lasku"
 msgid "invoices"
 msgstr "laskut"
 
+msgid "Invoices"
+msgstr "Laskut"
+
 msgid "Invoice XML generated at"
 msgstr "Laskun XML luotu"
 
@@ -2144,6 +2147,9 @@ msgstr "Lähetä"
 
 msgid "Confirm"
 msgstr "Vahvista"
+
+msgid "Open"
+msgstr "Avaa"
 
 #, python-brace-format
 msgid "Missing information required by SAP: {}"

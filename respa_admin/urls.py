@@ -3,6 +3,7 @@ from django.urls import include
 
 from . import views
 from .auth import admin_url as url
+from .views.invoices import InvoiceListView
 from .views.prices import (
     PriceListCopyView,
     PriceListCreateView,
@@ -100,5 +101,10 @@ urlpatterns = [
         r"^invoiceable_reservations/(?P<reservation_id>\w+)/ready/$",
         mark_reservation_ready_for_invoicing,
         name="mark-reservation-ready-for-invoicing",
+    ),
+    url(
+        r"^invoices/$",
+        InvoiceListView.as_view(),
+        name="invoices",
     ),
 ]

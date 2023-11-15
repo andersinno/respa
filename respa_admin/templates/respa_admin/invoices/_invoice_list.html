@@ -1,0 +1,53 @@
+{% load i18n static %}
+
+<section class="invoices">
+  <div class="container">
+
+    <div class="filter-bar container-fluid">
+      <h2 class="pull-left">{% trans "Invoices" %}</h2>
+    </div>
+
+    <div class="invoices container-fluid">
+      <ul class="list-group">
+        <li class="list-group-item sort-bar">
+          <a class="col-2 btn order-by-link" href="?order_by={% if order_by == "id" %}-id{% else %}id{% endif %}">
+            {% trans "ID" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <a class="col-4 btn order-by-link" href="?order_by={% if order_by == "xml_generated_at" %}-xml_generated_at{% else %}xml_generated_at{% endif %}">
+            {% trans "Invoice XML generated at" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <a class="col-4 btn order-by-link" href="?order_by={% if order_by == "sent_to_sap_at" %}-sent_to_sap_at{% else %}sent_to_sap_at{% endif %}">
+            {% trans "Sent to SAP at" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <span class="col-2 order-by-link"></span>
+        </li>
+        {% for invoice in invoices %}
+        <li class="list-group-item">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div class="col-2">
+                <h4>{{ invoice.pk }}</h4>
+              </div>
+              <div class="col-4">
+                {{ invoice.xml_generated_at|date:'d.m.Y H:i' }}
+              </div>
+              <div class="col-4">
+                {{ invoice.sent_to_sap_at|date:'d.m.Y H:i' }}
+              </div>
+              <div class="col-2">
+                <a href="">
+                  <button class="btn open" type="button">
+                    {% trans "Open" %}
+                  </button>
+                </a>
+              </div>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      {% include "respa_admin/common/_pagination.html" %}
+    </div>
+  </div>
+</section>

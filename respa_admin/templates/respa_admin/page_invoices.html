@@ -1,0 +1,20 @@
+{% extends "respa_admin/_base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block koro_shape %}
+    <section class="hero-section bg-light {{ KORO_STYLE }}">
+        <div class="container">
+            <div class="headline">
+                <div class="listing-report row">
+                    <h1 class="col-sm-6">{% trans 'Invoices' %}</h1>
+                    <span class="col-sm-6 listing-count">{{ paginator.count }} kpl</span>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock koro_shape %}
+
+{% block body %}
+    {% include "respa_admin/invoices/_invoice_list.html" %}
+{% endblock body %}
