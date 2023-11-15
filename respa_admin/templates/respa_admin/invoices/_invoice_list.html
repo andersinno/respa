@@ -35,7 +35,7 @@
                 {{ invoice.sent_to_sap_at|date:'d.m.Y H:i' }}
               </div>
               <div class="col-2">
-                <a href="">
+                <a href="{% url 'respa_admin:invoice-detail' pk=invoice.id %}">
                   <button class="btn open" type="button">
                     {% trans "Open" %}
                   </button>

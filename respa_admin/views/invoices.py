@@ -1,5 +1,5 @@
 from django.db.models import FieldDoesNotExist
-from django.views.generic import ListView
+from django.views.generic import DetailView, ListView
 
 from payments.models import Invoice
 from respa_admin.views.base import ExtraContextMixin
@@ -33,3 +33,7 @@ class InvoiceListView(ExtraContextMixin, ListView):
             except FieldDoesNotExist:
                 pass
         return qs
+    
+class InvoiceDetailView(ExtraContextMixin, DetailView):
+    model = Invoice
+    template_name = "respa_admin/invoices/_invoice_detail.html"

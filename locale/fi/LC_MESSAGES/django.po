@@ -69,6 +69,9 @@ msgstr "Tuotteet"
 msgid "Reservation"
 msgstr "Varaus"
 
+msgid "Reservations"
+msgstr "Varaukset"
+
 msgid "Invoicing data"
 msgstr "Laskutusnumero"
 
@@ -2091,6 +2094,9 @@ msgstr ""
 "edellisistä\". Tällöin hinta määräytyy valitun käyttäjäryhmän "
 "perusteella."
 
+msgid "Invoice"
+msgstr "Lasku"
+
 msgid "invoice"
 msgstr "lasku"
 
@@ -2150,6 +2156,9 @@ msgstr "Vahvista"
 
 msgid "Open"
 msgstr "Avaa"
+
+msgid "Back"
+msgstr "Takaisin"
 
 #, python-brace-format
 msgid "Missing information required by SAP: {}"

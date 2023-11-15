@@ -3,7 +3,7 @@ from django.urls import include
 
 from . import views
 from .auth import admin_url as url
-from .views.invoices import InvoiceListView
+from .views.invoices import InvoiceDetailView, InvoiceListView
 from .views.prices import (
     PriceListCopyView,
     PriceListCreateView,
@@ -106,5 +106,10 @@ urlpatterns = [
         r"^invoices/$",
         InvoiceListView.as_view(),
         name="invoices",
+    ),
+    url(
+        r"^invoices/(?P<pk>\w+)/$",
+        InvoiceDetailView.as_view(),
+        name="invoice-detail",
     ),
 ]
