@@ -3,7 +3,7 @@ from django.urls import include
 
 from . import views
 from .auth import admin_url as url
-from .views.invoices import InvoiceDetailView, InvoiceListView
+from .views.invoices import InvoiceDetailView, InvoiceListView, generate_invoice_xml
 from .views.prices import (
     PriceListCopyView,
     PriceListCreateView,
@@ -111,5 +111,10 @@ urlpatterns = [
         r"^invoices/(?P<pk>\w+)/$",
         InvoiceDetailView.as_view(),
         name="invoice-detail",
+    ),
+    url(
+        r"^invoices/(?P<invoice_id>\w+)/generate_xml/$",
+        generate_invoice_xml,
+        name="generate-invoice-xml",
     ),
 ]

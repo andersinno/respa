@@ -2130,6 +2130,15 @@ msgstr "Lasku luotu, odottaa lähetystä"
 msgid "Sent to SAP"
 msgstr "Lähetetty SAP:iin"
 
+msgid "Regenerate XML"
+msgstr "Luo XML uudelleen"
+
+msgid "XML generated succesfully"
+msgstr "XML luotu onnistuneesti"
+
+msgid "Failed to generate the XML"
+msgstr "XML:n luonti epäonnistui"
+
 msgid "Error"
 msgstr "Virhe"
 

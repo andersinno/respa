@@ -52,7 +52,17 @@
             <h4>{% trans "Sent to SAP at" %}</h4>
             <div class="description">{{ object.sent_to_sap_at|date:'d.m.Y H:i' }}</div>
             <hr>
-            <h4>{% trans "XML" %}</h4>
+            <div class="row">
+                <div class="col-sm-6">
+                    <h4>{% trans "XML" %}</h4>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a href="{% url 'respa_admin:generate-invoice-xml' invoice_id=object.id %}" rel="noopener noreferrer">
+                        <button class="btn resources-button" type="button">{% trans "Regenerate XML" %}</button>
+                    </a>
+                </div>
+            </div>
+            <br>
             <div class="description">
               <pre>{{ object.xml }}</pre>
             </div>

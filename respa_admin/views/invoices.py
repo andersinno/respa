@@ -1,8 +1,17 @@
+from django.contrib import messages
 from django.db.models import FieldDoesNotExist
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic import DetailView, ListView
 
 from payments.models import Invoice
+from payments.sap_invoices import generate_sales_order
+from resources.models import Reservation
 from respa_admin.views.base import ExtraContextMixin
+
 
 class InvoiceListView(ExtraContextMixin, ListView):
     model = Invoice
@@ -33,7 +42,31 @@ class InvoiceListView(ExtraContextMixin, ListView):
             except FieldDoesNotExist:
                 pass
         return qs
-    
+
+
 class InvoiceDetailView(ExtraContextMixin, DetailView):
     model = Invoice
     template_name = "respa_admin/invoices/_invoice_detail.html"
+
+
+def generate_invoice_xml(request, invoice_id):
+    """
+    Regenerate the invoice XML for SAP.
+    """
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    reservations = Reservation.objects.filter(order__invoice=invoice)
+
+    xml = generate_sales_order(reservations)
+
+    if xml:
+        now = timezone.now()
+        invoice.xml = xml
+        invoice.xml_generated_at = now
+        invoice.save()
+        reservations.update(invoice_generated_at=now)
+        messages.success(request, _("XML generated succesfully"))
+    else:
+        messages.error(request, _("Failed to generate the XML"))
+
+    next = reverse_lazy("respa_admin:invoice-detail", kwargs={"pk": invoice_id})
+    return HttpResponseRedirect(next)
