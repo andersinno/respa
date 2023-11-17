@@ -10,7 +10,7 @@ from modeltranslation.admin import TranslationAdmin
 from payments.utils import get_price_period_display
 from resources.models import Resource
 
-from .models import Order, OrderLine, OrderLogEntry, Product
+from .models import Invoice, Order, OrderLine, OrderLogEntry, Product, SAPIncomeAccount, SAPMaterialCode
 
 
 def get_datetime_display(dt):
@@ -160,6 +160,13 @@ class OrderAdmin(admin.ModelAdmin):
     created_at.short_description = _('created at')
 
 
+class InvoiceAdmin(admin.ModelAdmin):
+    model = Invoice
+
+
 if settings.RESPA_PAYMENTS_ENABLED:
     admin.site.register(Product, ProductAdmin)
     admin.site.register(Order, OrderAdmin)
+    admin.site.register(SAPIncomeAccount)
+    admin.site.register(SAPMaterialCode)
+    admin.site.register(Invoice, InvoiceAdmin)

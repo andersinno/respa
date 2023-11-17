@@ -19,3 +19,17 @@ class UnitAuthorizationLevel(Enum):
         manager = _("unit manager")
         viewer = _("unit viewer")
 
+
+class ReservationInvoiceStatus(Enum):
+    TO_BE_MARKED_AS_READY = "to_be_marked_as_ready"
+    MARKED_AS_READY = "marked_as_ready"
+    CREATED = "created"
+    SENT = "sent"
+    ERROR = "error"
+
+    class Labels:
+        TO_BE_MARKED_AS_READY =  _("To be marked as ready")
+        MARKED_AS_READY = _("Marked as ready")
+        CREATED = _("Invoice created, waiting to be sent")
+        SENT = _("Sent to SAP")
+        ERROR = _("Error")

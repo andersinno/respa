@@ -116,6 +116,21 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
         validators=[MinLengthValidator(4)],
     )
 
+    sap_unit_id = models.CharField(
+        verbose_name=_("SAP Unit ID"),
+        max_length=4,
+        blank=True,
+    )
+
+    sap_income_account = models.ForeignKey(
+        "payments.SAPIncomeAccount",
+        verbose_name=_("SAP Income Account"),
+        related_name="units",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
     street_address = models.CharField(
         verbose_name=_("Street address"), max_length=100, null=True
     )

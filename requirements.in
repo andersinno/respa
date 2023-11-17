@@ -18,7 +18,7 @@ django-ckeditor==5.9.0
 django-cors-headers
 django-image-cropping
 easy_thumbnails
-git+https://github.com/Tampere/django-tamusers.git@d4f78bfb1cbff278d02b1bcccd330393f8e78d86#egg=django-tamusers
+git+https://github.com/Tampere/django-tamusers.git@9eb5f84171b1a2f525f28de408171608dd122574#egg=django-tamusers
 django-allauth
 djangorestframework-jwt
 django-storages[google]
@@ -53,3 +53,4 @@ factory_boy
 isort
 uWSGI
 protobuf==3.19.6
+paramiko==3.3.1
