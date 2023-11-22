@@ -1,0 +1,84 @@
+{% extends "respa_admin/_base.html" %}
+{% load i18n static %}
+{% block form_nav %}
+    <div class="panel panel-default form-nav-wrapper">
+        <div class="container form-header-wrapper">
+            <div class="container-fluid row form-header">
+                <div class="form-title col-sm-6" style="margin-bottom: 1.5em;">
+                    <h2>{% trans "Invoice" %}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock form_nav %}
+{% block body %}
+    <div class="container invoice-detail">
+        <div>
+            <h4>{% trans "ID" %}</h4>
+            <div class="description">{{ object.id }}</div>
+            <hr>
+            <h4>{% trans "Reservations" %}</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">{% trans "ID" %}</th>
+                        <th scope="col">{% trans "Resource" %}</th>
+                        <th scope="col">{% trans "Time" %}</th>
+                        <th scope="col">{% trans "Reserver" %}</th>
+                        <th scope="col">{% trans "Invoice marked ready at" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in object.orders.all %}
+                      <tr>
+                          {% with order.reservation as reservation %}
+                            <td>{{ reservation.pk }}</td>
+                            <td>{{ reservation.resource.name }}</td>
+                            <td>
+                              {{ reservation.begin|date:'d.m.Y H:i' }} - {{ reservation.end|date:'d.m.Y H:i' }}
+                            </td>
+                            <td>{{ reservation.reserver_id }}</td>
+                            <td>{{ reservation.invoice_marked_ready_at|date:'d.m.Y H:i' }}</td>
+                          {% endwith %}
+                      </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="description"></div>
+            <hr>
+            <h4>{% trans "Invoice XML generated at" %}</h4>
+            <div class="description">{{ object.xml_generated_at|date:'d.m.Y H:i' }}</div>
+            <hr>
+            <h4>{% trans "Sent to SAP at" %}</h4>
+            <div class="description">{{ object.sent_to_sap_at|date:'d.m.Y H:i' }}</div>
+            <hr>
+            <div class="row">
+                <div class="col-sm-6">
+                    <h4>{% trans "XML" %}</h4>
+                </div>
+                <div class="col-sm-6 text-right">
+                    <a href="{% url 'respa_admin:generate-invoice-xml' invoice_id=object.id %}" rel="noopener noreferrer">
+                        <button class="btn resources-button" type="button">{% trans "Regenerate XML" %}</button>
+                    </a>
+                </div>
+            </div>
+            <br>
+            <div class="description">
+              <pre>{{ object.xml }}</pre>
+            </div>
+            <hr>
+            <br>
+        </div>
+        <!-- Function buttons -->
+        <div class="navbar-fixed-bottom">
+            <div class="panel panel-default form-toolbar-wrapper">
+                <div class="container form-toolbar">
+                    <a href="{% url 'respa_admin:invoices' %}"
+                        rel="noopener noreferrer">
+                        <button class="btn cancel-button" type="button">{% trans "Back" %}</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}
