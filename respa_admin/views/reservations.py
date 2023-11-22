@@ -99,4 +99,6 @@ def validate_data_required_by_sap(reservation):
         if not getattr(unit, field):
             invalid_fields.append(field)
 
-    return bool(invalid_fields), invalid_fields
+    if invalid_fields:
+        return False, invalid_fields
+    return True, invalid_fields
