@@ -6,6 +6,8 @@ from django.utils import timezone
 
 from payments.models import Invoice
 
+SAP_INTERFACE_ID = settings.RESPA_SAP_INTERFACE_ID
+SAP_INTERFACE_NAME = settings.RESPA_SAP_INTERFACE_NAME
 SFTP_SERVER_IP = settings.RESPA_INVOICES_SFTP_SERVER_IP
 SFTP_USERNAME = settings.RESPA_INVOICES_SFTP_USERNAME
 RSA_KEY_PATH = settings.RESPA_INVOICES_SFTP_RSA_KEY_PATH
@@ -54,8 +56,9 @@ class Command(BaseCommand):
         for invoice in invoices:
             # Prepare XML content and filename
             xml_content = invoice.xml.strip()
-            timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
-            filename = f"{timestamp}_invoice_{invoice.id}.xml"
+            now = timezone.now()
+            timestamp = now.strftime("%y%m%d%H%M%S")
+            filename = f"ID{SAP_INTERFACE_ID}_{SAP_INTERFACE_NAME}_{timestamp}.xml"
 
             self.stdout.write(f"Uploading invoice {invoice.id}")
             # Upload the XML content to the SFTP server
@@ -63,7 +66,7 @@ class Command(BaseCommand):
                 remote_file.write(xml_content)
 
             self.stdout.write(f"Invoice with ID {invoice.id} uploaded to SFTP server")
-            invoice.sent_to_sap_at = timezone.now()
+            invoice.sent_to_sap_at = now
             invoice.save()
 
         # Close the SFTP connection
