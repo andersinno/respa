@@ -76,6 +76,7 @@ RESERVATION_EXTRA_FIELDS = (
 # Fields required when payment by invoice is requested.
 RESERVATION_INVOICING_FIELDS = (
     "reserver_id",
+    "company",
     "company_address",
     "company_address_street",
     "company_address_zip",

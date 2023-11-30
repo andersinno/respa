@@ -844,6 +844,7 @@ def test_request_invoice(
         "type": reservation_type,
         "invoice_requested": True,
         "reserver_id": "ABC-123",
+        "company": "Company AB",
         "company_address_street": "Street 123",
         "company_address_city": "Helsinki",
         "company_address_zip": "12345",
