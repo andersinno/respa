@@ -20,7 +20,7 @@ MOCK_CODE = {
 }
 
 MOCK_ACCESS = {
-    "accessId": 33333,
+    "resourceGroupAccessId": 33333,
 }
 
 
@@ -57,6 +57,9 @@ def securitas_ac_resource(securitas_ac_system, resource_in_unit):
     return AccessControlResource.objects.create(
         system=securitas_ac_system,
         resource=resource_in_unit,
+        driver_config={
+            "group_id": "12345",
+        },
     )
 
 
@@ -130,7 +133,7 @@ def test_install_grant_no_pincode(securitas_driver, securitas_ac_resource, reser
         ends_at=reservation.end,
         starts_at=reservation.begin,
     )
-    securitas_ac_resource.driver_config = {"uses_pincode": False}
+    securitas_ac_resource.driver_config.update({"uses_pincode": False})
     securitas_ac_resource.save(update_fields=["driver_config"])
 
     with mock.patch(

@@ -18,6 +18,7 @@ class SecuritasDriver(AccessControlDriver):
                 "type": "string",
             },
         },
+        "required": ["api_key"],
     }
 
     RESOURCE_CONFIG_SCHEMA = {
@@ -27,7 +28,9 @@ class SecuritasDriver(AccessControlDriver):
                 "type": "boolean",
                 "default": True,
             },
+            "group_id": {"type": "string"},
         },
+        "required": ["group_id"],
     }
 
     DEFAULT_RESOURCE_CONFIG = {
@@ -49,14 +52,16 @@ class SecuritasDriver(AccessControlDriver):
         )
 
         params = {
-            "resourceId": grant.resource.identifier,
             "validFrom": grant.starts_at.isoformat(),
             "validTo": grant.ends_at.isoformat(),
         }
 
         response = self._api_post(
-            "access",
+            "resource-group-access",
             {
+                "resourceGroupId": self.get_resource_setting(
+                    grant.resource, "group_id"
+                ),
                 "userExtId": user_id,
                 "firstName": user.first_name,
                 "lastName": user.last_name,
@@ -65,11 +70,17 @@ class SecuritasDriver(AccessControlDriver):
                 **params,
             },
         )
-        grant.identifier = response.json()["accessId"]
+        grant.identifier = response.json()["resourceGroupAccessId"]
 
         # now try and create pincode
         if self.get_resource_setting(grant.resource, "uses_pincode"):
-            response = self._api_post("codes", params)
+            response = self._api_post(
+                "codes",
+                {
+                    "resourceId": grant.resource.identifier,
+                    **params,
+                },
+            )
             data = response.json()
             grant.access_code = data["code"]
             # save the Securitas ID to driver data so we can delete later
@@ -90,7 +101,7 @@ class SecuritasDriver(AccessControlDriver):
 
         # send DELETE for access right and pincode
 
-        self._api_delete(f"access/{grant.identifier}")
+        self._api_delete(f"resource-group-access/{self.grant.identifier}")
 
         if grant.driver_data and "code_id" in grant.driver_data:
             self._api_delete(f"codes/{grant.driver_data['code_id']}")
@@ -141,9 +152,6 @@ class SecuritasDriver(AccessControlDriver):
             response.raise_for_status()
             return response
         except requests.RequestException as e:
-            print(params)
-            print(e)
-            print(e.response.json())
             self.logger.exception(e)
             raise
 
@@ -156,8 +164,6 @@ class SecuritasDriver(AccessControlDriver):
             response.raise_for_status()
             return response
         except requests.RequestException as e:
-            print(e)
-            print(e.response.json())
             self.logger.exception(e)
             raise
 
