@@ -31,7 +31,9 @@ class InvoiceableReservationListView(ExtraContextMixin, ListView):
     def get_queryset(self):
         managed_resources = Resource.objects.modifiable_by(self.request.user)
         qs = Reservation.objects.filter(
-            invoice_approved_at__isnull=False, resource__in=managed_resources
+            state=self.model.CONFIRMED,
+            invoice_approved_at__isnull=False,
+            resource__in=managed_resources
         ).select_related("order", "resource")
 
         if self.search_query:
