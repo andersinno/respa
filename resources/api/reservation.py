@@ -29,7 +29,7 @@ from rest_framework.settings import api_settings as drf_settings
 
 from payments.providers import get_payment_provider
 from resources.models import Reservation, ReservationMetadataSet, Resource
-from resources.models.reservation import RESERVATION_EXTRA_FIELDS
+from resources.models.reservation import RESERVATION_EXTRA_FIELDS, RESERVATION_INVOICING_FIELDS
 from resources.models.utils import (
     generate_reservation_csv,
     generate_reservation_xlsx,
@@ -138,17 +138,17 @@ class ReservationSerializer(
             # staff events have less requirements
             request_user = self.context["request"].user
             is_staff_event = data.get("staff_event", False)
+            invoice_requested = data.get("invoice_requested", False)
+
+            # Fields required when payment by invoice is requested.
+            # These might not be in the metadata set, so we need to
+            # include them here.
+            invoicing_specific_fields = set(RESERVATION_INVOICING_FIELDS)
 
             required = resource.get_required_reservation_extra_field_names(cache=cache)
 
-            if data.get("invoice_requested", False):
-                required = set(required) | {
-                    "reserver_id",
-                    "company_address",
-                    "company_address_street",
-                    "company_address_zip",
-                    "company_address_city",
-                }
+            if invoice_requested:
+                required = set(required) | invoicing_specific_fields
 
             # staff events always have the same set of required fields
             if is_staff_event and resource.can_create_staff_event(request_user):
@@ -177,6 +177,9 @@ class ReservationSerializer(
             supported = resource.get_supported_reservation_extra_field_names(
                 cache=cache
             )
+
+            if invoice_requested:
+                supported = set(supported) | invoicing_specific_fields
 
             for field_name in supported:
                 if field_name in self.fields:
@@ -391,6 +394,10 @@ class ReservationSerializer(
             supported_fields = set(
                 resource.get_supported_reservation_extra_field_names(cache=cache)
             )
+            # Always include the fields that are required for invoiceable
+            # reservations, as they might not be in the metadata set. Otherwise PUT
+            # requests would fail due to the fields missing from the data.
+            supported_fields = supported_fields | set(RESERVATION_INVOICING_FIELDS)
         else:
             supported_fields = set()
 

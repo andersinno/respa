@@ -28,6 +28,7 @@ from resources.models import (
     Resource,
     ResourceGroup,
     UnitAuthorization,
+    RESERVATION_INVOICING_FIELDS,
 )
 
 from .utils import (
@@ -1055,7 +1056,10 @@ def test_extra_fields_visibility(
         reservation_data = (
             response.data["results"][0] if "results" in response.data else response.data
         )
-        for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
+        # The invoicing specific fields should be always present, regardless of whether
+        # manual confirmation is needed ot not, so we don't want to test those here.
+        fields = set(DEFAULT_RESERVATION_EXTRA_FIELDS) - set(RESERVATION_INVOICING_FIELDS)
+        for field_name in fields:
             assert (field_name in reservation_data) is need_manual_confirmation
 
 
