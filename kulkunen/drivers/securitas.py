@@ -56,12 +56,12 @@ class SecuritasDriver(AccessControlDriver):
             "validTo": grant.ends_at.isoformat(),
         }
 
+        group_id = str(self._get_resource_group_id(grant))
+
         response = self._api_post(
             "resource-group-access",
             {
-                "resourceGroupId": self.get_resource_setting(
-                    grant.resource, "group_id"
-                ),
+                "resourceGroupId": group_id,
                 "userExtId": user_id,
                 "firstName": user.first_name,
                 "lastName": user.last_name,
@@ -101,7 +101,7 @@ class SecuritasDriver(AccessControlDriver):
 
         # send DELETE for access right and pincode
 
-        self._api_delete(f"resource-group-access/{self.grant.identifier}")
+        self._api_delete(f"resource-group-access/{grant.identifier}")
 
         if grant.driver_data and "code_id" in grant.driver_data:
             self._api_delete(f"codes/{grant.driver_data['code_id']}")
@@ -144,25 +144,30 @@ class SecuritasDriver(AccessControlDriver):
             raise ValidationError(e.message)
 
     def _api_post(self, endpoint, params=None):
-        try:
-            response = requests.post(
+        return self._handle_api_response(
+            requests.post(
                 self._get_api_endpoint(endpoint),
                 **self._get_api_params(params),
             )
-            response.raise_for_status()
-            return response
-        except requests.RequestException as e:
-            self.logger.exception(e)
-            raise
+        )
 
     def _api_delete(self, endpoint):
-        try:
-            response = requests.delete(
+        return self._handle_api_response(
+            requests.delete(
                 self._get_api_endpoint(endpoint),
                 **self._get_api_params(),
-            )
-            response.raise_for_status()
-            return response
+            ),
+        )
+
+    def _handle_api_response(self, response):
+        try:
+            try:
+                response.raise_for_status()
+                return response
+            except requests.HTTPError as e:
+                if e.response:
+                    self.logger.error(e.response.content)
+                raise
         except requests.RequestException as e:
             self.logger.exception(e)
             raise
@@ -177,3 +182,9 @@ class SecuritasDriver(AccessControlDriver):
 
     def _get_api_endpoint(self, endpoint):
         return self.BASE_URL + endpoint
+
+    def _get_resource_group_id(self, grant):
+        try:
+            return self.get_resource_setting(grant.resource, "group_id")
+        except KeyError:
+            raise ValidationError(f"group_id missing for resource #{grant.resource.pk}")

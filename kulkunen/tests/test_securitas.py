@@ -2,6 +2,7 @@ import datetime
 import pytest
 import requests
 import uuid
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from unittest import mock
 
@@ -27,6 +28,7 @@ MOCK_ACCESS = {
 class MockResponse:
     url: str
     status_code: int
+    content: bytes = b""
 
     def __init__(self, url, status_code=200, json_data=None):
         self.url = url
@@ -122,6 +124,38 @@ def test_install_grant_new_user(securitas_driver, securitas_ac_resource, reserva
     assert grant.driver_data == {"code_id": 12345}
     assert grant.user.user == reservation.user
     assert grant.user.identifier == str(reservation.user.pk)
+
+
+@pytest.mark.django_db()
+def test_install_grant_missing_group_id(
+    securitas_driver, securitas_ac_resource, reservation
+):
+    securitas_ac_resource.driver_config = {}
+    securitas_ac_resource.save(update_fields=["driver_config"])
+
+    grant = AccessControlGrant.objects.create(
+        state=AccessControlGrant.INSTALLING,
+        resource=securitas_ac_resource,
+        reservation=reservation,
+        ends_at=reservation.end,
+        starts_at=reservation.begin,
+    )
+
+    def _mock_post(url, *args, **kwargs):
+        data = MOCK_CODE if url.endswith("/codes") else MOCK_ACCESS
+        return MockResponse(url, json_data=data)
+
+    with mock.patch("requests.post", _mock_post):
+        with pytest.raises(ValidationError):
+            securitas_driver.install_grant(grant)
+
+    grant.refresh_from_db()
+
+    assert grant.state == AccessControlGrant.INSTALLING
+    assert grant.access_code is None
+    assert grant.identifier is None
+    assert grant.driver_data is None
+    assert grant.user is None
 
 
 @pytest.mark.django_db()

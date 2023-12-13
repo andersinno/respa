@@ -1102,8 +1102,23 @@ msgstr "Vahva"
 msgid "PIKI"
 msgstr ""
 
+msgid "Access Method"
+msgstr "Pääsytapa"
+
+msgid "Access method"
+msgstr "Pääsytapa"
+
+msgid "Resource access method"
+msgstr "Resurssin pääsytapa"
+
 msgid "Access Methods"
-msgstr "Kulkutavat"
+msgstr "Pääsytavat"
+
+msgid "Access methods"
+msgstr "Pääsytavat"
+
+msgid "Resource access methods"
+msgstr "Resurssin pääsytavat"
 
 msgid "Pincode"
 msgstr "PIN-koodi"
@@ -1115,7 +1130,7 @@ msgid "Traditional key/keycard"
 msgstr "Perinteinen avain/tunnistelätkä"
 
 msgid "Security guard/janitor"
-msgstr "Vahtimestari/Valvooja"
+msgstr "Vahtimestari/Valvoja"
 
 msgid "Door open"
 msgstr "Ovi auki"
