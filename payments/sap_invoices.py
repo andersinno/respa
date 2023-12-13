@@ -75,7 +75,7 @@ def get_sales_orders(reservations):
         }
 
         if reservation.begin and reservation.end:
-            billing_period = _("Invoice from %(begin)s to %(end)s") % {
+            billing_period = _("Invoice for reservation %(begin)s - %(end)s") % {
                 "begin": reservation.begin.strftime("%d.%m.%Y %H:%M"),
                 "end": reservation.end.strftime("%d.%m.%Y %H:%M"),
             }
