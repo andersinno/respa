@@ -112,6 +112,7 @@ def test_generate_sales_order(invoice_reservation):
     assert "<ProfitCenter>CC123" in xml_str
     assert "<SalesOrganisation>O123" in xml_str
     assert "<Plant>U123" in xml_str
+    assert f"<BillNumber>{invoice_reservation.id}" in xml_str
 
 
 @pytest.mark.django_db()
