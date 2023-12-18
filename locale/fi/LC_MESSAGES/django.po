@@ -565,11 +565,8 @@ msgstr "Ei ole sallittua pyytää laskua tästä resurssista"
 msgid "Invoice created"
 msgstr "Lasku luotu"
 
-msgid "Invoice from %(begin)s to %(end)s"
-msgstr "Lasku ajalta %(begin)s - %(end)s"
-
-msgid "Invoice for %(begin)s"
-msgstr "Lasku ajalta %(begin)s"
+msgid "Invoice for reservation %(begin)s - %(end)s"
+msgstr "Lasku varauksesta %(begin)s - %(end)s"
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"

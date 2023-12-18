@@ -16,6 +16,7 @@
       </Address>
     </Customer>
     <YourReference>{{ order.reference }}</YourReference>
+    <BillNumber>{{ order.reference }}</BillNumber>
     <SalesOrganisation>{{ order.sales_organization }}</SalesOrganisation>
     <DistributionChannel>{{ order.distribution_channel }}</DistributionChannel>
     <Division>{{ order.division }}</Division>
