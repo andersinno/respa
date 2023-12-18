@@ -17,6 +17,7 @@
             {% include "respa_admin/resources/form/_terms.html" %}
             {% include "respa_admin/resources/form/_resource_accessibility.html" with formset=resource_accessibility_formset %}
             {% include "respa_admin/resources/form/_equipment.html" %}
+            {% include "respa_admin/resources/form/_access_methods.html" %}
             {% include "respa_admin/resources/form/_periods.html" with formset=period_formset_with_days %}
             {% if accessibility_data_link %}
                 {% include "respa_admin/resources/form/_accessibility.html" %}
