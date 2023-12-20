@@ -70,6 +70,78 @@ def test_free_of_charge_free_to_use_true_no_pricing_info(space_resource):
 
 
 @pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_has_default_min_price(space_resource):
+    space_resource.free_to_use = False
+    space_resource.default_min_price = Decimal("10.00")
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 0
+    assert Resource.objects.free_of_charge(False).count() == 1
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_has_default_max_price(space_resource):
+    space_resource.free_to_use = False
+    space_resource.default_min_price = Decimal("0")
+    space_resource.default_max_price = Decimal("10.00")
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 0
+    assert Resource.objects.free_of_charge(False).count() == 1
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_has_default_min_max_price(space_resource):
+    space_resource.free_to_use = False
+    space_resource.default_min_price = Decimal("10.00")
+    space_resource.default_max_price = Decimal("20.00")
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 0
+    assert Resource.objects.free_of_charge(False).count() == 1
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_has_default_min_price_zero(space_resource):
+    space_resource.free_to_use = False
+    space_resource.default_min_price = Decimal("0")
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_false_has_default_min_price_null(space_resource):
+    space_resource.free_to_use = False
+    space_resource.default_min_price = None
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_true_has_default_min_price_gt_zero(space_resource):
+    space_resource.free_to_use = True
+    space_resource.default_min_price = Decimal("10.00")
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
+def test_free_of_charge_free_to_use_true_has_default_max_price_gt_zero(space_resource):
+    space_resource.free_to_use = True
+    space_resource.default_max_price = Decimal("10.00")
+    space_resource.save()
+
+    assert Resource.objects.free_of_charge(True).count() == 1
+    assert Resource.objects.free_of_charge(False).count() == 0
+
+
+@pytest.mark.django_db
 def test_free_of_charge_free_to_use_false_no_pricing_info(space_resource):
     """Even if free_to_use is False, is still free of charge as there is
     no pricing info attached."""
