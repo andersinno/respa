@@ -241,6 +241,21 @@ class ResourceQuerySet(models.QuerySet):
             return queryset.filter(free_to_use=False, has_pricing=True)
 
 
+class ResourceAccess(models.Model):
+    ACCESS_METHODS = (
+        ("pincode", _("Pincode")),
+        ("mobile_app", _("Mobile app")),
+        ("physical_key", _("Traditional key/keycard")),
+        ("staff_member", _("Security guard/janitor")),
+        ("open_door", _("Door open")),
+    )
+
+    access_method = models.CharField(max_length=15, choices=ACCESS_METHODS, unique=True)
+
+    def __str__(self):
+        return self.get_access_method_display()
+
+
 class Resource(ModifiableModel, AutoIdentifiedModel):
     AUTHENTICATION_TYPES = (
         ("none", _("None")),
@@ -292,6 +307,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_("Resource type"),
         db_index=True,
         on_delete=models.PROTECT,
+    )
+    access_methods = models.ManyToManyField(
+        ResourceAccess, blank=True, verbose_name=_("Access methods")
     )
     purposes = models.ManyToManyField(Purpose, verbose_name=_("Purposes"))
     name = models.CharField(verbose_name=_("Name"), max_length=200)

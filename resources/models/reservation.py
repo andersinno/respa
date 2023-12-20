@@ -9,6 +9,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone, translation
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from psycopg2.extras import DateTimeTZRange
 
@@ -36,6 +37,8 @@ from .utils import (
     save_dt,
     send_respa_mail,
 )
+
+from ..enums import ReservationInvoiceStatus
 
 DEFAULT_TZ = pytz.timezone(settings.TIME_ZONE)
 
@@ -68,6 +71,16 @@ RESERVATION_EXTRA_FIELDS = (
     "reserver_email_address",
     "host_name",
     "reservation_extra_questions",
+)
+
+# Fields required when payment by invoice is requested.
+RESERVATION_INVOICING_FIELDS = (
+    "reserver_id",
+    "company",
+    "company_address",
+    "company_address_street",
+    "company_address_zip",
+    "company_address_city",
 )
 
 
@@ -212,6 +225,13 @@ class Reservation(ModifiableModel):
         verbose_name=_("Invoice approved by admin at"),
     )
 
+    invoice_marked_ready_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("Invoice marked ready at"),
+        help_text=_("When the invoice was marked as ready to be sent to SAP"),
+    )
+
     invoice_generated_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -340,6 +360,25 @@ class Reservation(ModifiableModel):
 
     def _get_dt(self, attr, tz):
         return get_dt(self, attr, tz)
+
+    @cached_property
+    def invoice_status(self):
+        status = None
+        if self.invoice_requested and hasattr(self, "order"):
+            invoice = getattr(self.order, "invoice")
+            status = ReservationInvoiceStatus.TO_BE_MARKED_AS_READY
+            # TODO: Handle the case there's been an error
+            if invoice and invoice.sent_to_sap_at:
+                status = ReservationInvoiceStatus.SENT
+            elif invoice and invoice.xml_generated_at:
+                status = ReservationInvoiceStatus.CREATED
+            elif self.invoice_marked_ready_at:
+                status = ReservationInvoiceStatus.MARKED_AS_READY
+        return status
+
+    @property
+    def is_invoice_to_be_marked_ready(self):
+        return self.invoice_status == ReservationInvoiceStatus.TO_BE_MARKED_AS_READY
 
     @property
     def begin_tz(self):

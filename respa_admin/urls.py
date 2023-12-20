@@ -3,6 +3,7 @@ from django.urls import include
 
 from . import views
 from .auth import admin_url as url
+from .views.invoices import InvoiceDetailView, InvoiceListView, generate_invoice_xml
 from .views.prices import (
     PriceListCopyView,
     PriceListCreateView,
@@ -11,6 +12,7 @@ from .views.prices import (
     PriceListTemplateView,
     PriceListView,
 )
+from .views.reservations import InvoiceableReservationListView, mark_reservation_ready_for_invoicing
 from .views.resources import (
     ManageUserPermissionsListView,
     ManageUserPermissionsSearchView,
@@ -89,5 +91,30 @@ urlpatterns = [
         r"^user_management/(?P<user_id>\w+)/$",
         ManageUserPermissionsView.as_view(),
         name="edit-user",
+    ),
+    url(
+        r"^invoiceable_reservations/$",
+        InvoiceableReservationListView.as_view(),
+        name="invoiceable-reservations",
+    ),
+    url(
+        r"^invoiceable_reservations/(?P<reservation_id>\w+)/ready/$",
+        mark_reservation_ready_for_invoicing,
+        name="mark-reservation-ready-for-invoicing",
+    ),
+    url(
+        r"^invoices/$",
+        InvoiceListView.as_view(),
+        name="invoices",
+    ),
+    url(
+        r"^invoices/(?P<pk>\w+)/$",
+        InvoiceDetailView.as_view(),
+        name="invoice-detail",
+    ),
+    url(
+        r"^invoices/(?P<invoice_id>\w+)/generate_xml/$",
+        generate_invoice_xml,
+        name="generate-invoice-xml",
     ),
 ]

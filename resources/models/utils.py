@@ -19,6 +19,103 @@ from rest_framework.reverse import reverse
 
 DEFAULT_LANG = settings.LANGUAGES[0][0]
 
+RESERVATION_FIELDS = [
+    ("unit", "Unit", 30),
+    ("resource", "Resource", 30),
+    ("begin", "Begin time", 15),
+    ("end", "End time", 15),
+    ("created_at", "Created at", 15),
+    ("user", "User", 30),
+    ("comments", "Comments", 30),
+    ("staff_event", "Is staff event", 10),
+    ("state", "State", 15),
+]
+
+RESERVATION_ACCOUNTING_FIELDS = [
+    ("user_group", "User group", 15),
+    ("event_type", "Event type", 15),
+    ("quantity", "Quantity", 15),
+    ("unit_price", "Unit price", 15),
+    ("total_price", "Total price", 15),
+    ("cost_center_code", "CeePos Cost center code", 30),
+    ("sap_cost_center_code", "SAP Cost center code", 30),
+    ("sap_sales_organization", "SAP Sales Organization code", 30),
+    ("invoice_generated_at", "Invoice created", 15),
+    ("tax_percentage", "Tax percentage", 15),
+]
+
+RESERVATION_DATETIME_FIELDS = [
+    "begin",
+    "end",
+    "created_at",
+    "invoice_generated_at",
+]
+
+
+XLSX_HEADER_FORMAT = {"bold": True}
+XLSX_DATE_FORMAT = {"num_format": "dd.mm.yyyy hh:mm", "align": "left"}
+
+
+def get_default_fields(include_accounting_fields):
+    fields = RESERVATION_FIELDS[::]
+    if include_accounting_fields:
+        fields += RESERVATION_ACCOUNTING_FIELDS[::]
+    return fields
+
+
+def get_headers(*, include_extra_fields, include_accounting_fields):
+    """Returns list of tuples of (text, width).
+
+    Text values should be translated.
+
+    If `include_extra_fields` is True will also include `RESERVATION_EXTRA_FIELDS`.
+    """
+    from resources.models import RESERVATION_EXTRA_FIELDS, Reservation
+
+    fields = get_default_fields(include_accounting_fields)
+
+    headers = [(_(header), size) for _field_name, header, size in fields]
+
+    if include_extra_fields:
+        headers += [
+            (Reservation._meta.get_field(field).verbose_name, 20)
+            for field in RESERVATION_EXTRA_FIELDS
+        ]
+
+    return headers
+
+
+def get_row_data(reservation, *, include_extra_fields, include_accounting_fields):
+    """Returns list of tuples of (field_name, value).
+
+    If field is missing from reservation data, or empty, inserts empty string.
+
+    Any date values should be converted automatically.
+
+    If `include_extra_fields` is True will also include `RESERVATION_EXTRA_FIELDS`.
+    """
+    from resources.models import RESERVATION_EXTRA_FIELDS
+
+    row = [
+        (name, convert_value(reservation, name))
+        for name, _, _ in get_default_fields(include_accounting_fields)
+    ]
+
+    if include_extra_fields:
+        row += [
+            (name, convert_value(reservation, name))
+            for name in RESERVATION_EXTRA_FIELDS
+        ]
+
+    return row
+
+
+def convert_value(reservation, name):
+    value = reservation.get(name) or ""
+    if value and name in RESERVATION_DATETIME_FIELDS:
+        return localtime(value).replace(tzinfo=None)
+    return value
+
 
 def save_dt(obj, attr, dt, orig_tz="UTC"):
     """
@@ -131,39 +228,44 @@ def send_respa_mail(email_address, subject, body, html_body=None, attachments=No
     msg.send()
 
 
-def generate_reservation_csv(reservations):
+def generate_reservation_csv(
+    reservations,
+    exclude_reservation_extra_fields=False,
+    include_accounting_fields=False,
+):
+    include_extra_fields = not (exclude_reservation_extra_fields)
+
     output = io.StringIO()
     csv_writer = csv.writer(output)
-    headers = [
-        "Unit",
-        "Resource",
-        "Begin time",
-        "End time",
-        "Created at",
-        "User",
-        "Comments",
-        "Staff event",
-        "State",
-    ]
-    csv_writer.writerow([_(header) for header in headers])
+    csv_writer.writerow(
+        [
+            header
+            for header, _ in get_headers(
+                include_extra_fields=include_extra_fields,
+                include_accounting_fields=include_accounting_fields,
+            )
+        ]
+    )
 
     for reservation in reservations:
-        row_data = [
-            reservation["unit"],
-            reservation["resource"],
-            localtime(reservation["begin"]).replace(tzinfo=None),
-            localtime(reservation["end"]).replace(tzinfo=None),
-            localtime(reservation["created_at"]).replace(tzinfo=None),
-            reservation["user"] if reservation["user"] else "",
-            reservation["comments"] if reservation["comments"] else "",
-            reservation["staff_event"],
-            reservation["state"],
-        ]
-        csv_writer.writerow(row_data)
+        csv_writer.writerow(
+            [
+                value
+                for _, value in get_row_data(
+                    reservation,
+                    include_extra_fields=include_extra_fields,
+                    include_accounting_fields=include_accounting_fields,
+                )
+            ]
+        )
     return output.getvalue()
 
 
-def generate_reservation_xlsx(reservations, exclude_reservation_extra_fields=False):
+def generate_reservation_xlsx(
+    reservations,
+    exclude_reservation_extra_fields=False,
+    include_accounting_fields=False,
+):
     """
     Return reservations in Excel xlsx format
 
@@ -179,60 +281,38 @@ def generate_reservation_xlsx(reservations, exclude_reservation_extra_fields=Fal
 
     :rtype: bytes
     """
-    from resources.models import RESERVATION_EXTRA_FIELDS, Reservation
 
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output)
     worksheet = workbook.add_worksheet()
+    include_extra_fields = not (exclude_reservation_extra_fields)
 
-    headers = [
-        ("Unit", 30),
-        ("Resource", 30),
-        ("Begin time", 15),
-        ("End time", 15),
-        ("Created at", 15),
-        ("User", 30),
-        ("Comments", 30),
-        ("Staff event", 10),
-        ("State", 15),
-    ]
+    header_format = workbook.add_format(XLSX_HEADER_FORMAT)
 
-    if not exclude_reservation_extra_fields:
-        for field in RESERVATION_EXTRA_FIELDS:
-            headers.append((Reservation._meta.get_field(field).verbose_name, 20))
+    for column, (header, width) in enumerate(
+        get_headers(
+            include_extra_fields=include_extra_fields,
+            include_accounting_fields=include_accounting_fields,
+        )
+    ):
+        worksheet.write(0, column, str(_(header)), header_format)
+        worksheet.set_column(column, column, width)
 
-    header_format = workbook.add_format({"bold": True})
-    for column, header in enumerate(headers):
-        worksheet.write(0, column, str(_(header[0])), header_format)
-        worksheet.set_column(column, column, header[1])
+    date_format = workbook.add_format(XLSX_DATE_FORMAT)
 
-    date_format = workbook.add_format(
-        {"num_format": "dd.mm.yyyy hh:mm", "align": "left"}
-    )
     for row, reservation in enumerate(reservations, 1):
-        worksheet.write(row, 0, reservation["unit"])
-        worksheet.write(row, 1, reservation["resource"])
-        worksheet.write(
-            row, 2, localtime(reservation["begin"]).replace(tzinfo=None), date_format
-        )
-        worksheet.write(
-            row, 3, localtime(reservation["end"]).replace(tzinfo=None), date_format
-        )
-        worksheet.write(
-            row,
-            4,
-            localtime(reservation["created_at"]).replace(tzinfo=None),
-            date_format,
-        )
-        if "user" in reservation:
-            worksheet.write(row, 5, reservation["user"])
-        if "comments" in reservation:
-            worksheet.write(row, 6, reservation["comments"])
-        worksheet.write(row, 7, reservation["staff_event"])
-        worksheet.write(row, 8, reservation["state"])
-        for i, field in enumerate(RESERVATION_EXTRA_FIELDS, 9):
-            if field in reservation:
-                worksheet.write(row, i, reservation[field])
+        for column, (name, value) in enumerate(
+            get_row_data(
+                reservation,
+                include_extra_fields=include_extra_fields,
+                include_accounting_fields=include_accounting_fields,
+            )
+        ):
+            if name in RESERVATION_DATETIME_FIELDS:
+                worksheet.write(row, column, value, date_format)
+            else:
+                worksheet.write(row, column, value)
+
     workbook.close()
     return output.getvalue()
 

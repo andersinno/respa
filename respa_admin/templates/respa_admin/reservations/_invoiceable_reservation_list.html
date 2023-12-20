@@ -1,0 +1,69 @@
+{% load i18n static %}
+
+<section class="invoiceable-reservations">
+  <div class="container">
+
+    <div class="filter-bar container-fluid">
+      <h2 class="pull-left">{% trans "Invoiceable reservations" %}</h2>
+    </div>
+
+    <div class="invoiceable-reservations container-fluid">
+      <ul class="list-group">
+        <li class="list-group-item sort-bar">
+          <a class="col-3 btn order-by-link" href="?order_by={% if order_by == "resource__name" %}-resource__name{% else %}resource__name{% endif %}">
+            {% trans "Resource" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <a class="col-2 btn order-by-link" href="?order_by={% if order_by == "begin" %}-begin{% else %}begin{% endif %}">
+            {% trans "Time" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <span class="col-2 order-by-link">
+            {% trans "Price (€)" %}
+          </span>
+          <a class="col-3 btn order-by-link"href="?order_by={% if order_by == "company" %}-company{% else %}company{% endif %}">
+            {% trans "Reserver" %} <span class="glyphicon glyphicon-sort" aria-hidden="true"></span>
+          </a>
+          <span class="col-2 order-by-link">
+            {% trans "Invoice Status" %}
+          </span>
+        </li>
+        {% for reservation in reservations %}
+        <li class="list-group-item">
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div class="col-3">
+                <h4>{{ reservation.resource.name }}</h4>
+              </div>
+              <div class="col-2">
+                <span>{{ reservation.begin|date:'d.m.Y' }}</span>
+                <span>{{ reservation.begin|date:'H:i' }} - {{ reservation.end|date:'H:i' }}</span>
+              </div>
+              <div class="col-2">
+                {{ reservation.order.get_price }}
+              </div>
+              <div class="col-3">
+                <span>{{ reservation.company }}</span>
+                {% if reservation.reserver_id %}
+                  <span>{% trans "Business ID" %}: {{ reservation.reserver_id }}</span>
+                {% endif %}
+              </div>
+              <div class="col-2">
+                {% if reservation.is_invoice_to_be_marked_ready %}
+                  <a href="{% url 'respa_admin:mark-reservation-ready-for-invoicing' reservation_id=reservation.id %}">
+                    <button class="btn mark-as-ready" type="button" data-res-id="{{ reservation.pk }}">
+                      {% trans "Send" %}
+                    </button>
+                  </a>
+                {% else %}
+                  <span>{{ reservation.invoice_status }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      {% include "respa_admin/common/_pagination.html" %}
+    </div>
+  </div>
+</section>

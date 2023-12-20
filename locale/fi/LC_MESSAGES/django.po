@@ -69,6 +69,9 @@ msgstr "Tuotteet"
 msgid "Reservation"
 msgstr "Varaus"
 
+msgid "Reservations"
+msgstr "Varaukset"
+
 msgid "Invoicing data"
 msgstr "Laskutusnumero"
 
@@ -335,8 +338,18 @@ msgstr "hinta sisältäen ALV:n"
 msgid "unit price"
 msgstr "yksikköhinta"
 
+msgid "Unit price"
+msgstr "Yksikköhinta"
+
+
 msgid "tax percentage"
 msgstr "veroprosentti"
+
+msgid "Tax percentage"
+msgstr "Veroprosentti"
+
+msgid "Total price"
+msgstr "Kokohinta"
 
 msgid "timestamp"
 msgstr "aikaleima"
@@ -549,11 +562,11 @@ msgstr "Varauksen teko menneisyyteen ei ole sallittua"
 msgid "You cannot request an invoice for this resource"
 msgstr "Ei ole sallittua pyytää laskua tästä resurssista"
 
-msgid "Invoice from %(begin)s to %(end)s"
-msgstr "Lasku ajalta %(begin)s - %(end)s"
+msgid "Invoice created"
+msgstr "Lasku luotu"
 
-msgid "Invoice for %(begin)s"
-msgstr "Lasku ajalta %(begin)s"
+msgid "Invoice for reservation %(begin)s - %(end)s"
+msgstr "Lasku varauksesta %(begin)s - %(end)s"
 
 #, python-format
 msgid "The resource is reservable only before %(datetime)s"
@@ -843,7 +856,10 @@ msgid "Can ignore resources max period rule"
 msgstr ""
 
 msgid "created"
-msgstr "luoja"
+msgstr "luotu"
+
+msgid "Created at"
+msgstr "Luotu"
 
 msgid "denied"
 msgstr "hylätty"
@@ -1082,6 +1098,39 @@ msgstr "Vahva"
 
 msgid "PIKI"
 msgstr ""
+
+msgid "Access Method"
+msgstr "Pääsytapa"
+
+msgid "Access method"
+msgstr "Pääsytapa"
+
+msgid "Resource access method"
+msgstr "Resurssin pääsytapa"
+
+msgid "Access Methods"
+msgstr "Pääsytavat"
+
+msgid "Access methods"
+msgstr "Pääsytavat"
+
+msgid "Resource access methods"
+msgstr "Resurssin pääsytavat"
+
+msgid "Pincode"
+msgstr "PIN-koodi"
+
+msgid "Mobile app"
+msgstr "Mobiilisovellus"
+
+msgid "Traditional key/keycard"
+msgstr "Perinteinen avain/tunnistelätkä"
+
+msgid "Security guard/janitor"
+msgstr "Vahtimestari/Valvoja"
+
+msgid "Door open"
+msgstr "Ovi auki"
 
 msgid "4-digit PIN code"
 msgstr "4-numeroinen pin-koodi"
@@ -2025,13 +2074,28 @@ msgid "Cost center code"
 msgstr "Kustannuspaikkakoodi"
 
 msgid "CeePos Cost center code"
-msgstr "CeePoksen Kustannuspaikkakoodi"
+msgstr "CeePosin kustannuspaikkakoodi"
 
 msgid "SAP Cost center code"
-msgstr "SAP:in Kustannuspaikkakoodi"
+msgstr "SAP:in kustannuspaikkakoodi"
 
 msgid "SAP Sales Organization code"
-msgstr "SAP:in Myyntiorganisaatiokoodi"
+msgstr "SAP:in myyntiorganisaatiokoodi"
+
+msgid "SAP Unit ID"
+msgstr "SAP:in yksikön tunniste"
+
+msgid "SAP Income Account"
+msgstr "SAP:n tulotili"
+
+msgid "SAP Income Accounts"
+msgstr "SAP:n tulotilit"
+
+msgid "SAP Material Code"
+msgstr "SAP:n nimikekoodi"
+
+msgid "SAP Material Codes"
+msgstr "SAP:n nimikekoodit"
 
 msgid ""
 "This resource's unit doesn't have a cost center code set. "
@@ -2059,3 +2123,82 @@ msgstr ""
 "varaaja voi valita tapahtumatyypiksi myös \"Ei mikään\n"
 "edellisistä\". Tällöin hinta määräytyy valitun käyttäjäryhmän "
 "perusteella."
+
+msgid "Invoice"
+msgstr "Lasku"
+
+msgid "invoice"
+msgstr "lasku"
+
+msgid "invoices"
+msgstr "laskut"
+
+msgid "Invoices"
+msgstr "Laskut"
+
+msgid "Invoice XML generated at"
+msgstr "Laskun XML luotu"
+
+msgid "Sent to SAP at"
+msgstr "Lähetetty SAP:iin"
+
+msgid "Invoice marked ready at"
+msgstr "Lasku merkattu lähetettäväksi"
+
+msgid "When the invoice was marked as ready to be sent to SAP"
+msgstr "Aika, jolloin lasku on merkattu lähetettäväksi SAP:iin"
+
+msgid "To be confirmed"
+msgstr "Vahvistettava"
+
+msgid "Marked as ready"
+msgstr "Merkattu lähetettäväksi"
+
+msgid "Invoice created, waiting to be sent"
+msgstr "Lasku luotu, odottaa lähetystä"
+
+msgid "Sent to SAP"
+msgstr "Lähetetty SAP:iin"
+
+msgid "Regenerate XML"
+msgstr "Luo XML uudelleen"
+
+msgid "XML generated succesfully"
+msgstr "XML luotu onnistuneesti"
+
+msgid "Failed to generate the XML"
+msgstr "XML:n luonti epäonnistui"
+
+msgid "Error"
+msgstr "Virhe"
+
+msgid "Invoiceable reservations"
+msgstr "Laskutettavat varaukset"
+
+msgid "Price (€)"
+msgstr "Hinta (€)"
+
+msgid "Reserver"
+msgstr "Varaaja"
+
+msgid "Business ID"
+msgstr "Y-tunnus"
+
+msgid "Invoice Status"
+msgstr "Laskun tila"
+
+msgid "Send"
+msgstr "Lähetä"
+
+msgid "Confirm"
+msgstr "Vahvista"
+
+msgid "Open"
+msgstr "Avaa"
+
+msgid "Back"
+msgstr "Takaisin"
+
+#, python-brace-format
+msgid "Missing information required by SAP: {}"
+msgstr "SAP:n vaatimia tietoja puuttuu: {}"

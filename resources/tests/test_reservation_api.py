@@ -14,6 +14,8 @@ from rest_framework.exceptions import ErrorDetail
 from unittest import mock
 
 from caterings.models import CateringOrder, CateringProvider
+from payments.models import Order
+from payments.factories import OrderWithOrderLinesFactory
 from notifications.models import NotificationTemplate, NotificationType
 from notifications.tests.utils import check_received_mail_exists
 from resources.enums import UnitAuthorizationLevel
@@ -26,6 +28,7 @@ from resources.models import (
     Resource,
     ResourceGroup,
     UnitAuthorization,
+    RESERVATION_INVOICING_FIELDS,
 )
 
 from .utils import (
@@ -841,7 +844,7 @@ def test_max_reservation_period_error_message(
 
 
 @pytest.mark.django_db
-def test_reservation_excels(staff_api_client, list_url, detail_url, reservation, user):
+def test_reservation_excel(staff_api_client, list_url, detail_url, reservation, user):
     """
     Tests that reservation list and detail endpoints return .xlsx files when requested
     """
@@ -867,6 +870,119 @@ def test_reservation_excels(staff_api_client, list_url, detail_url, reservation,
     assert response._headers["content-disposition"] == (
         "Content-Disposition",
         "attachment; filename=reservation-{}.xlsx".format(reservation.pk),
+    )
+    assert len(response.content) > 0
+
+@pytest.mark.django_db
+def test_reservation_csv(staff_api_client, list_url, detail_url, reservation, user):
+    """
+    Tests that reservation list and detail endpoints return .xlsx files when requested
+    """
+
+    response = staff_api_client.get(
+        list_url,
+        HTTP_ACCEPT="text/csv",
+        HTTP_ACCEPT_LANGUAGE="en",
+    )
+    assert response.status_code == 200
+    assert response._headers["content-disposition"] == (
+        "Content-Disposition",
+        "attachment; filename=reservations.csv",
+    )
+    assert len(response.content) > 0
+
+    response = staff_api_client.get(
+        detail_url,
+        HTTP_ACCEPT="text/csv",
+        HTTP_ACCEPT_LANGUAGE="en",
+    )
+    assert response.status_code == 200
+    assert response._headers["content-disposition"] == (
+        "Content-Disposition",
+        "attachment; filename=reservation-{}.csv".format(reservation.pk),
+    )
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_reservation_excel_accounting(
+    staff_api_client, list_url, detail_url, reservation, user
+):
+    """
+    Tests that reservation list and detail endpoints return .xlsx files when requested
+    """
+    OrderWithOrderLinesFactory(
+        reservation=reservation,
+        state=Order.CONFIRMED,
+        payment_link="https://random-payment-link.com",
+    )
+
+    params = {"includeAccountingFields": "1"}
+
+    response = staff_api_client.get(
+        list_url,
+        params,
+        HTTP_ACCEPT="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        HTTP_ACCEPT_LANGUAGE="en",
+    )
+    assert response.status_code == 200
+    assert response._headers["content-disposition"] == (
+        "Content-Disposition",
+        "attachment; filename=reservations.xlsx",
+    )
+    assert len(response.content) > 0
+
+    response = staff_api_client.get(
+        detail_url,
+        params,
+        HTTP_ACCEPT="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        HTTP_ACCEPT_LANGUAGE="en",
+    )
+    assert response.status_code == 200
+    assert response._headers["content-disposition"] == (
+        "Content-Disposition",
+        "attachment; filename=reservation-{}.xlsx".format(reservation.pk),
+    )
+    assert len(response.content) > 0
+
+@pytest.mark.django_db
+def test_reservation_csv_accounting(
+    staff_api_client, list_url, detail_url, reservation, user
+):
+    """
+    Tests that reservation list and detail endpoints return .csv files when requested
+    """
+    OrderWithOrderLinesFactory(
+        reservation=reservation,
+        state=Order.CONFIRMED,
+        payment_link="https://random-payment-link.com",
+    )
+
+    params = {"includeAccountingFields": "1"}
+
+    response = staff_api_client.get(
+        list_url,
+        params,
+        HTTP_ACCEPT="text/csv",
+        HTTP_ACCEPT_LANGUAGE="en",
+    )
+    assert response.status_code == 200
+    assert response._headers["content-disposition"] == (
+        "Content-Disposition",
+        "attachment; filename=reservations.csv",
+    )
+    assert len(response.content) > 0
+
+    response = staff_api_client.get(
+        detail_url,
+        params,
+        HTTP_ACCEPT="text/csv",
+        HTTP_ACCEPT_LANGUAGE="en",
+    )
+    assert response.status_code == 200
+    assert response._headers["content-disposition"] == (
+        "Content-Disposition",
+        "attachment; filename=reservation-{}.csv".format(reservation.pk),
     )
     assert len(response.content) > 0
 
@@ -940,7 +1056,10 @@ def test_extra_fields_visibility(
         reservation_data = (
             response.data["results"][0] if "results" in response.data else response.data
         )
-        for field_name in DEFAULT_RESERVATION_EXTRA_FIELDS:
+        # The invoicing specific fields should be always present, regardless of whether
+        # manual confirmation is needed ot not, so we don't want to test those here.
+        fields = set(DEFAULT_RESERVATION_EXTRA_FIELDS) - set(RESERVATION_INVOICING_FIELDS)
+        for field_name in fields:
             assert (field_name in reservation_data) is need_manual_confirmation
 
 

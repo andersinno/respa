@@ -1,6 +1,5 @@
 import logging
 from contextlib import contextmanager
-
 from django.core.exceptions import ImproperlyConfigured  # noqa
 from django.db import transaction
 from django.utils import timezone
@@ -20,20 +19,31 @@ class AccessControlDriver:
         self.logger = logging.getLogger(str(self.__class__))
 
     def get_setting(self, name: str, missing_none=False):
-        if name not in self.system.driver_config and hasattr(self, 'DEFAULT_CONFIG'):
+        config = self.system.driver_config or {}
+        if name not in config and hasattr(self, "DEFAULT_CONFIG"):
             if missing_none and name not in self.DEFAULT_CONFIG:
                 return None
             return self.DEFAULT_CONFIG[name]
-        if missing_none and name not in self.system.driver_config:
+        if missing_none and name not in config:
             return None
-        return self.system.driver_config[name]
+        return config[name]
+
+    def get_resource_setting(self, resource, name, missing_none=False):
+        config = resource.driver_config or {}
+        if name not in config and hasattr(self, "DEFAULT_RESOURCE_CONFIG"):
+            if missing_none and name not in self.DEFAULT_RESOURCE_CONFIG:
+                return None
+            return self.DEFAULT_RESOURCE_CONFIG[name]
+        if missing_none and name not in config:
+            return None
+        return config[name]
 
     def update_driver_data(self, settings: dict):
         with self.system_lock() as system:
             if system.driver_data is None:
                 system.driver_data = {}
             system.driver_data.update(settings)
-            system.save(update_fields=['driver_data'])
+            system.save(update_fields=["driver_data"])
 
     def get_driver_data(self) -> dict:
         system = AccessControlSystem.objects.get(id=self.system.id)
@@ -54,11 +64,11 @@ class AccessControlDriver:
 
     def prepare_install_grant(self, grant: AccessControlGrant):
         grant.install_at = timezone.now()
-        grant.save(update_fields=['install_at'])
+        grant.save(update_fields=["install_at"])
 
     def prepare_remove_grant(self, grant: AccessControlGrant):
         grant.remove_at = timezone.now()
-        grant.save(update_fields=['remove_at'])
+        grant.save(update_fields=["remove_at"])
 
     def validate_system_config(self, config: dict):
         raise NotImplementedError("Implement this in the driver")
@@ -77,9 +87,11 @@ class AccessControlDriver:
 
         Should be overridden by the driver implementation if needed.
         """
-        return ''
+        return ""
 
-    def save_respa_resource(self, resource: AccessControlResource, respa_resource: Resource):
+    def save_respa_resource(
+        self, resource: AccessControlResource, respa_resource: Resource
+    ):
         """Notify driver about saving a Respa resource
 
         Allows for driver-specific customization of the Respa resource or the

@@ -11,6 +11,7 @@ from resources.models import (
     Period,
     Purpose,
     Resource,
+    ResourceAccess,
     ResourceAccessibility,
     ResourceImage,
     TermsOfUse,
@@ -193,6 +194,12 @@ class ResourceForm(forms.ModelForm):
         required=False,
     )
 
+    access_methods = forms.ModelMultipleChoiceField(
+        required=False,
+        widget=RespaCheckboxSelect,
+        queryset=ResourceAccess.objects.all(),
+    )
+
     class Meta:
         model = Resource
 
@@ -229,6 +236,7 @@ class ResourceForm(forms.ModelForm):
             "type",
             "purposes",
             "equipment",
+            "access_methods",
             "external_reservation_url",
             "people_capacity",
             "area",
@@ -341,6 +349,8 @@ class UnitForm(forms.ModelForm):
             "cost_center_code",
             "sap_cost_center_code",
             "sap_sales_organization",
+            "sap_unit_id",
+            "sap_income_account",
         ] + translated_fields
 
         widgets = {
@@ -354,6 +364,23 @@ class UnitForm(forms.ModelForm):
         self.fields["municipality"].queryset = self.fields[
             "municipality"
         ].queryset.prefetch_related("translations")
+        self._make_fields_readonly([
+            "sap_cost_center_code",
+            "sap_sales_organization",
+            "sap_unit_id",
+            "sap_income_account",
+        ])
+
+    def _make_fields_readonly(self, fields):
+        for field in fields:
+            if field in self.fields:
+                self.fields[field].widget.attrs.update(
+                    {
+                        "disabled": True,
+                        "readonly": True,
+                    }
+                )
+        return fields
 
 
 class PeriodFormset(forms.BaseInlineFormSet):
