@@ -224,7 +224,9 @@ class ResourceQuerySet(models.QuerySet):
         queryset = self.annotate(
             has_pricing=models.Exists(
                 self.filter(
-                    Q(
+                    Q(default_min_price__gt=0)
+                    | Q(default_max_price__gt=0)
+                    | Q(
                         products__pricedproduct__price_list__usergroup_prices__price__gt=0,
                     )
                     | Q(
