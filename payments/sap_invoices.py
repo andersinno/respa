@@ -1,3 +1,5 @@
+import pytz
+
 from django.conf import settings
 from django.template import loader
 from django.utils import timezone
@@ -75,9 +77,12 @@ def get_sales_orders(reservations):
         }
 
         if reservation.begin and reservation.end:
+            timezone = pytz.timezone(settings.TIME_ZONE)
+            begin = reservation.begin.astimezone(timezone)
+            end = reservation.end.astimezone(timezone)
             billing_period = _("Invoice for reservation %(begin)s - %(end)s") % {
-                "begin": reservation.begin.strftime("%d.%m.%Y %H:%M"),
-                "end": reservation.end.strftime("%d.%m.%Y %H:%M"),
+                "begin": begin.strftime("%d.%m.%Y %H:%M"),
+                "end": end.strftime("%d.%m.%Y %H:%M"),
             }
         else:
             billing_period = ""
