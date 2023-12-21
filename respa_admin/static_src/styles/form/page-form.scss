@@ -14,6 +14,10 @@
 .form-container {
   padding-bottom: $input-height-default + $padding-large-vertical * 2;
 
+  &-resource {
+    padding-bottom: $input-height-default + $padding-large-vertical * 1.5;
+  }
+
   .error, .success {
     width: 100%;
   }
@@ -148,3 +152,5 @@
     color: red;
   }
 }
+
+
