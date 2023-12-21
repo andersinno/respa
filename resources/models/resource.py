@@ -254,6 +254,10 @@ class ResourceAccess(models.Model):
 
     access_method = models.CharField(max_length=15, choices=ACCESS_METHODS, unique=True)
 
+    class Meta:
+        verbose_name = _("Resource access method")
+        verbose_name_plural = _("Resource access methods")
+
     def __str__(self):
         return self.get_access_method_display()
 
