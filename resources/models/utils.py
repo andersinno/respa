@@ -32,16 +32,14 @@ RESERVATION_FIELDS = [
 ]
 
 RESERVATION_ACCOUNTING_FIELDS = [
-    ("user_group", "User group", 15),
-    ("event_type", "Event type", 15),
     ("quantity", "Quantity", 15),
     ("unit_price", "Unit price", 15),
     ("total_price", "Total price", 15),
+    ("tax_percentage", "Tax percentage", 15),
     ("cost_center_code", "CeePos Cost center code", 30),
     ("sap_cost_center_code", "SAP Cost center code", 30),
     ("sap_sales_organization", "SAP Sales Organization code", 30),
     ("invoice_generated_at", "Invoice created", 15),
-    ("tax_percentage", "Tax percentage", 15),
 ]
 
 RESERVATION_DATETIME_FIELDS = [
