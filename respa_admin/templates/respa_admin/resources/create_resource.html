@@ -4,7 +4,7 @@
     {% include "respa_admin/resources/form/_nav.html" %}
 {% endblock form_nav %}
 {% block body %}
-    <div class="container form-container">
+    <div class="container form-container form-container-resource">
         <form method="post" enctype="multipart/form-data" class="resource-form">
             {% csrf_token %}
             {{ resource_accessibility_formset.management_form }}
