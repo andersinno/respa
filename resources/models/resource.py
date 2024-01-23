@@ -215,32 +215,10 @@ class ResourceQuerySet(models.QuerySet):
         )
 
     def free_of_charge(self, is_free):
-        """if `is_free` is True, returns any resources that either have
-        `free_to_use=True` or have no associated price lists with amounts > zero.
-
-        Otherwise returns any resources that have prices attached
-        and `free_to_use` is False.
+        """if `is_free` is True, returns resource with `free_to_use` is True,
+        else returns all those with `free_to_use` is False.
         """
-        queryset = self.annotate(
-            has_pricing=models.Exists(
-                self.filter(
-                    Q(default_min_price__gt=0)
-                    | Q(default_max_price__gt=0)
-                    | Q(
-                        products__pricedproduct__price_list__usergroup_prices__price__gt=0,
-                    )
-                    | Q(
-                        products__pricedproduct__price_list__event_prices__price__gt=0,
-                    ),
-                    pk=models.OuterRef("pk"),
-                )
-            )
-        )
-
-        if is_free:
-            return queryset.filter(Q(free_to_use=True) | Q(has_pricing=False))
-        else:
-            return queryset.filter(free_to_use=False, has_pricing=True)
+        return self.filter(free_to_use=is_free)
 
 
 class ResourceAccess(models.Model):

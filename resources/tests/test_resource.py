@@ -61,7 +61,7 @@ def test_get_reservable_before_not_none():
 
 
 @pytest.mark.django_db
-def test_free_of_charge_free_to_use_true_no_pricing_info(space_resource):
+def test_free_of_charge_free_to_use_true(space_resource):
     space_resource.free_to_use = True
     space_resource.save()
 
@@ -70,87 +70,12 @@ def test_free_of_charge_free_to_use_true_no_pricing_info(space_resource):
 
 
 @pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_has_default_min_price(space_resource):
+def test_free_of_charge_free_to_use_false(space_resource):
     space_resource.free_to_use = False
-    space_resource.default_min_price = Decimal("10.00")
     space_resource.save()
 
-    assert Resource.objects.free_of_charge(True).count() == 0
     assert Resource.objects.free_of_charge(False).count() == 1
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_has_default_max_price(space_resource):
-    space_resource.free_to_use = False
-    space_resource.default_min_price = Decimal("0")
-    space_resource.default_max_price = Decimal("10.00")
-    space_resource.save()
-
     assert Resource.objects.free_of_charge(True).count() == 0
-    assert Resource.objects.free_of_charge(False).count() == 1
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_has_default_min_max_price(space_resource):
-    space_resource.free_to_use = False
-    space_resource.default_min_price = Decimal("10.00")
-    space_resource.default_max_price = Decimal("20.00")
-    space_resource.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 0
-    assert Resource.objects.free_of_charge(False).count() == 1
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_has_default_min_price_zero(space_resource):
-    space_resource.free_to_use = False
-    space_resource.default_min_price = Decimal("0")
-    space_resource.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 1
-    assert Resource.objects.free_of_charge(False).count() == 0
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_has_default_min_price_null(space_resource):
-    space_resource.free_to_use = False
-    space_resource.default_min_price = None
-    space_resource.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 1
-    assert Resource.objects.free_of_charge(False).count() == 0
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_true_has_default_min_price_gt_zero(space_resource):
-    space_resource.free_to_use = True
-    space_resource.default_min_price = Decimal("10.00")
-    space_resource.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 1
-    assert Resource.objects.free_of_charge(False).count() == 0
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_true_has_default_max_price_gt_zero(space_resource):
-    space_resource.free_to_use = True
-    space_resource.default_max_price = Decimal("10.00")
-    space_resource.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 1
-    assert Resource.objects.free_of_charge(False).count() == 0
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_no_pricing_info(space_resource):
-    """Even if free_to_use is False, is still free of charge as there is
-    no pricing info attached."""
-
-    space_resource.free_to_use = False
-    space_resource.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 1
-    assert Resource.objects.free_of_charge(False).count() == 0
 
 
 @pytest.mark.django_db
@@ -211,62 +136,6 @@ def test_free_of_charge_free_to_use_true_with_pricing_info(
 
     assert Resource.objects.free_of_charge(True).count() == 1
     assert Resource.objects.free_of_charge(False).count() == 0
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_with_pricing_info_zero(
-    space_resource_with_product, priced_product
-):
-    """If pricing is available but is zero, then should still be free of charge."""
-    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="00.00")
-
-    space_resource_with_product.free_to_use = False
-    space_resource_with_product.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 1
-    assert Resource.objects.free_of_charge(False).count() == 0
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_with_user_group_pricing_info(
-    space_resource_with_product, priced_product
-):
-    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="100.00")
-
-    space_resource_with_product.free_to_use = False
-    space_resource_with_product.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 0
-    assert Resource.objects.free_of_charge(False).count() == 1
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_with_event_type_pricing_info(
-    space_resource_with_product, priced_product
-):
-    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="100.00")
-
-    space_resource_with_product.free_to_use = False
-    space_resource_with_product.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 0
-    assert Resource.objects.free_of_charge(False).count() == 1
-
-
-@pytest.mark.django_db
-def test_free_of_charge_free_to_use_false_with_mixed_pricing_info(
-    space_resource_with_product, priced_product
-):
-    """Check combination of different prices"""
-    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="0.00")
-    UserGroupPriceListItemFactory(price_list=priced_product.price_list, price="5.00")
-    EventTypePriceListItemFactory(price_list=priced_product.price_list, price="100.00")
-
-    space_resource_with_product.free_to_use = False
-    space_resource_with_product.save()
-
-    assert Resource.objects.free_of_charge(True).count() == 0
-    assert Resource.objects.free_of_charge(False).count() == 1
 
 
 @pytest.mark.django_db
