@@ -431,14 +431,12 @@ class ReservationSerializer(
             "state": instance.get_state_display(),
         }
 
-        if request.data.get("includeAccountingFields") == "1":
+        if request.query_params.get("includeAccountingFields") == "1":
             order = instance.get_order()
             if order:
                 price = order.get_price()
                 if price:
                     order_line = order.order_lines.first()
-                    user_group = order_line.user_group if order_line else None
-                    event_type = order_line.event_type if order_line else None
 
                     data = {
                         **data,
@@ -447,11 +445,9 @@ class ReservationSerializer(
                         "sap_cost_center_code": instance.resource.unit.sap_cost_center_code,
                         "sap_sales_organization": instance.resource.unit.sap_sales_organization,
                         "invoice_generated_at": instance.invoice_generated_at,
-                        "tax_percentage": order.tax_percentage,
-                        "quantity": order.quantity,
-                        "unit_price": order.unit_price,
-                        "user_group": user_group,
-                        "event_type": event_type,
+                        "tax_percentage": order_line.tax_percentage if order_line else None,
+                        "quantity": order_line.quantity if order_line else None,
+                        "unit_price": order_line.unit_price if order_line else None,
                     }
         return data
 
