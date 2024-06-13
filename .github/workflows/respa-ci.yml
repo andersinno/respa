@@ -28,6 +28,7 @@ jobs:
     # the tests for that module which breaks. Also remove the location of source code.
     - name: Install python packages
       run: |
+        pip install setuptools wheel
         pip install -r requirements.txt
 
     # Not sure why some of the strings are not translated during test. Thus,
