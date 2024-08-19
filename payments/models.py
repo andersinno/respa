@@ -29,10 +29,11 @@ TAX_PERCENTAGES = [
         "10.00",
         "14.00",
         "24.00",
+        "25.50",
     )
 ]
 
-DEFAULT_TAX_PERCENTAGE = Decimal("24.00")
+DEFAULT_TAX_PERCENTAGE = Decimal("25.50")
 PRICE_PER_PERIOD = "per_period"
 PRICE_FIXED = "fixed"
 PRICE_TYPE_CHOICES = (
