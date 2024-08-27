@@ -1,5 +1,8 @@
+from allauth.socialaccount.models import EmailAddress
 from django.contrib.auth import get_user_model
-from rest_framework import permissions, serializers, generics, mixins, viewsets
+from rest_framework import permissions, serializers, generics, viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from resources.models.utils import build_ical_feed_url
 from resources.models import Unit
@@ -69,6 +72,50 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             obj = self.request.user
         return obj
+    
+    @action(detail=True, methods=["post"], url_path="set_email")
+    def set_email(self, request, pk=None):
+        user = self.get_object()
+        email = request.data.get("email")
+        requesting_user = request.user
+
+        if user != requesting_user:
+            return Response(
+                {"detail": "Not allowed to set email for this user."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if not email:
+            return Response(
+                {"detail": "Email address is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if user.email:
+            return Response(
+                {"detail": "User already has an email set."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if EmailAddress.objects.filter(email=email):
+            return Response(
+                {"detail": "The email address is already in use."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update the existing EmailAddress
+        email_address = EmailAddress.objects.filter(user=user)
+        if email_address:
+            email_address.update(email=email)
+
+        # Update the User
+        user.email = email
+        user.save()
+
+        return Response(
+            {"detail": "Email set successfully."},
+            status=status.HTTP_200_OK
+        )
 
     permission_classes = [permissions.IsAuthenticated]
     queryset = get_user_model().objects.all()

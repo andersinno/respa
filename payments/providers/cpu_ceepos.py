@@ -150,6 +150,7 @@ class CPUCeeposProvider(PaymentProvider):
         def _get_ceepos_tax_code(order_line: OrderLine) -> str:
             tax_pct = order_line.tax_percentage
             ceepos_tax_codes = {
+                25_500_000: "255",
                 24_000_000: "24",
                 14_000_000: "14",
                 10_000_000: "10",
@@ -158,6 +159,7 @@ class CPUCeeposProvider(PaymentProvider):
             # Tampere specific Ceepos tax codes in the production environment
             if self.url_payment_api == "https://shop.tampere.fi/maksu.html":
                 ceepos_tax_codes = {
+                    25_500_000: "35",
                     24_000_000: "15",
                     14_000_000: "14",
                     10_000_000: "13",

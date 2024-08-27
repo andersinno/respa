@@ -18,7 +18,7 @@ django-ckeditor==5.9.0
 django-cors-headers
 django-image-cropping
 easy_thumbnails
-git+https://github.com/Tampere/django-tamusers.git@9eb5f84171b1a2f525f28de408171608dd122574#egg=django-tamusers
+git+https://github.com/Tampere/django-tamusers.git@31b9251bcd9e769bd446528009377834cb68e760#egg=django-tamusers
 django-allauth
 djangorestframework-jwt
 django-storages[google]
