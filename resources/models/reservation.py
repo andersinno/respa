@@ -709,6 +709,11 @@ class Reservation(ModifiableModel):
             valid_reservations_for_same_unit = reservations_for_same_unit.exclude(
                 state=Reservation.CANCELLED
             )
+            # Exclude current reservation from the valid_reservations_for_same_unit list to allow user to 
+            # update reservation if new times overlaps only with the original times of the same reservation
+            if original_reservation := kwargs.get("original_reservation", None):
+                valid_reservations_for_same_unit = valid_reservations_for_same_unit.exclude(id=original_reservation.id)
+
             user_has_conflicting_reservations = valid_reservations_for_same_unit.filter(
                 Q(begin__gt=self.begin, begin__lt=self.end)
                 | Q(begin__lt=self.begin, end__gt=self.begin)
