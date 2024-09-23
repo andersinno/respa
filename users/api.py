@@ -1,4 +1,5 @@
 from allauth.socialaccount.models import EmailAddress
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, serializers, generics, viewsets, status
 from rest_framework.decorators import action
@@ -97,7 +98,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        if EmailAddress.objects.filter(email=email):
+        if settings.ACCOUNT_UNIQUE_EMAIL and EmailAddress.objects.filter(email=email):
             return Response(
                 {"detail": "The email address is already in use."},
                 status=status.HTTP_400_BAD_REQUEST

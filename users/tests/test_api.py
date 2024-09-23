@@ -1,4 +1,5 @@
 from allauth.account.models import EmailAddress
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
@@ -64,6 +65,7 @@ class SetUserEmailTests(APITestCase):
         self.assertEqual(self.user.email, "")
 
     def test_set_email_already_in_use(self):
+        settings.ACCOUNT_UNIQUE_EMAIL = True
         url = reverse("user-set-email", kwargs={"pk": self.user.pk})
         data = {"email": "other@example.com"}  # Email already used by other_user
 
@@ -74,3 +76,16 @@ class SetUserEmailTests(APITestCase):
             response.data, {"detail": "The email address is already in use."}
         )
         self.assertEqual(self.user.email, "")
+    
+    def test_allow_to_set_duplicate_email(self):
+        settings.ACCOUNT_UNIQUE_EMAIL = False
+        url = reverse("user-set-email", kwargs={"pk": self.user.pk})
+        data = {"email": "other@example.com"}  # Email already used by other_user
+
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data, {"detail": "Email set successfully."}
+        )
+        self.assertEqual(self.user.email, "other@example.com")
