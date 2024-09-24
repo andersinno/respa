@@ -546,6 +546,19 @@ def test_reservation_can_be_modified_by_overlapping_reservation(
     assert reservation.begin == dateparse.parse_datetime("2115-04-04T09:00:00+02:00")
     assert reservation.end == dateparse.parse_datetime("2115-04-04T11:00:00+02:00")
 
+    # Set disallow_overlapping_reservations to True and test updating reservation times again
+    reservation.resource.unit.disallow_overlapping_reservations = True
+    reservation.resource.unit.save()
+
+    # try to move the original reservation to start 1 hour later
+    reservation_data["begin"] = "2115-04-04T10:00:00+02:00"
+    reservation_data["end"] = "2115-04-04T12:00:00+02:00"
+    response = api_client.put(detail_url, reservation_data)
+    assert response.status_code == 200
+    reservation = Reservation.objects.get(pk=reservation.pk)
+    assert reservation.begin == dateparse.parse_datetime("2115-04-04T10:00:00+02:00")
+    assert reservation.end == dateparse.parse_datetime("2115-04-04T12:00:00+02:00")
+
 
 @pytest.mark.parametrize("perm_type", ["unit", "resource_group"])
 @pytest.mark.django_db
