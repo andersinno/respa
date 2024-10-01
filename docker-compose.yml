@@ -23,6 +23,8 @@ services:
       - DEV_SERVER=1
       - WAIT_FOR_DATABASE=1
       - DATABASE_URL=postgis://respa:respa@db/respa
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
     ports:
       - "8000:8000"
     depends_on:
