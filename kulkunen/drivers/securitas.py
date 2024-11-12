@@ -43,6 +43,7 @@ class SecuritasDriver(AccessControlDriver):
         assert grant.state == grant.INSTALLING
 
         user = grant.reservation.user
+        email = grant.reservation.reserver_email_address or user.email
 
         user_id = str(user.pk)
 
@@ -65,7 +66,7 @@ class SecuritasDriver(AccessControlDriver):
                 "userExtId": user_id,
                 "firstName": user.first_name,
                 "lastName": user.last_name,
-                "email": user.email,
+                "email": email,
                 "notifyUser": True,
                 **params,
             },
