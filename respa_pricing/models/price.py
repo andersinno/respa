@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.duration import duration_string
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
+from django.utils.timezone import now
 
 from payments.utils import (
     convert_aftertax_to_pretax,
@@ -201,6 +202,13 @@ class PriceList(models.Model):
 
     def __str__(self):
         return self.name
+
+    def delete(self, *args, **kwargs):
+        priced_product = getattr(self, "priced_product", None)
+        if priced_product:
+            priced_product.product.archived_at = now()
+            priced_product.product.save()
+        super().delete(*args, **kwargs)
 
     @cached_property
     def price_type(self):
