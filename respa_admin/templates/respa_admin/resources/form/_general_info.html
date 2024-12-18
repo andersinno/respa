@@ -9,11 +9,6 @@
         {% include "respa_admin/forms/_select.html" with field=form.unit inline=True %}
         {% include "respa_admin/forms/_select.html" with field=form.type inline=True %}
     </div>
-    <div class="usage">
-        <h4>{% trans "Purposes" %}</h4>
-        {% include "respa_admin/forms/_errors.html" with field=form.purposes %}
-        {{ form.purposes }}
-    </div>
     <div class="description">
         <h4>{% trans "Name and description" %}</h4>
         {% include "respa_admin/forms/_input.html" with field=form.name_fi %}
@@ -23,6 +18,11 @@
         {% include "respa_admin/forms/_textarea_input.html" with field=form.description_fi %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.description_en %}
         {% include "respa_admin/forms/_textarea_input.html" with field=form.description_sv %}
+    </div>
+    <div class="usage">
+        <h4>{% trans "Purposes" %}</h4>
+        {% include "respa_admin/forms/_errors.html" with field=form.purposes %}
+        {{ form.purposes }}
     </div>
     <div class="contact-person">
         <h4>{% trans "Contact person" %}</h4>
