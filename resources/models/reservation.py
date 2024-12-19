@@ -193,6 +193,7 @@ class Reservation(ModifiableModel):
     state = models.CharField(
         max_length=32, choices=STATE_CHOICES, verbose_name=_("State"), default=CREATED
     )
+    reminder_sent = models.BooleanField(default=False, verbose_name=_("Reminder sent"))
     approver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("Approver"),

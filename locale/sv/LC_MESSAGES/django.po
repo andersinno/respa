@@ -1789,3 +1789,6 @@ msgid ""
 msgstr ""
 "anger om användaren är en General Administrator med särskilda behörigheter "
 "för många objekt inom Respa"
+
+msgid "Reservation reminder"
+msgstr "Bokningspåminnelse"
