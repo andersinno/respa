@@ -166,6 +166,15 @@ class ResourceAdmin(
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
         form.instance.update_opening_hours()
+    
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        
+        # If we're creating a new object, set initial value for 'public'
+        if obj is None:
+            form.base_fields['public'].initial = False
+        
+        return form
 
 
 class PeriodTemplateListFilter(admin.SimpleListFilter):

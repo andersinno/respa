@@ -308,6 +308,7 @@ class ResourceForm(forms.ModelForm):
             if choice[0] not in ["", "none"]
         ]
         self.fields["authentication"].initial = ["weak"]
+        self.fields["public"].initial = False
 
     def clean_notification_email_addresses(self):
         notification_email_addresses = self.cleaned_data["notification_email_addresses"]
