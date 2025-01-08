@@ -6,7 +6,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
-from resources.models import Purpose, Resource
+from resources.models import Purpose, Resource, TermsOfUse
 
 from ..forms import ResourceForm, get_period_formset
 
@@ -248,3 +248,33 @@ def test_only_active_purposes_are_visible():
 
     assert list(purposes_field.queryset) == [active_purpose]
     assert inactive_purpose not in purposes_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_active_terms_of_use_are_visible():
+    active_generic_terms = TermsOfUse.objects.create(
+        name="Active Generic Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
+        active=True)
+    active_payment_terms = TermsOfUse.objects.create(
+        name="Active Payment Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_PAYMENT,
+        active=True)
+    inactive_generic_terms = TermsOfUse.objects.create(
+        name="Inactive Generic Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
+        active=False)
+    inactive_payment_terms = TermsOfUse.objects.create(
+        name="Inactive Payment Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_PAYMENT,
+        active=False)
+
+    form = ResourceForm()
+    generic_terms_field = form.fields['generic_terms']
+    payment_terms_field = form.fields['payment_terms']
+
+    assert list(generic_terms_field.queryset) == [active_generic_terms]
+    assert inactive_generic_terms not in generic_terms_field.queryset
+
+    assert list(payment_terms_field.queryset) == [active_payment_terms]
+    assert inactive_payment_terms not in payment_terms_field.queryset

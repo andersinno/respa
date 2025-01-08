@@ -297,10 +297,12 @@ class ResourceForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["generic_terms"].queryset = TermsOfUse.objects.filter(
-            terms_type=TermsOfUse.TERMS_TYPE_GENERIC
+            terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
+            active=True,
         )
         self.fields["payment_terms"].queryset = TermsOfUse.objects.filter(
-            terms_type=TermsOfUse.TERMS_TYPE_PAYMENT
+            terms_type=TermsOfUse.TERMS_TYPE_PAYMENT,
+            active=True,
         )
         self.fields["authentication"].choices = [
             choice

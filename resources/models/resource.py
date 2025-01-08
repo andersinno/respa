@@ -148,6 +148,11 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
         choices=TERMS_TYPES,
         default=TERMS_TYPE_GENERIC,
     )
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive terms are not shown in the Respa admin.")
+    )
 
     class Meta:
         verbose_name = pgettext_lazy("singular", "terms of use")

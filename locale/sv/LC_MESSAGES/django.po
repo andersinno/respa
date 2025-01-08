@@ -1795,3 +1795,6 @@ msgstr "Bokningspåminnelse"
 
 msgid "Inactive purposes are not shown in the Respa admin."
 msgstr "Inaktiva syften visas inte i Respa administratören."
+
+msgid "Inactive terms are not shown in the Respa admin."
+msgstr "Inaktiva villkor visas inte i Respa administratören."
