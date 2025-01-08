@@ -182,7 +182,7 @@ class ResourceForm(forms.ModelForm):
     equipment = forms.ModelMultipleChoiceField(
         required=False,
         widget=RespaCheckboxSelect,
-        queryset=Equipment.objects.all(),
+        queryset=Equipment.objects.filter(active=True),
     )
 
     name_fi = forms.CharField(

@@ -6,7 +6,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
-from resources.models import Purpose, ReservationMetadataSet, Resource, ResourceType, TermsOfUse
+from resources.models import (
+    Equipment, EquipmentCategory, Purpose, ReservationMetadataSet, Resource, ResourceType, TermsOfUse
+)
 
 from ..forms import ResourceForm, get_period_formset
 
@@ -312,3 +314,25 @@ def test_only_reservation_metadata_sets_are_visible():
 
     assert list(metadata_set_field.queryset) == [active_metadata_set]
     assert inactive_metadata_set not in metadata_set_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_active_equipments_are_visible():
+    category = EquipmentCategory.objects.create(
+        id="category",
+        name="Category"
+    )
+    active_equipment = Equipment.objects.create(
+        name="Active equipment",
+        category=category,
+        active=True)
+    inactive_equipment = Equipment.objects.create(
+        name="Inactive equipment",
+        category=category,
+        active=False)
+
+    form = ResourceForm()
+    equipment_field = form.fields['equipment']
+
+    assert list(equipment_field.queryset) == [active_equipment]
+    assert inactive_equipment not in equipment_field.queryset

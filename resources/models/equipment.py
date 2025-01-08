@@ -24,6 +24,11 @@ class Equipment(ModifiableModel, AutoIdentifiedModel):
     name = models.CharField(verbose_name=_('Name'), max_length=200)
     category = models.ForeignKey(EquipmentCategory, verbose_name=_('Category'), related_name='equipment',
                                  on_delete=models.CASCADE)
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_('Active'),
+        help_text=_('Inactive equipment is not shown in the Respa admin.')
+    )
 
     class Meta:
         verbose_name = pgettext_lazy('singular', 'equipment')
