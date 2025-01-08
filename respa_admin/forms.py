@@ -10,6 +10,7 @@ from resources.models import (
     Equipment,
     Period,
     Purpose,
+    ReservationMetadataSet,
     Resource,
     ResourceAccess,
     ResourceAccessibility,
@@ -312,6 +313,9 @@ class ResourceForm(forms.ModelForm):
             if choice[0] not in ["", "none"]
         ]
         self.fields["authentication"].initial = ["weak"]
+        self.fields["reservation_metadata_set"].queryset = (
+            ReservationMetadataSet.objects.filter(active=True)
+        )
 
     def clean_notification_email_addresses(self):
         notification_email_addresses = self.cleaned_data["notification_email_addresses"]

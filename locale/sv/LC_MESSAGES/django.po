@@ -1801,3 +1801,6 @@ msgstr "Inaktiva villkor visas inte i Respa administratören."
 
 msgid "Inactive resource types are not shown in the Respa admin."
 msgstr "Inaktiva resurstyper visas inte i Respa administratören."
+
+msgid "Inactive metadata sets are not shown in the resource form in Respa admin."
+msgstr "Inaktiva metadatauppsättningar visas inte i resursformuläret i Respa administratören."

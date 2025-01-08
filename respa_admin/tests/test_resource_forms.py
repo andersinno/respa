@@ -6,7 +6,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
-from resources.models import Purpose, Resource, ResourceType, TermsOfUse
+from resources.models import Purpose, ReservationMetadataSet, Resource, ResourceType, TermsOfUse
 
 from ..forms import ResourceForm, get_period_formset
 
@@ -296,3 +296,19 @@ def test_only_active_resource_types_are_visible():
 
     assert list(resource_type_field.queryset) == [active_resource_type]
     assert inactive_resource_type not in resource_type_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_reservation_metadata_sets_are_visible():
+    active_metadata_set = ReservationMetadataSet.objects.create(
+        name="Active metadata set",
+        active=True)
+    inactive_metadata_set = ReservationMetadataSet.objects.create(
+        name="Inactive metadata set",
+        active=False)
+
+    form = ResourceForm()
+    metadata_set_field = form.fields['reservation_metadata_set']
+
+    assert list(metadata_set_field.queryset) == [active_metadata_set]
+    assert inactive_metadata_set not in metadata_set_field.queryset
