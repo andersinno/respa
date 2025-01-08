@@ -14,6 +14,7 @@ from resources.models import (
     ResourceAccess,
     ResourceAccessibility,
     ResourceImage,
+    ResourceType,
     TermsOfUse,
     Unit,
     UnitAuthorization,
@@ -296,6 +297,7 @@ class ResourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["type"].queryset = ResourceType.objects.filter(active=True)
         self.fields["generic_terms"].queryset = TermsOfUse.objects.filter(
             terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
             active=True,

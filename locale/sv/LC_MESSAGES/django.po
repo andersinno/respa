@@ -1798,3 +1798,6 @@ msgstr "Inaktiva syften visas inte i Respa administratören."
 
 msgid "Inactive terms are not shown in the Respa admin."
 msgstr "Inaktiva villkor visas inte i Respa administratören."
+
+msgid "Inactive resource types are not shown in the Respa admin."
+msgstr "Inaktiva resurstyper visas inte i Respa administratören."

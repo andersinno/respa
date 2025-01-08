@@ -6,7 +6,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
-from resources.models import Purpose, Resource, TermsOfUse
+from resources.models import Purpose, Resource, ResourceType, TermsOfUse
 
 from ..forms import ResourceForm, get_period_formset
 
@@ -278,3 +278,21 @@ def test_only_active_terms_of_use_are_visible():
 
     assert list(payment_terms_field.queryset) == [active_payment_terms]
     assert inactive_payment_terms not in payment_terms_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_active_resource_types_are_visible():
+    active_resource_type = ResourceType.objects.create(
+        name="Active space",
+        main_type="space",
+        active=True)
+    inactive_resource_type = ResourceType.objects.create(
+        name="Inactive space",
+        main_type="space",
+        active=False)
+
+    form = ResourceForm()
+    resource_type_field = form.fields['type']
+
+    assert list(resource_type_field.queryset) == [active_resource_type]
+    assert inactive_resource_type not in resource_type_field.queryset

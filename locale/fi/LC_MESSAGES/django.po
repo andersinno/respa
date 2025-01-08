@@ -2211,3 +2211,6 @@ msgstr "Jos käyttötarkoitus ei ole aktiivinen, sitä ei näytetä Respan admin
 
 msgid "Inactive terms are not shown in the Respa admin."
 msgstr "Jos ehto ei ole aktiivinen, sitä ei näytetä Respan adminissa."
+
+msgid "Inactive resource types are not shown in the Respa admin."
+msgstr "Jos resurssityyppi ei ole aktiivinen, sitä ei näytetä Respan adminissa."
