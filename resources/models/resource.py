@@ -115,6 +115,10 @@ class Purpose(ModifiableModel, NameIdentifiedModel):
     )
     name = models.CharField(verbose_name=_("Name"), max_length=200)
     public = models.BooleanField(default=True, verbose_name=_("Public"))
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive purposes are not shown in the Respa admin."))
 
     class Meta:
         verbose_name = _("purpose")

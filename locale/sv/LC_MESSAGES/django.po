@@ -1792,3 +1792,6 @@ msgstr ""
 
 msgid "Reservation reminder"
 msgstr "Bokningspåminnelse"
+
+msgid "Inactive purposes are not shown in the Respa admin."
+msgstr "Inaktiva syften visas inte i Respa administratören."

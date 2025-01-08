@@ -2205,3 +2205,6 @@ msgstr "SAP:n vaatimia tietoja puuttuu: {}"
 
 msgid "Reservation reminder"
 msgstr "Muistutus varauksesta"
+
+msgid "Inactive purposes are not shown in the Respa admin."
+msgstr "Jos käyttötarkoitus ei ole aktiivinen, sitä ei näytetä Respan adminissa."

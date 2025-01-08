@@ -173,7 +173,7 @@ class ResourceAccessibilityForm(forms.ModelForm):
 class ResourceForm(forms.ModelForm):
     purposes = forms.ModelMultipleChoiceField(
         widget=RespaCheckboxSelect,
-        queryset=Purpose.objects.all(),
+        queryset=Purpose.objects.filter(active=True),
         required=True,
     )
 

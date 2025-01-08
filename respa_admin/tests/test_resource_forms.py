@@ -6,9 +6,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
-from resources.models import Resource
+from resources.models import Purpose, Resource
 
-from ..forms import get_period_formset
+from ..forms import ResourceForm, get_period_formset
 
 NEW_RESOURCE_URL = reverse_lazy("respa_admin:new-resource")
 
@@ -236,3 +236,15 @@ def test_editing_resource_via_form_view(admin_client, valid_resource_form_data):
     edited_resource = Resource.objects.first()
     assert edited_resource.name_fi == "Edited name"
     assert resource.name_fi != edited_resource.name
+
+
+@pytest.mark.django_db
+def test_only_active_purposes_are_visible():
+    active_purpose = Purpose.objects.create(name="Active Purpose", active=True)
+    inactive_purpose = Purpose.objects.create(name="Inactive Purpose", active=False)
+
+    form = ResourceForm()
+    purposes_field = form.fields['purposes']
+
+    assert list(purposes_field.queryset) == [active_purpose]
+    assert inactive_purpose not in purposes_field.queryset
