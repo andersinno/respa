@@ -240,7 +240,7 @@ class ResourceForm(forms.ModelForm):
             "equipment",
             "access_methods",
             "external_reservation_url",
-            "people_capacity",
+            "people_capacity_lower",
             "area",
             "min_period",
             "max_period",

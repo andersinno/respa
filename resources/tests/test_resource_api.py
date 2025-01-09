@@ -1487,34 +1487,34 @@ def test_order_by_filter(list_url, api_client, resource_in_unit, resource_in_uni
     assert response.data["results"][0]["type"]["id"] == resource_in_unit2.type.id
 
     # test resource people capacity
-    resource_in_unit.people_capacity = 1
+    resource_in_unit.people_capacity_lower = 1
     resource_in_unit.save()
 
-    resource_in_unit2.people_capacity = 50
+    resource_in_unit2.people_capacity_lower = 50
     resource_in_unit2.save()
 
-    response = api_client.get("%s?order_by=people_capacity" % list_url)
+    response = api_client.get("%s?order_by=people_capacity_lower" % list_url)
     assert response.status_code == 200
     assert_response_objects(response, [resource_in_unit, resource_in_unit2])
     assert (
-        response.data["results"][0]["people_capacity"]
-        == resource_in_unit.people_capacity
+        response.data["results"][0]["people_capacity_lower"]
+        == resource_in_unit.people_capacity_lower
     )
     assert (
-        response.data["results"][1]["people_capacity"]
-        == resource_in_unit2.people_capacity
+        response.data["results"][1]["people_capacity_lower"]
+        == resource_in_unit2.people_capacity_lower
     )
 
-    response = api_client.get("%s?order_by=-people_capacity" % list_url)
+    response = api_client.get("%s?order_by=-people_capacity_lower" % list_url)
     assert response.status_code == 200
     assert_response_objects(response, [resource_in_unit, resource_in_unit2])
     assert (
-        response.data["results"][1]["people_capacity"]
-        == resource_in_unit.people_capacity
+        response.data["results"][1]["people_capacity_lower"]
+        == resource_in_unit.people_capacity_lower
     )
     assert (
-        response.data["results"][0]["people_capacity"]
-        == resource_in_unit2.people_capacity
+        response.data["results"][0]["people_capacity_lower"]
+        == resource_in_unit2.people_capacity_lower
     )
 
 

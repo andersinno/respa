@@ -526,7 +526,7 @@ paths:
         in: query
         description: Order queryset by given resource fields, accepted values are
           `resource_name_fi`, `resource_name_en`, `resource_name_sv`, `unit_name_fi`,
-          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity`. Prefix parameter
+          `unit_name_en`, `unit_name_sv`, `type`, `people_capacity_lower`. Prefix parameter
           value with `-` to get reverse ordering.
         schema:
           type: string
@@ -1043,7 +1043,7 @@ components:
         authentication:
           type: string
           description: The type of authentication required to reserve the resource
-        people_capacity:
+        people_capacity_lower:
           type: number
           description: The maximum number of people for the resource
         area:

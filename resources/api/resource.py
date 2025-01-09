@@ -198,6 +198,7 @@ class ResourceSerializer(
     ExtraDataMixin, TranslatedModelSerializer, munigeo_api.GeoModelSerializer
 ):
     purposes = PurposeSerializer(many=True)
+    people_capacity = serializers.IntegerField(source='people_capacity_lower')
     images = NestedResourceImageSerializer(many=True)
     equipment = ResourceEquipmentSerializer(
         many=True, read_only=True, source="resource_equipment"
@@ -677,7 +678,7 @@ class ResourceFilterSet(django_filters.FilterSet):
         field_name="type__id", lookup_expr="in", widget=django_filters.widgets.CSVWidget
     )
     people = django_filters.NumberFilter(
-        field_name="people_capacity", lookup_expr="gte"
+        field_name="people_capacity_lower", lookup_expr="gte"
     )
     need_manual_confirmation = django_filters.BooleanFilter(
         field_name="need_manual_confirmation", widget=DRFFilterBooleanWidget
@@ -721,7 +722,7 @@ class ResourceFilterSet(django_filters.FilterSet):
             ("type__name_fi", "type_name_fi"),
             ("type__name_en", "type_name_en"),
             ("type__name_sv", "type_name_sv"),
-            ("people_capacity", "people_capacity"),
+            ("people_capacity_lower", "people_capacity_lower"),
             ("accessibility_priority", "accessibility"),
         ),
     )
