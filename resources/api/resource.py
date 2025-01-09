@@ -677,9 +677,7 @@ class ResourceFilterSet(django_filters.FilterSet):
     type = django_filters.Filter(
         field_name="type__id", lookup_expr="in", widget=django_filters.widgets.CSVWidget
     )
-    people = django_filters.NumberFilter(
-        field_name="people_capacity_lower", lookup_expr="gte"
-    )
+    people = django_filters.NumberFilter(method='filter_people_capacity')
     need_manual_confirmation = django_filters.BooleanFilter(
         field_name="need_manual_confirmation", widget=DRFFilterBooleanWidget
     )
@@ -726,6 +724,11 @@ class ResourceFilterSet(django_filters.FilterSet):
             ("accessibility_priority", "accessibility"),
         ),
     )
+
+    def filter_people_capacity(self, queryset, name, value):
+        return queryset.filter(
+            Q(people_capacity_lower__gte=value) | Q(people_capacity_upper__gte=value)
+        )
 
     def filter_is_favorite(self, queryset, name, value):
         if not self.user.is_authenticated:

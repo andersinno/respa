@@ -1645,3 +1645,30 @@ def test_query_counts(
 
     with django_assert_max_num_queries(MAX_QUERIES):
         staff_api_client.get(list_url)
+
+@pytest.mark.django_db
+def test_filter_people_capacity(api_client, resource_in_unit, resource_in_unit2, resource_in_unit3):
+    resource_in_unit.people_capacity_lower = 10
+    resource_in_unit.people_capacity_upper = 20
+    resource_in_unit.save()
+
+    resource_in_unit2.people_capacity_lower = 15
+    resource_in_unit2.people_capacity_upper = 25
+    resource_in_unit2.save()
+
+    resource_in_unit3.people_capacity_lower = 20
+    resource_in_unit3.people_capacity_upper = None
+    resource_in_unit3.save()
+
+    response = api_client.get(reverse("resource-list") + "?people=15")
+    assert response.status_code == 200
+    assert len(response.data["results"]) == 3
+
+    response = api_client.get(reverse("resource-list") + "?people=22")
+    assert response.status_code == 200
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["id"] == resource_in_unit2.id
+
+    response = api_client.get(reverse("resource-list") + "?people=50")
+    assert response.status_code == 200
+    assert len(response.data["results"]) == 0
