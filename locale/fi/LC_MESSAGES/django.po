@@ -1180,6 +1180,9 @@ msgstr "Tunnistautuminen"
 msgid "People capacity"
 msgstr "Henkilömäärä"
 
+msgid "People capacity upper limit"
+msgstr "Maksimihenkilömäärä"
+
 msgid "Area (m2)"
 msgstr "Pinta-ala (m2)"
 

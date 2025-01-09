@@ -335,6 +335,9 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
     people_capacity_lower = models.PositiveIntegerField(
         verbose_name=_("People capacity"), null=True, blank=True
     )
+    people_capacity_upper = models.PositiveIntegerField(
+        verbose_name=_("People capacity upper limit"), null=True, blank=True
+    )
     area = models.PositiveIntegerField(
         verbose_name=_("Area (m2)"), null=True, blank=True
     )
