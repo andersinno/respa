@@ -90,7 +90,7 @@ EMPTY_RESOURCE_FORM_DATA = {
     "purposes": "",
     "equipment": "",
     "responsible_contact_info": "",
-    "people_capacity": "",
+    "people_capacity_lower": "",
     "area": "",
     "min_period": "",
     "max_period": "",

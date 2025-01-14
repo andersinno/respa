@@ -1050,6 +1050,9 @@ msgstr "Autentisering"
 msgid "People capacity"
 msgstr "Kapacitet"
 
+msgid "People capacity upper limit"
+msgstr "Maximal kapacitet"
+
 msgid "Area (m2)"
 msgstr "Yta (m2)"
 

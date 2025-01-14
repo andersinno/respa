@@ -332,8 +332,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         max_length=20,
         choices=AUTHENTICATION_TYPES,
     )
-    people_capacity = models.PositiveIntegerField(
+    people_capacity_lower = models.PositiveIntegerField(
         verbose_name=_("People capacity"), null=True, blank=True
+    )
+    people_capacity_upper = models.PositiveIntegerField(
+        verbose_name=_("People capacity upper limit"), null=True, blank=True
     )
     area = models.PositiveIntegerField(
         verbose_name=_("Area (m2)"), null=True, blank=True

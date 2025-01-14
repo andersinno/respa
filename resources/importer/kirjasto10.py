@@ -94,9 +94,9 @@ class Kirjasto10Importer(Importer):
             except ValueError:
                 area = None
             try:
-                people_capacity = int(res_data['Max henkilömäärä'])
+                people_capacity_lower = int(res_data['Max henkilömäärä'])
             except ValueError:
-                people_capacity = None
+                people_capacity_lower = None
             try:
                 min_period = datetime.timedelta(minutes=int(60 * float(res_data['Varausaika min'].replace(',', '.'))))
             except ValueError:
@@ -119,7 +119,7 @@ class Kirjasto10Importer(Importer):
 
             data = dict(
                 unit_id=unit.pk,
-                people_capacity=people_capacity,
+                people_capacity_lower=people_capacity_lower,
                 area=area,
                 need_manual_confirmation=confirm,
                 min_period=min_period,
