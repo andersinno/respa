@@ -2205,3 +2205,18 @@ msgstr "SAP:n vaatimia tietoja puuttuu: {}"
 
 msgid "Reservation reminder"
 msgstr "Muistutus varauksesta"
+
+msgid "Inactive purposes are not shown in the Respa admin."
+msgstr "Jos käyttötarkoitus ei ole aktiivinen, sitä ei näytetä Respan adminissa."
+
+msgid "Inactive terms are not shown in the Respa admin."
+msgstr "Jos ehto ei ole aktiivinen, sitä ei näytetä Respan adminissa."
+
+msgid "Inactive resource types are not shown in the Respa admin."
+msgstr "Jos resurssityyppi ei ole aktiivinen, sitä ei näytetä Respan adminissa."
+
+msgid "Inactive metadata sets are not shown in the resource form in Respa admin."
+msgstr "Jos metatietojoukko ei ole aktiivinen, sitä ei näytetä resurssin lomakkeessa Respan adminissa."
+
+msgid "Inactive equipment is not shown in the Respa admin."
+msgstr "Jos varuste ei ole aktiivinen, sitä ei näytetä Respan adminissa."

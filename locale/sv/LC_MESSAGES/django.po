@@ -1792,3 +1792,18 @@ msgstr ""
 
 msgid "Reservation reminder"
 msgstr "Bokningspåminnelse"
+
+msgid "Inactive purposes are not shown in the Respa admin."
+msgstr "Inaktiva syften visas inte i Respa administratören."
+
+msgid "Inactive terms are not shown in the Respa admin."
+msgstr "Inaktiva villkor visas inte i Respa administratören."
+
+msgid "Inactive resource types are not shown in the Respa admin."
+msgstr "Inaktiva resurstyper visas inte i Respa administratören."
+
+msgid "Inactive metadata sets are not shown in the resource form in Respa admin."
+msgstr "Inaktiva metadatauppsättningar visas inte i resursformuläret i Respa administratören."
+
+msgid "Inactive equipment is not shown in the Respa admin."
+msgstr "Inaktiva utrustningar visas inte i Respa administratören."

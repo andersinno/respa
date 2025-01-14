@@ -1027,6 +1027,11 @@ class ReservationMetadataSet(ModifiableModel):
         related_name="metadata_sets_required",
         blank=True,
     )
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive metadata sets are not shown in the resource form in Respa admin."),
+    )
 
     class Meta:
         verbose_name = _("Reservation metadata set")
