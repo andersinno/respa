@@ -52,10 +52,10 @@ class ReservationEndpointOrderSerializer(OrderSerializerBase):
 
             order_line_data["total_price"] = total_price
             order_line_data["unit_price"] = Decimal(order_line_price_info["amount"])
+            order_line_data["tax_percentage"] = order_line_price_info["tax_percentage"]
 
             price_source = order_line_price_info["price_source"]
 
-            order_line_data["tax_percentage"] = price_source.tax_percentage
             order_line_data["price_period"] = price_source.price_period
             order_line_data["price_type"] = price_source.price_type
 
