@@ -35,7 +35,7 @@ class PriceListTemplateView(ExtraContextMixin, ListView):
         }
 
     def get_queryset(self):
-        qs = PriceListTemplate.objects.all()
+        qs = PriceListTemplate.objects.all().order_by("name")
         if self.search_query:
             qs = qs.filter(name__icontains=self.search_query)
         return qs
