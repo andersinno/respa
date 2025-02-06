@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
-from django.db.models import FieldDoesNotExist
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
