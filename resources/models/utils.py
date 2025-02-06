@@ -13,7 +13,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.utils import formats, timezone
 from django.utils.timezone import localtime
 from django.utils.translation import gettext_lazy as _
-from django.utils.translation import ungettext
+from django.utils.translation import ngettext
 from icalendar import Calendar, Event, vDatetime, vGeo, vText
 from rest_framework.reverse import reverse
 
@@ -189,12 +189,12 @@ def humanize_duration(duration):
     hours = duration.days * 24 + duration.seconds // 3600
     mins = duration.seconds // 60 % 60
     hours_string = (
-        ungettext("%(count)d hour", "%(count)d hours", hours) % {"count": hours}
+        ngettext("%(count)d hour", "%(count)d hours", hours) % {"count": hours}
         if hours
         else None
     )
     mins_string = (
-        ungettext("%(count)d minute", "%(count)d minutes", mins) % {"count": mins}
+        ngettext("%(count)d minute", "%(count)d minutes", mins) % {"count": mins}
         if mins
         else None
     )

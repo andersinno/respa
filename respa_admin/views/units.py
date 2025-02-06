@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import FieldDoesNotExist
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.generic import CreateView, ListView
 from resources.enums import UnitAuthorizationLevel
 from resources.models import Unit, UnitAuthorization
