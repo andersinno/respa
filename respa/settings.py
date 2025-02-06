@@ -7,7 +7,7 @@ import os
 import sentry_sdk
 import subprocess
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_jinja.builtins import DEFAULT_EXTENSIONS  # noqa
 from easy_thumbnails.conf import Settings as thumbnail_settings  # noqa
 from google.oauth2 import service_account

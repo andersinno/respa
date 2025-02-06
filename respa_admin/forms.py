@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory, modelformset_factory
 from django.forms.formsets import DELETION_FIELD_NAME
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from guardian.core import ObjectPermissionChecker
 
 from resources.models import (
