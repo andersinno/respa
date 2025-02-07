@@ -1,9 +1,10 @@
 import faker
 import pytest
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.contrib.messages import get_messages
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils.translation import activate, deactivate
 
 from resources.enums import UnitAuthorizationLevel
 from resources.models import UnitAuthorization
@@ -72,8 +73,14 @@ def test_manage_user_permissions_post_invalid(
     request = rf.post("/", {})
     request.user = admin_user_with_permissions
 
-    with pytest.raises(ValidationError):
-        ManageUserPermissionsView.as_view()(request, user_id=staff_user.pk)
+    use_fallback_message_storage(request)
+
+    activate("en")
+    ManageUserPermissionsView.as_view()(request, user_id=staff_user.pk, locale="en")
+    messages = get_messages(request)
+    error_messages = [message.message for message in messages if message.level_tag == 'error']
+    assert error_messages == ["Failed to save. Please check the form for errors."]
+    deactivate()
 
     assert not UnitAuthorization.objects.filter(
         subject=resource_in_unit.unit,

@@ -213,9 +213,9 @@ class PriceList(models.Model):
     @cached_property
     def price_type(self):
         price_types = (
-            self.usergroup_prices.union(self.event_prices.all())
+            self.usergroup_prices.distinct()
+            .union(self.event_prices.all().distinct())
             .values_list("price_type", flat=True)
-            .distinct()
         )
 
         if not price_types:

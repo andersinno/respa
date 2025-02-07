@@ -868,10 +868,7 @@ def test_reservation_excel(staff_api_client, list_url, detail_url, reservation, 
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.xlsx",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.xlsx"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -880,10 +877,7 @@ def test_reservation_excel(staff_api_client, list_url, detail_url, reservation, 
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.xlsx".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.xlsx"
     assert len(response.content) > 0
 
 @pytest.mark.django_db
@@ -898,10 +892,7 @@ def test_reservation_csv(staff_api_client, list_url, detail_url, reservation, us
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.csv",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.csv"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -910,10 +901,7 @@ def test_reservation_csv(staff_api_client, list_url, detail_url, reservation, us
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.csv".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.csv"
     assert len(response.content) > 0
 
 
@@ -939,10 +927,7 @@ def test_reservation_excel_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.xlsx",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.xlsx"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -952,10 +937,7 @@ def test_reservation_excel_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.xlsx".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.xlsx"
     assert len(response.content) > 0
 
 @pytest.mark.django_db
@@ -980,10 +962,7 @@ def test_reservation_csv_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.csv",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.csv"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -993,10 +972,7 @@ def test_reservation_csv_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.csv".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.csv"
     assert len(response.content) > 0
 
 
