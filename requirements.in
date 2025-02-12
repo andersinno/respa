@@ -1,4 +1,4 @@
-Django<4.0
+Django<4.1
 django-modeltranslation
 --no-binary psycopg2
 psycopg2>=2.8,<2.9
@@ -14,7 +14,7 @@ flake8
 arrow
 pytz
 coverage
-django-ckeditor==5.9.0
+django-ckeditor
 django-cors-headers
 django-image-cropping
 easy_thumbnails

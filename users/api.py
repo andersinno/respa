@@ -54,7 +54,13 @@ class UserSerializer(serializers.ModelSerializer):
         return {'unit': perms}
 
     def get_login_method(self, obj):
-        return get_user_auth_backend(self.context['request'])
+        auth = self.context['request'].auth
+        if not auth:
+            return None
+        try:
+            return get_user_auth_backend(self.context['request'])
+        except Exception as e:
+            return str(e)
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
@@ -73,7 +79,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         else:
             obj = self.request.user
         return obj
-    
+
     @action(detail=True, methods=["post"], url_path="set_email")
     def set_email(self, request, pk=None):
         user = self.get_object()
@@ -97,7 +103,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
                 {"detail": "User already has an email set."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         if settings.ACCOUNT_UNIQUE_EMAIL and EmailAddress.objects.filter(email=email):
             return Response(
                 {"detail": "The email address is already in use."},
