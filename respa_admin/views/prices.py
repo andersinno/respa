@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
