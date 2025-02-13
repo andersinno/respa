@@ -6,7 +6,7 @@ from tamusers import admin
 from django.http.response import HttpResponse
 from django.views.generic.base import RedirectView
 
-from resources.api import RespaAPIRouter
+from resources.api import RespaAPIRouter, ResourceListViewSet, ResourceViewSet
 from resources.views.images import ResourceImageView
 from resources.views.ical import ICalFeedView
 
@@ -31,6 +31,8 @@ urlpatterns = [
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('resource_image/<int:pk>', ResourceImageView.as_view(), name='resource-image-view'),
     path('v1/', include(router.urls)),
+    path('v1/resource/', ResourceListViewSet.as_view({'get': 'list'}), name='resource-list'),
+
     re_path(r'v1/reservation/ical/(?P<ical_token>[-\w\d]+).ics$', ICalFeedView.as_view(), name='ical-feed'),
     path('', RedirectView.as_view(url='v1/')),
     path('healthz/', lambda r: HttpResponse()),
