@@ -27,7 +27,7 @@ class GistIndex(MaxLengthMixin, Index):
             kwargs['fillfactor'] = self.fillfactor
         return path, args, kwargs
 
-    def create_sql(self, model, schema_editor):
+    def create_sql(self, model, schema_editor, using='', concurrently=False):
         statement = super().create_sql(model, schema_editor, using=' USING gist')
         with_params = []
         if self.buffering is not None:

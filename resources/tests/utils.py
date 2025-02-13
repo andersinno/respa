@@ -6,8 +6,8 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test.testcases import SimpleTestCase
 from django.utils.encoding import force_text
-from django.utils.six import BytesIO
 from PIL import Image
+from six import BytesIO
 
 from resources.models import ResourceImage
 

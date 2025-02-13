@@ -15,13 +15,13 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.functional import cached_property
-from django.utils.six import BytesIO
 from django.utils.translation import pgettext_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from guardian.core import ObjectPermissionChecker
 from guardian.shortcuts import get_objects_for_user, get_users_with_perms
 from image_cropping import ImageRatioField
 from PIL import Image
+from six import BytesIO
 
 from ..auth import is_authenticated_user, is_general_admin
 from ..enums import UnitAuthorizationLevel, UnitGroupAuthorizationLevel

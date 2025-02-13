@@ -1,11 +1,11 @@
-Django
-django-modeltranslation>=0.13-beta1
+Django<3.1
+django-modeltranslation
 --no-binary psycopg2
-psycopg2
+psycopg2>=2.8,<2.9
 django-munigeo
-djangorestframework
+djangorestframework==3.13.1
 django-filter
-django-grappelli
+django-grappelli==3.0.8
 django-parler
 pytest
 pytest-cov

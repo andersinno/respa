@@ -1,7 +1,7 @@
 from django.apps import AppConfig
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext_lazy
 
 
 class RespaPricingConfig(AppConfig):
     name = "respa_pricing"
-    verbose_name = ugettext_lazy("Pricing app")
+    verbose_name = gettext_lazy("Pricing app")
