@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db.models import Q
 from django.template.response import TemplateResponse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
 from io import StringIO

@@ -12,7 +12,7 @@ from django.contrib.sites.models import Site
 from django.core.mail import EmailMultiAlternatives
 from django.utils import formats, timezone
 from django.utils.timezone import localtime
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ungettext
 from icalendar import Calendar, Event, vDatetime, vGeo, vText
 from rest_framework.reverse import reverse
