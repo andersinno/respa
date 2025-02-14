@@ -253,7 +253,7 @@ class Day(models.Model):
         db_index=True,
     )
     # NOTE: If this is true and the period is false, what then?
-    closed = models.NullBooleanField(verbose_name=_("Closed"), default=False)
+    closed = models.BooleanField(verbose_name=_("Closed"), default=False, null=True)
     description = models.CharField(
         max_length=200, verbose_name=_("description"), null=True, blank=True
     )
