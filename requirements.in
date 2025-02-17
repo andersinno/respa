@@ -1,4 +1,4 @@
-Django<4.0
+Django<4.1
 django-modeltranslation
 --no-binary psycopg2
 psycopg2>=2.8,<2.9
@@ -14,13 +14,13 @@ flake8
 arrow
 pytz
 coverage
-django-ckeditor==5.9.0
+django-ckeditor
 django-cors-headers
 django-image-cropping
 easy_thumbnails
-git+https://github.com/Tampere/django-tamusers.git@31b9251bcd9e769bd446528009377834cb68e760#egg=django-tamusers
+git+https://github.com/Tampere/django-tamusers.git@9ed131f2997d6fb7fa42864024b302a49d8f4be4#egg=django-tamusers
 django-allauth
-djangorestframework-jwt
+git+https://github.com/andersinno/django-rest-framework-jwt.git@667fb8cb2c4c485fa0673b28105663e545535628#egg=djangorestframework-jwt
 django-storages[google]
 pyjwt
 django-hstore
