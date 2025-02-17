@@ -38,7 +38,7 @@ def get_translated_values(obj, *fields):
 
     translations = {}
 
-    for field_name in fields or opts.fields.keys():
+    for field_name in fields or opts.all_fields.keys():
         dct = {}
 
         for code, _ in settings.LANGUAGES:
@@ -61,7 +61,7 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
             self.translated_fields = []
             return
 
-        self.translated_fields = trans_opts.fields.keys()
+        self.translated_fields = trans_opts.all_fields.keys()
         # Remove the pre-existing data in the bundle.
         for field_name in self.translated_fields:
             for lang in LANGUAGES:
