@@ -1,7 +1,6 @@
 import logging
 from contextlib import redirect_stdout
 from django import forms
-from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.admin import site as admin_site
 from django.contrib.admin.utils import unquote
@@ -12,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.db.models import Q
 from django.template.response import TemplateResponse
+from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
 from guardian import admin as guardian_admin
 from image_cropping import ImageCroppingMixin
@@ -240,12 +240,12 @@ class UnitAdmin(
     def get_urls(self):
         urls = super(UnitAdmin, self).get_urls()
         extra_urls = [
-            url(
+            re_path(
                 r"^tprek_import/$",
                 self.admin_site.admin_view(self.tprek_import),
                 name="tprek_import",
             ),
-            url(
+            re_path(
                 r"^libraries_import/$",
                 self.admin_site.admin_view(self.libraries_import),
                 name="libraries_import",
@@ -440,12 +440,12 @@ class MunicipalityAdmin(
     def get_urls(self):
         urls = super(MunicipalityAdmin, self).get_urls()
         extra_urls = [
-            url(
+            re_path(
                 r"^municipalities_import/$",
                 self.admin_site.admin_view(self.municipalities_import),
                 name="municipalities_import",
             ),
-            url(
+            re_path(
                 r"^divisions_helsinki_import/$",
                 self.admin_site.admin_view(self.divisions_helsinki_import),
                 name="divisions_helsinki_import",
