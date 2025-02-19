@@ -1,5 +1,5 @@
 # ======================================================================
-FROM python:3.8-buster AS app-base
+FROM python:3.9-buster AS app-base
 # ======================================================================
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN set -eux; \
     rm -rf /var/cache/apt/archives; \
     pip install --no-cache-dir -r requirements.txt
 
-# Install wait-for-it.sh 
+# Install wait-for-it.sh
 RUN curl -o /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
     chmod +x /usr/local/bin/wait-for-it.sh
 
