@@ -1487,34 +1487,34 @@ def test_order_by_filter(list_url, api_client, resource_in_unit, resource_in_uni
     assert response.data["results"][0]["type"]["id"] == resource_in_unit2.type.id
 
     # test resource people capacity
-    resource_in_unit.people_capacity = 1
+    resource_in_unit.people_capacity_lower = 1
     resource_in_unit.save()
 
-    resource_in_unit2.people_capacity = 50
+    resource_in_unit2.people_capacity_lower = 50
     resource_in_unit2.save()
 
-    response = api_client.get("%s?order_by=people_capacity" % list_url)
+    response = api_client.get("%s?order_by=people_capacity_lower" % list_url)
     assert response.status_code == 200
     assert_response_objects(response, [resource_in_unit, resource_in_unit2])
     assert (
-        response.data["results"][0]["people_capacity"]
-        == resource_in_unit.people_capacity
+        response.data["results"][0]["people_capacity_lower"]
+        == resource_in_unit.people_capacity_lower
     )
     assert (
-        response.data["results"][1]["people_capacity"]
-        == resource_in_unit2.people_capacity
+        response.data["results"][1]["people_capacity_lower"]
+        == resource_in_unit2.people_capacity_lower
     )
 
-    response = api_client.get("%s?order_by=-people_capacity" % list_url)
+    response = api_client.get("%s?order_by=-people_capacity_lower" % list_url)
     assert response.status_code == 200
     assert_response_objects(response, [resource_in_unit, resource_in_unit2])
     assert (
-        response.data["results"][1]["people_capacity"]
-        == resource_in_unit.people_capacity
+        response.data["results"][1]["people_capacity_lower"]
+        == resource_in_unit.people_capacity_lower
     )
     assert (
-        response.data["results"][0]["people_capacity"]
-        == resource_in_unit2.people_capacity
+        response.data["results"][0]["people_capacity_lower"]
+        == resource_in_unit2.people_capacity_lower
     )
 
 
@@ -1645,3 +1645,30 @@ def test_query_counts(
 
     with django_assert_max_num_queries(MAX_QUERIES):
         staff_api_client.get(list_url)
+
+@pytest.mark.django_db
+def test_filter_people_capacity(api_client, resource_in_unit, resource_in_unit2, resource_in_unit3):
+    resource_in_unit.people_capacity_lower = 10
+    resource_in_unit.people_capacity_upper = 20
+    resource_in_unit.save()
+
+    resource_in_unit2.people_capacity_lower = 15
+    resource_in_unit2.people_capacity_upper = 25
+    resource_in_unit2.save()
+
+    resource_in_unit3.people_capacity_lower = 20
+    resource_in_unit3.people_capacity_upper = None
+    resource_in_unit3.save()
+
+    response = api_client.get(reverse("resource-list") + "?people=15")
+    assert response.status_code == 200
+    assert len(response.data["results"]) == 3
+
+    response = api_client.get(reverse("resource-list") + "?people=22")
+    assert response.status_code == 200
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["id"] == resource_in_unit2.id
+
+    response = api_client.get(reverse("resource-list") + "?people=50")
+    assert response.status_code == 200
+    assert len(response.data["results"]) == 0

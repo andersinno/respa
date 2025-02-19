@@ -372,7 +372,7 @@ strategy:
     name_fi: null
     name_sv: null
     need_manual_confirmation: null
-    people_capacity: null
+    people_capacity_lower: null
     public: null
     reservable: null
     reservable_days_in_advance: null

@@ -46,6 +46,8 @@ class NotificationType:
     RESERVATION_COMMENT_CREATED = "reservation_comment_created"
     CATERING_ORDER_COMMENT_CREATED = "catering_order_comment_created"
 
+    RESERVATION_REMINDER = "reservation_reminder"
+
 
 class NotificationTemplateException(Exception):
     pass
@@ -107,6 +109,7 @@ class NotificationTemplate(TranslatableModel):
             NotificationType.CATERING_ORDER_COMMENT_CREATED,
             _("Catering order comment created"),
         ),
+        (NotificationType.RESERVATION_REMINDER, _("Reservation reminder")),
     )
 
     type = models.CharField(

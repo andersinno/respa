@@ -10,10 +10,12 @@ from resources.models import (
     Equipment,
     Period,
     Purpose,
+    ReservationMetadataSet,
     Resource,
     ResourceAccess,
     ResourceAccessibility,
     ResourceImage,
+    ResourceType,
     TermsOfUse,
     Unit,
     UnitAuthorization,
@@ -173,14 +175,14 @@ class ResourceAccessibilityForm(forms.ModelForm):
 class ResourceForm(forms.ModelForm):
     purposes = forms.ModelMultipleChoiceField(
         widget=RespaCheckboxSelect,
-        queryset=Purpose.objects.all(),
+        queryset=Purpose.objects.filter(active=True),
         required=True,
     )
 
     equipment = forms.ModelMultipleChoiceField(
         required=False,
         widget=RespaCheckboxSelect,
-        queryset=Equipment.objects.all(),
+        queryset=Equipment.objects.filter(active=True),
     )
 
     name_fi = forms.CharField(
@@ -238,7 +240,8 @@ class ResourceForm(forms.ModelForm):
             "equipment",
             "access_methods",
             "external_reservation_url",
-            "people_capacity",
+            "people_capacity_lower",
+            "people_capacity_upper",
             "area",
             "min_period",
             "max_period",
@@ -296,11 +299,14 @@ class ResourceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["type"].queryset = ResourceType.objects.filter(active=True)
         self.fields["generic_terms"].queryset = TermsOfUse.objects.filter(
-            terms_type=TermsOfUse.TERMS_TYPE_GENERIC
+            terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
+            active=True,
         )
         self.fields["payment_terms"].queryset = TermsOfUse.objects.filter(
-            terms_type=TermsOfUse.TERMS_TYPE_PAYMENT
+            terms_type=TermsOfUse.TERMS_TYPE_PAYMENT,
+            active=True,
         )
         self.fields["authentication"].choices = [
             choice
@@ -308,6 +314,9 @@ class ResourceForm(forms.ModelForm):
             if choice[0] not in ["", "none"]
         ]
         self.fields["authentication"].initial = ["weak"]
+        self.fields["reservation_metadata_set"].queryset = (
+            ReservationMetadataSet.objects.filter(active=True)
+        )
 
     def clean_notification_email_addresses(self):
         notification_email_addresses = self.cleaned_data["notification_email_addresses"]

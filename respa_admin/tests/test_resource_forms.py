@@ -6,9 +6,11 @@ from django.urls import reverse, reverse_lazy
 from django.utils import translation
 from freezegun import freeze_time
 
-from resources.models import Resource
+from resources.models import (
+    Equipment, EquipmentCategory, Purpose, ReservationMetadataSet, Resource, ResourceType, TermsOfUse
+)
 
-from ..forms import get_period_formset
+from ..forms import ResourceForm, get_period_formset
 
 NEW_RESOURCE_URL = reverse_lazy("respa_admin:new-resource")
 
@@ -236,3 +238,101 @@ def test_editing_resource_via_form_view(admin_client, valid_resource_form_data):
     edited_resource = Resource.objects.first()
     assert edited_resource.name_fi == "Edited name"
     assert resource.name_fi != edited_resource.name
+
+
+@pytest.mark.django_db
+def test_only_active_purposes_are_visible():
+    active_purpose = Purpose.objects.create(name="Active Purpose", active=True)
+    inactive_purpose = Purpose.objects.create(name="Inactive Purpose", active=False)
+
+    form = ResourceForm()
+    purposes_field = form.fields['purposes']
+
+    assert list(purposes_field.queryset) == [active_purpose]
+    assert inactive_purpose not in purposes_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_active_terms_of_use_are_visible():
+    active_generic_terms = TermsOfUse.objects.create(
+        name="Active Generic Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
+        active=True)
+    active_payment_terms = TermsOfUse.objects.create(
+        name="Active Payment Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_PAYMENT,
+        active=True)
+    inactive_generic_terms = TermsOfUse.objects.create(
+        name="Inactive Generic Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_GENERIC,
+        active=False)
+    inactive_payment_terms = TermsOfUse.objects.create(
+        name="Inactive Payment Terms",
+        terms_type=TermsOfUse.TERMS_TYPE_PAYMENT,
+        active=False)
+
+    form = ResourceForm()
+    generic_terms_field = form.fields['generic_terms']
+    payment_terms_field = form.fields['payment_terms']
+
+    assert list(generic_terms_field.queryset) == [active_generic_terms]
+    assert inactive_generic_terms not in generic_terms_field.queryset
+
+    assert list(payment_terms_field.queryset) == [active_payment_terms]
+    assert inactive_payment_terms not in payment_terms_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_active_resource_types_are_visible():
+    active_resource_type = ResourceType.objects.create(
+        name="Active space",
+        main_type="space",
+        active=True)
+    inactive_resource_type = ResourceType.objects.create(
+        name="Inactive space",
+        main_type="space",
+        active=False)
+
+    form = ResourceForm()
+    resource_type_field = form.fields['type']
+
+    assert list(resource_type_field.queryset) == [active_resource_type]
+    assert inactive_resource_type not in resource_type_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_reservation_metadata_sets_are_visible():
+    active_metadata_set = ReservationMetadataSet.objects.create(
+        name="Active metadata set",
+        active=True)
+    inactive_metadata_set = ReservationMetadataSet.objects.create(
+        name="Inactive metadata set",
+        active=False)
+
+    form = ResourceForm()
+    metadata_set_field = form.fields['reservation_metadata_set']
+
+    assert list(metadata_set_field.queryset) == [active_metadata_set]
+    assert inactive_metadata_set not in metadata_set_field.queryset
+
+
+@pytest.mark.django_db
+def test_only_active_equipments_are_visible():
+    category = EquipmentCategory.objects.create(
+        id="category",
+        name="Category"
+    )
+    active_equipment = Equipment.objects.create(
+        name="Active equipment",
+        category=category,
+        active=True)
+    inactive_equipment = Equipment.objects.create(
+        name="Inactive equipment",
+        category=category,
+        active=False)
+
+    form = ResourceForm()
+    equipment_field = form.fields['equipment']
+
+    assert list(equipment_field.queryset) == [active_equipment]
+    assert inactive_equipment not in equipment_field.queryset

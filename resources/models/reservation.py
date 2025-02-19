@@ -193,6 +193,7 @@ class Reservation(ModifiableModel):
     state = models.CharField(
         max_length=32, choices=STATE_CHOICES, verbose_name=_("State"), default=CREATED
     )
+    reminder_sent = models.BooleanField(default=False, verbose_name=_("Reminder sent"))
     approver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name=_("Approver"),
@@ -709,7 +710,7 @@ class Reservation(ModifiableModel):
             valid_reservations_for_same_unit = reservations_for_same_unit.exclude(
                 state=Reservation.CANCELLED
             )
-            # Exclude current reservation from the valid_reservations_for_same_unit list to allow user to 
+            # Exclude current reservation from the valid_reservations_for_same_unit list to allow user to
             # update reservation if new times overlaps only with the original times of the same reservation
             original_reservation = kwargs.get("original_reservation", None)
             if original_reservation:
@@ -1025,6 +1026,11 @@ class ReservationMetadataSet(ModifiableModel):
         verbose_name=_("Required fields"),
         related_name="metadata_sets_required",
         blank=True,
+    )
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive metadata sets are not shown in the resource form in Respa admin."),
     )
 
     class Meta:

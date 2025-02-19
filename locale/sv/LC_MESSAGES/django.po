@@ -1050,6 +1050,9 @@ msgstr "Autentisering"
 msgid "People capacity"
 msgstr "Kapacitet"
 
+msgid "People capacity upper limit"
+msgstr "Maximal kapacitet"
+
 msgid "Area (m2)"
 msgstr "Yta (m2)"
 
@@ -1789,3 +1792,21 @@ msgid ""
 msgstr ""
 "anger om användaren är en General Administrator med särskilda behörigheter "
 "för många objekt inom Respa"
+
+msgid "Reservation reminder"
+msgstr "Bokningspåminnelse"
+
+msgid "Inactive purposes are not shown in the Respa admin."
+msgstr "Inaktiva syften visas inte i Respa administratören."
+
+msgid "Inactive terms are not shown in the Respa admin."
+msgstr "Inaktiva villkor visas inte i Respa administratören."
+
+msgid "Inactive resource types are not shown in the Respa admin."
+msgstr "Inaktiva resurstyper visas inte i Respa administratören."
+
+msgid "Inactive metadata sets are not shown in the resource form in Respa admin."
+msgstr "Inaktiva metadatauppsättningar visas inte i resursformuläret i Respa administratören."
+
+msgid "Inactive equipment is not shown in the Respa admin."
+msgstr "Inaktiva utrustningar visas inte i Respa administratören."

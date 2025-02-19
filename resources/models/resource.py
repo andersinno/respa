@@ -93,6 +93,11 @@ class ResourceType(ModifiableModel, AutoIdentifiedModel):
         verbose_name=_("Main type"), max_length=20, choices=MAIN_TYPES
     )
     name = models.CharField(verbose_name=_("Name"), max_length=200)
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive resource types are not shown in the Respa admin.")
+    )
 
     class Meta:
         verbose_name = _("resource type")
@@ -115,6 +120,10 @@ class Purpose(ModifiableModel, NameIdentifiedModel):
     )
     name = models.CharField(verbose_name=_("Name"), max_length=200)
     public = models.BooleanField(default=True, verbose_name=_("Public"))
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive purposes are not shown in the Respa admin."))
 
     class Meta:
         verbose_name = _("purpose")
@@ -143,6 +152,11 @@ class TermsOfUse(ModifiableModel, AutoIdentifiedModel):
         max_length=40,
         choices=TERMS_TYPES,
         default=TERMS_TYPE_GENERIC,
+    )
+    active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Inactive terms are not shown in the Respa admin.")
     )
 
     class Meta:
@@ -318,8 +332,11 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         max_length=20,
         choices=AUTHENTICATION_TYPES,
     )
-    people_capacity = models.PositiveIntegerField(
+    people_capacity_lower = models.PositiveIntegerField(
         verbose_name=_("People capacity"), null=True, blank=True
+    )
+    people_capacity_upper = models.PositiveIntegerField(
+        verbose_name=_("People capacity upper limit"), null=True, blank=True
     )
     area = models.PositiveIntegerField(
         verbose_name=_("Area (m2)"), null=True, blank=True
