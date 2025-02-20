@@ -46,10 +46,12 @@ module.exports = {
       filename: "[name].css",
       chunkFilename: "[id].css"
     }),
-    new CopyPlugin([
-      { from: './static_src/img/', to: './img/' }
-    ])
-  ],
+    new CopyPlugin({
+          patterns: [
+            { from: './static_src/img/', to: './img/' }
+          ]
+        })
+      ],
   resolve: {
     alias: {
       // For some reason there are multiple jQuery versions, leading to datepicker events not working properly
