@@ -14,7 +14,7 @@ RUN set -eux; \
         postgresql-client \
         gettext \
     ; \
-    curl -sL https://deb.nodesource.com/setup_18.x | bash -; \
+    curl -sL https://deb.nodesource.com/setup_20.x | bash -; \
     apt-get install -y nodejs; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     rm -rf /var/lib/apt/lists/*; \
