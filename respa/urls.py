@@ -28,7 +28,6 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('accounts/', include('allauth.urls')),
     path('grappelli/', include('grappelli.urls')),
-    path('ckeditor/', include('ckeditor_uploader.urls')),
     path('resource_image/<int:pk>', ResourceImageView.as_view(), name='resource-image-view'),
     path('v1/', include(router.urls)),
     path('v1/resource/', ResourceListViewSet.as_view({'get': 'list'}), name='resource-list'),
