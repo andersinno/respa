@@ -1,4 +1,3 @@
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django import forms
 from django.contrib.admin import site as admin_site
 from modeltranslation.admin import TranslationAdmin
@@ -7,7 +6,7 @@ from .models import RespaInstruction
 
 
 class RespaInstructionAdminForm(forms.ModelForm):
-    content = forms.CharField(widget=CKEditorUploadingWidget, required=False)
+    content = forms.Textarea()
 
     class Meta:
         model = RespaInstruction

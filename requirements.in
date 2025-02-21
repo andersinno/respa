@@ -14,7 +14,6 @@ flake8
 arrow
 pytz
 coverage
-django-ckeditor
 django-cors-headers
 django-image-cropping
 easy_thumbnails
@@ -52,5 +51,4 @@ django-admin-json-editor
 factory_boy
 isort
 uWSGI
-protobuf==3.19.6
 paramiko==3.3.1

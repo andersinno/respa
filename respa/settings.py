@@ -147,8 +147,6 @@ INSTALLED_APPS = [
     "anymail",
     "reversion",
     "django_admin_json_editor",
-    "ckeditor",
-    "ckeditor_uploader",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -458,15 +456,6 @@ if "SECRET_KEY" not in locals():
 if DATABASES["default"]["ENGINE"] != "django.contrib.gis.db.backends.postgis":
     raise ImproperlyConfigured("Only postgis database backend is supported")
 
-# CKEditor config
-CKEDITOR_UPLOAD_PATH = "uploads/"
-
-CKEDITOR_CONFIGS = {
-    "default": {
-        "height": 600,
-        "width": 1500,
-    },
-}
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 USE_DEPRECATED_PYTZ = True
