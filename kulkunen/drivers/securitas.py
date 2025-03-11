@@ -1,6 +1,5 @@
 import jsonschema
 import requests
-from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from jsonschema.exceptions import ValidationError as JsonSchemaValidationError
@@ -119,11 +118,8 @@ class SecuritasDriver(AccessControlDriver):
         )
 
     def prepare_install_grant(self, grant):
-        # Because of a bug in SiPass API, the changes are not synchronized
-        # to the building units automatically. We install the grants one day
-        # before their start time and schedule a re-install of the units
-        # every nightly.
-        grant.install_at = grant.starts_at - timedelta(days=1)
+        # Securitas grants can be installed immediately
+        grant.install_at = timezone.now()
         grant.save(update_fields=["install_at"])
 
     def get_system_config_schema(self):
