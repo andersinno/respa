@@ -107,11 +107,22 @@ def get_row_data(reservation, *, include_extra_fields, include_accounting_fields
 
     return row
 
+def get_ceepos_cost_center_code_value(unit_cost_center_codes, tax_percentage):
+    """
+    Get CeePos cost center code value based on tax percentage
+    unit_cost_center_codes: unit.cost_center_code
+    """
+    if not unit_cost_center_codes:
+        return ""
+    return unit_cost_center_codes.get(str(tax_percentage), "")
+
 
 def convert_value(reservation, name):
     value = reservation.get(name) or ""
     if value and name in RESERVATION_DATETIME_FIELDS:
         return localtime(value).replace(tzinfo=None)
+    if name == "cost_center_code":
+        return get_ceepos_cost_center_code_value(value, reservation["tax_percentage"])
     return value
 
 
