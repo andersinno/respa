@@ -139,9 +139,16 @@ class CPUCeeposProvider(PaymentProvider):
 
         Order lines that contain bought products are retrieved through order"""
 
-        def _get_ceepos_product_code(order: Order) -> str:
+        def _get_ceepos_product_code(order: Order, order_line: OrderLine) -> str:
+            """
+            Get the ceepos cost center code based on the tax percentage as
+            ceepos has different codes for different tax percentages.
+            """
             resource = order.reservation.resource
-            return resource.unit.cost_center_code
+            unit_cost_center_codes = resource.unit.cost_center_code
+            tax =  str(order_line.tax_percentage)
+            cost_center_code = unit_cost_center_codes.get(tax)
+            return cost_center_code
 
         def _get_order_line_description(order: Order) -> str:
             resource = order.reservation.resource
@@ -177,7 +184,7 @@ class CPUCeeposProvider(PaymentProvider):
         for order_line in order_lines:
             items.append(
                 {
-                    "Code": _get_ceepos_product_code(order),
+                    "Code": _get_ceepos_product_code(order, order_line),
                     "Amount": order_line.quantity,
                     "Price": price_as_sub_units(order_line.total_price),
                     "Description": _get_order_line_description(order),

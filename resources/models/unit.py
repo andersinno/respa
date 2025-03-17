@@ -98,11 +98,11 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     manager_email = models.EmailField(
         verbose_name=_("Manager email"), max_length=100, null=True, blank=True
     )
-    cost_center_code = models.CharField(
+    cost_center_code = models.JSONField(
         verbose_name=_("CeePos Cost center code"),
-        max_length=100,
         blank=True,
-        default="",
+        null=True,
+        default=dict,
     )
 
     sap_cost_center_code = models.CharField(

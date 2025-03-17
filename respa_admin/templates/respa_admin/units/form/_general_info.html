@@ -32,7 +32,7 @@
     </div>
     <div class="accounting">
         <h4>{% trans "Accounting" %}</h4>
-        {% include "respa_admin/forms/_input.html" with field=form.cost_center_code %}
+        {% include "respa_admin/forms/_textarea_input.html" with field=form.cost_center_code %}
         {% include "respa_admin/forms/_input.html" with field=form.sap_cost_center_code %}
         {% include "respa_admin/forms/_input.html" with field=form.sap_sales_organization %}
         {% include "respa_admin/forms/_input.html" with field=form.sap_unit_id %}
