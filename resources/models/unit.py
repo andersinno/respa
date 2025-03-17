@@ -1,6 +1,7 @@
 import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinLengthValidator
 from django.db.models import Q
 from django.utils import timezone
@@ -98,11 +99,11 @@ class Unit(ModifiableModel, AutoIdentifiedModel):
     manager_email = models.EmailField(
         verbose_name=_("Manager email"), max_length=100, null=True, blank=True
     )
-    cost_center_code = models.CharField(
+    cost_center_code = JSONField(
         verbose_name=_("CeePos Cost center code"),
-        max_length=100,
         blank=True,
-        default="",
+        null=True,
+        default=dict,
     )
 
     sap_cost_center_code = models.CharField(

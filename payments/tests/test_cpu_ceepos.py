@@ -324,6 +324,33 @@ def test_payload_add_products_success(payment_provider, order_with_products):
         assert "Price" in product
         assert "Description" in product
 
+@pytest.mark.parametrize(
+    "tax_percentage,ceepos_code",
+    (
+        (Decimal('0'), "demo_00"),
+        (Decimal('10.00'), "demo_10"),
+        (Decimal('14.00'), "demo_14"),
+        (Decimal('24.00'), "demo_24"),
+        (Decimal('25.50'), "demo_255"),
+    ),
+)
+def test_payload_ceepos_product_code(payment_provider, order_with_products, tax_percentage, ceepos_code):
+    unit = order_with_products.reservation.resource.unit
+    unit.cost_center_code = {
+        "0.00": "demo_00",
+        "10.00": "demo_10",
+        "14.00": "demo_14",
+        "24.00": "demo_24",
+        "25.50": "demo_255"
+    }
+    unit.save()
+
+    payload = {}
+    order_with_products.order_lines.all().update(tax_percentage=tax_percentage)
+    payment_provider.payload_add_products(payload, order_with_products)
+
+    for product in payload["Products"]:
+        assert product["Code"] == ceepos_code
 
 @pytest.mark.parametrize(
     "tax_percentage,tax_code",
@@ -338,7 +365,7 @@ def test_payload_add_products_success(payment_provider, order_with_products):
 def test_tax_code_mapping_in_qa(payment_provider, order_with_products, tax_percentage, tax_code):
     """Test the tax percentage is mapped to a correct code in qa environment"""
     payload = {}
-    
+
     order_with_products.order_lines.all().update(tax_percentage=tax_percentage)
     payment_provider.payload_add_products(payload, order_with_products)
 
@@ -361,7 +388,7 @@ def test_tax_code_mapping_in_production(provider_base_config, order_with_product
     provider_base_config["RESPA_PAYMENTS_CEEPOS_API_URL"] = "https://shop.tampere.fi/maksu.html"
     payment_provider = CPUCeeposProvider(config=provider_base_config)
     payload = {}
-    
+
     order_with_products.order_lines.all().update(tax_percentage=tax_percentage)
     payment_provider.payload_add_products(payload, order_with_products)
 
