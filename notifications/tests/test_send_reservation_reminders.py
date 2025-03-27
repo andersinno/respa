@@ -22,6 +22,7 @@ def reservation():
         begin=timezone.now() + timedelta(hours=23),
         end=timezone.now() + timedelta(hours=24),
         reminder_sent=False,
+        state=Reservation.CONFIRMED,
     )
     return reservation
 
@@ -61,6 +62,27 @@ def test_no_reminder_for_reservation_not_within_24_hours(reservation):
     """
     reservation.begin = timezone.now() + timedelta(days=2)
     reservation.end = timezone.now() + timedelta(days=2, hours=1)
+    reservation.save()
+    with mock.patch(
+        "notifications.management.commands.send_reservation_reminders.send_reservation_reminder"
+    ) as mock_send_reminder:
+        call_command("send_reservation_reminders")
+        mock_send_reminder.assert_not_called()
+
+
+@pytest.mark.parametrize("state", [
+    Reservation.CREATED,
+    Reservation.CANCELLED,
+    Reservation.DENIED,
+    Reservation.REQUESTED,
+    Reservation.INVOICE_REQUESTED,
+    Reservation.WAITING_FOR_PAYMENT])
+@pytest.mark.django_db
+def test_reservation_is_not_sent_if_not_confirmed(reservation, state):
+    """
+    Test that the reminder is not sent for reservations that are not confirmed.
+    """
+    reservation.state = state
     reservation.save()
     with mock.patch(
         "notifications.management.commands.send_reservation_reminders.send_reservation_reminder"
