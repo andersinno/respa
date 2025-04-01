@@ -26,6 +26,7 @@ class Command(BaseCommand):
         reservations = Reservation.objects.filter(
             begin__gte=timezone.now(),
             begin__lte=timezone.now() + timedelta(days=1),
+            state=Reservation.CONFIRMED,
             reminder_sent=False,
         )
 
