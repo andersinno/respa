@@ -33,6 +33,7 @@ from resources.models.reservation import RESERVATION_EXTRA_FIELDS, RESERVATION_I
 from resources.models.utils import (
     generate_reservation_csv,
     generate_reservation_xlsx,
+    get_ceepos_cost_center_code_value,
     get_object_or_none,
 )
 from resources.pagination import ReservationPagination
@@ -437,17 +438,23 @@ class ReservationSerializer(
                 price = order.get_price()
                 if price:
                     order_line = order.order_lines.first()
+                    unit = instance.resource.unit
+
+                    ceepos_cc_code = get_ceepos_cost_center_code_value(
+                        unit.cost_center_code,
+                        order_line.tax_percentage if order_line else None
+                    )
 
                     data = {
                         **data,
                         "total_price": price,
-                        "cost_center_code": instance.resource.unit.cost_center_code,
-                        "sap_cost_center_code": instance.resource.unit.sap_cost_center_code,
-                        "sap_sales_organization": instance.resource.unit.sap_sales_organization,
+                        "cost_center_code": ceepos_cc_code,
+                        "sap_cost_center_code": unit.sap_cost_center_code,
+                        "sap_sales_organization": unit.sap_sales_organization,
                         "invoice_generated_at": instance.invoice_generated_at,
-                        "tax_percentage": order_line.tax_percentage if order_line else None,
-                        "quantity": order_line.quantity if order_line else None,
-                        "unit_price": order_line.unit_price if order_line else None,
+                        "tax_percentage": getattr(order_line, "tax_percentage", None),
+                        "quantity": getattr(order_line, "quantity", None),
+                        "unit_price": getattr(order_line, "unit_price", None),
                     }
         return data
 

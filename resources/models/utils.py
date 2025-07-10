@@ -121,8 +121,6 @@ def convert_value(reservation, name):
     value = reservation.get(name) or ""
     if value and name in RESERVATION_DATETIME_FIELDS:
         return localtime(value).replace(tzinfo=None)
-    if name == "cost_center_code":
-        return get_ceepos_cost_center_code_value(value, reservation["tax_percentage"])
     return value
 
 
