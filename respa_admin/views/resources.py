@@ -118,8 +118,17 @@ class ManageUserPermissionsView(ExtraContextMixin, DetailView):
 
     def forms_valid(self, unit_authorization_formset):
         unit_authorization_formset.instance = self.object
+        
+        # Handle deleted forms - remove permissions for deleted authorizations
+        for form in unit_authorization_formset.deleted_forms:
+            if form.cleaned_data.get("subject"):
+                remove_perm(
+                    "unit:can_approve_reservation", self.object, form.cleaned_data["subject"]
+                )
+        
+        # Handle existing and new forms
         for form in unit_authorization_formset.cleaned_data:
-            if "subject" in form and "level" in form:
+            if "subject" in form and "level" in form and not form.get("DELETE"):
                 if form["can_approve_reservation"]:
                     assign_perm(
                         "unit:can_approve_reservation", self.object, form["subject"]
