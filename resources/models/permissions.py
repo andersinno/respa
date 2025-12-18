@@ -30,97 +30,97 @@ RESOURCE_PERMISSIONS = (
 UNIT_ROLE_PERMISSIONS = {
     'can_approve_reservation': [],
     'can_make_reservations': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_modify_reservations': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager,
-        UnitAuthorizationLevel.viewer
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER,
+        UnitAuthorizationLevel.VIEWER
     ],
     'can_ignore_opening_hours': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_view_reservation_access_code': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager,
-        UnitAuthorizationLevel.viewer
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER,
+        UnitAuthorizationLevel.VIEWER
     ],
     'can_view_reservation_extra_fields': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager,
-        UnitAuthorizationLevel.viewer
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER,
+        UnitAuthorizationLevel.VIEWER
     ],
     'can_view_reservation_user': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager,
-        UnitAuthorizationLevel.viewer
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER,
+        UnitAuthorizationLevel.VIEWER
     ],
     'can_access_reservation_comments': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager,
-        UnitAuthorizationLevel.viewer
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER,
+        UnitAuthorizationLevel.VIEWER
     ],
     'can_comment_reservations': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager,
-        UnitAuthorizationLevel.viewer
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER,
+        UnitAuthorizationLevel.VIEWER
     ],
     'can_view_reservation_catering_orders': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_modify_reservation_catering_orders': [],
     'can_view_reservation_product_orders': [],
     'can_modify_paid_reservations': [],
     'can_bypass_payment': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_create_staff_event': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_create_special_type_reservation': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_bypass_manual_confirmation': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_create_reservations_for_other_users': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN
     ],
     'can_create_overlapping_reservations': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_ignore_max_reservations_per_user': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ],
     'can_ignore_max_period': [
-        UnitGroupAuthorizationLevel.admin,
-        UnitAuthorizationLevel.admin,
-        UnitAuthorizationLevel.manager
+        UnitGroupAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.ADMIN,
+        UnitAuthorizationLevel.MANAGER
     ]
 }
 

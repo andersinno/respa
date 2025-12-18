@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from enumfields import EnumField
 
 from ..auth import is_authenticated_user, is_general_admin
 from ..enums import UnitGroupAuthorizationLevel
@@ -39,15 +38,16 @@ class UnitGroupAuthorizationQuerySet(models.QuerySet):
         return self.filter(subject__members=unit)
 
     def admin_level(self):
-        return self.filter(level=UnitGroupAuthorizationLevel.admin)
+        return self.filter(level=UnitGroupAuthorizationLevel.ADMIN)
 
 
 class UnitGroupAuthorization(models.Model):
     subject = models.ForeignKey(
         UnitGroup, on_delete=models.CASCADE, related_name='authorizations',
         verbose_name=_("subject of the authorization"))
-    level = EnumField(
-        UnitGroupAuthorizationLevel, max_length=50,
+    level = models.CharField(
+        max_length=50,
+        choices=UnitGroupAuthorizationLevel.choices,
         verbose_name=_("authorization level"))
     authorized = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,

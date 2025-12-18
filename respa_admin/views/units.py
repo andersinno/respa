@@ -131,7 +131,7 @@ class UnitEditView(ExtraContextMixin, PeriodMixin, CreateView):
 
         if is_creating_new:
             UnitAuthorization.objects.create(
-                subject=self.object, authorized=self.request.user, level=UnitAuthorizationLevel.admin)
+                subject=self.object, authorized=self.request.user, level=UnitAuthorizationLevel.ADMIN)
 
         return HttpResponseRedirect(self.get_success_url())
 

@@ -31,7 +31,7 @@ def admin_user_with_permissions(general_admin, resource_in_unit):
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
         authorized=general_admin,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
     )
     return general_admin
 
@@ -85,7 +85,7 @@ def test_manage_user_permissions_post_invalid(
     assert not UnitAuthorization.objects.filter(
         subject=resource_in_unit.unit,
         authorized=staff_user,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
     ).exists()
 
 
@@ -117,7 +117,7 @@ def test_manage_user_permissions_post_valid(
     assert UnitAuthorization.objects.filter(
         subject=resource_in_unit.unit,
         authorized=staff_user,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
     ).exists()
 
 
@@ -148,5 +148,5 @@ def test_manage_user_permissions_post_no_permissions(
     assert not UnitAuthorization.objects.filter(
         subject=resource_in_unit.unit,
         authorized=staff_user,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
     ).exists()

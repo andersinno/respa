@@ -313,11 +313,11 @@ called ``unit_group`` can be queried like this::
         UnitGroupAuthorization(
             authorized=user1,
             subject=unit_group1,
-            level=UnitGroupAuthorizationLevel.admin),
+            level=UnitGroupAuthorizationLevel.ADMIN),
         UnitGroupAuthorization(
             authorized=user2,
             subject=unit_group1,
-            level=UnitGroupAuthorizationLevel.admin),
+            level=UnitGroupAuthorizationLevel.ADMIN),
         ...
     ]>
 
@@ -333,14 +333,14 @@ Unit Administrator, Unit Manager and Unit Viewer status is given per Unit via an
         UnitAuthorization(
             authorized=user1,
             subject=unit1,
-            level=UnitAuthorizationLevel.admin),
+            level=UnitAuthorizationLevel.ADMIN),
         UnitAuthorization(
             authorized=user2,
             subject=unit1,
-            level=UnitAuthorizationLevel.manager),
+            level=UnitAuthorizationLevel.MANAGER),
         UnitAuthorization(
             authorized=user3,
             subject=unit1,
-            level=UnitAuthorizationLevel.viewer),
+            level=UnitAuthorizationLevel.VIEWER),
         ...
     ]>

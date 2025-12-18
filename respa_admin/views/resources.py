@@ -172,13 +172,13 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
         unit_filters = Q(
             authorizations__authorized=self.request.user,
             authorizations__level__in={
-                UnitAuthorizationLevel.admin,
+                UnitAuthorizationLevel.ADMIN,
             },
         )
         unit_group_filters = Q(
             unit_groups__authorizations__authorized=self.request.user,
             unit_groups__authorizations__level__in={
-                UnitGroupAuthorizationLevel.admin,
+                UnitGroupAuthorizationLevel.ADMIN,
             },
         )
         all_available_units = self.model.objects.filter(

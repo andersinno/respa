@@ -12,10 +12,10 @@ jobs:
       DATABASE_URL: postgis://postgres:postgres@localhost/respa
     steps:
     - uses: actions/checkout@v3
-    - name: Set up python 3.10
+    - name: Set up python 3.12
       uses: actions/setup-python@v2
       with:
-        python-version: "3.10"
+        python-version: "3.12"
     - name: Install Ubuntu packages
       run: |
         sudo apt-get update && sudo apt-get install -y gdal-bin gettext libxml2-dev libxslt-dev python3-dev python3-lxml

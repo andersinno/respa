@@ -297,7 +297,7 @@ def unit_admin_user(resource_in_unit):
         preferred_language="en",
     )
     user.unit_authorizations.create(
-        subject=resource_in_unit.unit, level=UnitAuthorizationLevel.admin
+        subject=resource_in_unit.unit, level=UnitAuthorizationLevel.ADMIN
     )
     return user
 
@@ -314,7 +314,7 @@ def unit_manager_user(resource_in_unit):
         preferred_language="en",
     )
     user.unit_authorizations.create(
-        subject=resource_in_unit.unit, level=UnitAuthorizationLevel.manager
+        subject=resource_in_unit.unit, level=UnitAuthorizationLevel.MANAGER
     )
     return user
 
@@ -331,7 +331,7 @@ def unit_viewer_user(resource_in_unit):
         preferred_language="en",
     )
     user.unit_authorizations.create(
-        subject=resource_in_unit.unit, level=UnitAuthorizationLevel.viewer
+        subject=resource_in_unit.unit, level=UnitAuthorizationLevel.VIEWER
     )
     return user
 

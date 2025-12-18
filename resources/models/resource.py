@@ -908,15 +908,15 @@ class Resource(ModifiableModel, AutoIdentifiedModel):
         is_allowed = False
 
         if (
-            UnitAuthorizationLevel.admin in allowed_roles
-            or UnitGroupAuthorizationLevel.admin in allowed_roles
+            UnitAuthorizationLevel.ADMIN in allowed_roles
+            or UnitGroupAuthorizationLevel.ADMIN in allowed_roles
         ) and not is_allowed:
             is_allowed = self.is_admin(user)
 
-        if UnitAuthorizationLevel.manager in allowed_roles and not is_allowed:
+        if UnitAuthorizationLevel.MANAGER in allowed_roles and not is_allowed:
             is_allowed = self.is_manager(user)
 
-        if UnitAuthorizationLevel.viewer in allowed_roles and not is_allowed:
+        if UnitAuthorizationLevel.VIEWER in allowed_roles and not is_allowed:
             is_allowed = self.is_viewer(user)
 
         return is_allowed

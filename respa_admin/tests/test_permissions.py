@@ -161,21 +161,21 @@ def get_user(role, *units):
         for unit in units:
             user.unit_group_authorizations.create(
                 subject=unit.unit_groups.first(),
-                level=UnitGroupAuthorizationLevel.admin,
+                level=UnitGroupAuthorizationLevel.ADMIN,
                 authorized=user)
     elif role == 'UA':
         user.is_staff = True
         for unit in units:
             user.unit_authorizations.create(
                 subject=unit,
-                level=UnitAuthorizationLevel.admin,
+                level=UnitAuthorizationLevel.ADMIN,
                 authorized=user)
     elif role == 'UM':
         user.is_staff = True
         for unit in units:
             user.unit_authorizations.create(
                 subject=unit,
-                level=UnitAuthorizationLevel.manager,
+                level=UnitAuthorizationLevel.MANAGER,
                 authorized=user)
     elif role == 'N':
         pass
