@@ -1,14 +1,14 @@
 from django.conf import settings
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, FieldDoesNotExist
 from django.db import transaction
-from django.db.models import FieldDoesNotExist, Q
+from django.db.models import Q
 from django.forms import model_to_dict
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DetailView, ListView
 from guardian.shortcuts import assign_perm, remove_perm
 
@@ -172,13 +172,13 @@ class ManageUserPermissionsListView(ExtraContextMixin, ListView):
         unit_filters = Q(
             authorizations__authorized=self.request.user,
             authorizations__level__in={
-                UnitAuthorizationLevel.admin,
+                UnitAuthorizationLevel.ADMIN,
             },
         )
         unit_group_filters = Q(
             unit_groups__authorizations__authorized=self.request.user,
             unit_groups__authorizations__level__in={
-                UnitGroupAuthorizationLevel.admin,
+                UnitGroupAuthorizationLevel.ADMIN,
             },
         )
         all_available_units = self.model.objects.filter(

@@ -2,12 +2,11 @@ import logging
 import random
 from datetime import timedelta
 from django.contrib.auth import get_user_model
-from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ImproperlyConfigured
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.module_loading import import_string
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from resources.models import Resource
 
@@ -75,7 +74,7 @@ class AccessControlUser(models.Model):
         help_text=_("Identifier of user in the access control system (if any)"),
     )
 
-    driver_data = JSONField(null=True, blank=True)
+    driver_data = models.JSONField(null=True, blank=True)
 
     objects = AccessControlUserQuerySet.as_manager()
 
@@ -176,7 +175,7 @@ class AccessControlGrant(models.Model):
         ),
     )
 
-    driver_data = JSONField(null=True, blank=True)
+    driver_data = models.JSONField(null=True, blank=True)
 
     objects = AccessControlGrantQuerySet.as_manager()
 
@@ -314,10 +313,10 @@ class AccessControlResource(models.Model):
         help_text=_("Identifier of resource in the access control system (if any)"),
     )
 
-    driver_config = JSONField(
+    driver_config = models.JSONField(
         null=True, blank=True, help_text=_("Driver-specific configuration")
     )
-    driver_data = JSONField(
+    driver_data = models.JSONField(
         null=True, editable=False, help_text=_("Internal driver data")
     )
 
@@ -414,10 +413,10 @@ class AccessControlSystem(models.Model):
         ),
     )
 
-    driver_config = JSONField(
+    driver_config = models.JSONField(
         null=True, blank=True, help_text=_("Driver-specific configuration")
     )
-    driver_data = JSONField(
+    driver_data = models.JSONField(
         null=True, editable=False, help_text=_("Internal driver data")
     )
 

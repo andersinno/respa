@@ -215,7 +215,7 @@ def test_user_permissions_in_resource_endpoint(
     user.save()
     user.unit_authorizations.create(
         authorized=user,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         subject=resource_in_unit.unit,
     )
     user.save()
@@ -235,7 +235,7 @@ def test_user_permissions_in_resource_endpoint(
     # unit managers can ignore opening hours
     user.unit_authorizations.create(
         authorized=user,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         subject=resource_in_unit.unit,
     )
     user.save()
@@ -255,7 +255,7 @@ def test_user_permissions_in_resource_endpoint(
     # unit viewer
     user.unit_authorizations.create(
         authorized=user,
-        level=UnitAuthorizationLevel.viewer,
+        level=UnitAuthorizationLevel.VIEWER,
         subject=resource_in_unit.unit,
     )
     user.save()
@@ -319,7 +319,7 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     user.save()
     user.unit_authorizations.create(
         authorized=staff_user,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         subject=resource_in_unit.unit,
     )
     user.save()
@@ -335,7 +335,7 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     # Authenticated as unit admin
     user.unit_authorizations.create(
         authorized=staff_user,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         subject=resource_in_unit.unit,
     )
     user.save()
@@ -354,7 +354,7 @@ def test_non_public_resource_visibility(api_client, resource_in_unit, user, staf
     unit_group.members.add(resource_in_unit.unit)
     user.unit_group_authorizations.create(
         authorized=staff_user,
-        level=UnitGroupAuthorizationLevel.admin,
+        level=UnitGroupAuthorizationLevel.ADMIN,
         subject=unit_group,
     )
     user.save()

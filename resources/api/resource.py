@@ -1245,6 +1245,4 @@ class ResourceViewSet(
         price_info.pop("price_source")
         return response.Response(price_info)
 
-
-register_view(ResourceListViewSet, "resource")
 register_view(ResourceViewSet, "resource")

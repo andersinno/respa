@@ -81,7 +81,7 @@ class SoapSeller(ExchangeSession):
 
         :param settings: Settings monkeypatch object
         """
-        id = "get_wired_soap_seller_%s" % get_random_string()
+        id = "get_wired_soap_seller_%s" % get_random_string(10)
 
         def getter(**kwargs):
             return cls(handler_delegate)

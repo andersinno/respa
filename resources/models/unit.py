@@ -1,12 +1,11 @@
 import pytz
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.core.validators import MinLengthValidator
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
-from enumfields import EnumField
+from django.utils.translation import gettext_lazy as _
 from munigeo.models import Municipality
 
 from ..auth import (
@@ -51,8 +50,8 @@ class UnitQuerySet(models.QuerySet):
             return self
 
         if (
-            UnitAuthorizationLevel.admin in roles
-            or UnitGroupAuthorizationLevel.admin in roles
+            UnitAuthorizationLevel.ADMIN in roles
+            or UnitGroupAuthorizationLevel.ADMIN in roles
         ) and is_general_admin(user):
             return self
 
@@ -262,16 +261,16 @@ class UnitAuthorizationQuerySet(models.QuerySet):
         return self.filter(subject=unit)
 
     def admin_level(self):
-        return self.filter(level=UnitAuthorizationLevel.admin)
+        return self.filter(level=UnitAuthorizationLevel.ADMIN)
 
     def manager_level(self):
-        return self.filter(level=UnitAuthorizationLevel.manager)
+        return self.filter(level=UnitAuthorizationLevel.MANAGER)
 
     def at_least_manager_level(self):
         return self.filter(
             level__in={
-                UnitAuthorizationLevel.admin,
-                UnitAuthorizationLevel.manager,
+                UnitAuthorizationLevel.ADMIN,
+                UnitAuthorizationLevel.MANAGER,
             }
         )
 
@@ -283,8 +282,10 @@ class UnitAuthorization(models.Model):
         related_name="authorizations",
         verbose_name=_("subject of the authorization"),
     )
-    level = EnumField(
-        UnitAuthorizationLevel, max_length=50, verbose_name=_("authorization level")
+    level = models.CharField(
+        max_length=50,
+        choices=UnitAuthorizationLevel.choices,
+        verbose_name=_("authorization level")
     )
     authorized = models.ForeignKey(
         settings.AUTH_USER_MODEL,

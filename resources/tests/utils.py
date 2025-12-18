@@ -5,9 +5,9 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test.testcases import SimpleTestCase
-from django.utils.encoding import force_text
-from django.utils.six import BytesIO
 from PIL import Image
+from django.utils.encoding import force_str
+from six import BytesIO
 
 from resources.models import ResourceImage
 
@@ -163,7 +163,7 @@ def assert_non_field_errors_contain(response, text):
     :type text: str
     """
     error_messages = [
-        force_text(error_message) for error_message in response.data["non_field_errors"]
+        force_str(error_message) for error_message in response.data["non_field_errors"]
     ]
     assert any(text in error_message for error_message in error_messages)
 

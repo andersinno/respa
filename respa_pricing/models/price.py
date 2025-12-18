@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.duration import duration_string
 from django.utils.functional import cached_property
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import now
 
 from payments.utils import (
@@ -213,9 +213,9 @@ class PriceList(models.Model):
     @cached_property
     def price_type(self):
         price_types = (
-            self.usergroup_prices.union(self.event_prices.all())
+            self.usergroup_prices.distinct()
+            .union(self.event_prices.all().distinct())
             .values_list("price_type", flat=True)
-            .distinct()
         )
 
         if not price_types:

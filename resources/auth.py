@@ -24,8 +24,8 @@ def is_any_admin(user):
     group_authorizations = user.unit_group_authorizations.all()
     authorizations = user.unit_authorizations.all()
 
-    is_unit_group_admin = any(group_auth.level == UnitGroupAuthorizationLevel.admin for group_auth in group_authorizations)
-    is_unit_admin = any(auth.level == UnitAuthorizationLevel.admin for auth in authorizations)
+    is_unit_group_admin = any(group_auth.level == UnitGroupAuthorizationLevel.ADMIN for group_auth in group_authorizations)
+    is_unit_admin = any(auth.level == UnitAuthorizationLevel.ADMIN for auth in authorizations)
 
     return is_general_admin(user) or is_unit_group_admin or is_unit_admin
 
@@ -33,19 +33,19 @@ def is_any_admin(user):
 def is_unit_admin(unit_authorizations, unit_group_authorizations, unit):
     is_admin = False
 
-    for group_auth in filter(lambda group_auth: group_auth.level == UnitGroupAuthorizationLevel.admin, unit_group_authorizations):
+    for group_auth in filter(lambda group_auth: group_auth.level == UnitGroupAuthorizationLevel.ADMIN, unit_group_authorizations):
         if any(member_unit == unit for member_unit in group_auth.subject.members.all()):
             is_admin = True
 
-    if any(auth.subject == unit and auth.level == UnitAuthorizationLevel.admin for auth in unit_authorizations):
+    if any(auth.subject == unit and auth.level == UnitAuthorizationLevel.ADMIN for auth in unit_authorizations):
         is_admin = True
 
     return is_admin
 
 
 def is_unit_manager(unit_authorizations, unit):
-    return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.manager for auth in unit_authorizations)
+    return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.MANAGER for auth in unit_authorizations)
 
 
 def is_unit_viewer(unit_authorizations, unit):
-    return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.viewer for auth in unit_authorizations)
+    return any(auth.subject == unit and auth.level == UnitAuthorizationLevel.VIEWER for auth in unit_authorizations)

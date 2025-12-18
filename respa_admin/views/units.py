@@ -1,10 +1,9 @@
 from django.conf import settings
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
-from django.db.models import FieldDoesNotExist
+from django.core.exceptions import PermissionDenied, FieldDoesNotExist
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.generic import CreateView, ListView
 from resources.enums import UnitAuthorizationLevel
 from resources.models import Unit, UnitAuthorization
@@ -132,7 +131,7 @@ class UnitEditView(ExtraContextMixin, PeriodMixin, CreateView):
 
         if is_creating_new:
             UnitAuthorization.objects.create(
-                subject=self.object, authorized=self.request.user, level=UnitAuthorizationLevel.admin)
+                subject=self.object, authorized=self.request.user, level=UnitAuthorizationLevel.ADMIN)
 
         return HttpResponseRedirect(self.get_success_url())
 

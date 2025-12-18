@@ -1,6 +1,5 @@
-from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class RespaInstruction(models.Model):
@@ -22,7 +21,7 @@ class RespaInstruction(models.Model):
         choices=APPLICABLE_FOR_CHOICES,
         default=USER,
     )
-    content = RichTextUploadingField(verbose_name=_("Content"))
+    content = models.TextField(verbose_name=_("Content"))
     active = models.BooleanField(verbose_name=_("Active"), default=False)
 
     class Meta:

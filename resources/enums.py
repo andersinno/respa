@@ -1,35 +1,20 @@
-from django.utils.translation import ugettext_lazy as _
-from enumfields import Enum
+from django.utils.translation import gettext_lazy as _
+from django.db import models
 
 
-class UnitGroupAuthorizationLevel(Enum):
-    admin = 'admin'
-
-    class Labels:
-        admin = _("unit group administrator")
+class UnitGroupAuthorizationLevel(models.TextChoices):
+    ADMIN = 'admin', _("unit group administrator")
 
 
-class UnitAuthorizationLevel(Enum):
-    admin = 'admin'
-    manager = 'manager'
-    viewer = 'viewer'
-
-    class Labels:
-        admin = _("unit administrator")
-        manager = _("unit manager")
-        viewer = _("unit viewer")
+class UnitAuthorizationLevel(models.TextChoices):
+    ADMIN = 'admin', _("unit administrator")
+    MANAGER = 'manager', _("unit manager")
+    VIEWER = 'viewer', _("unit viewer")
 
 
-class ReservationInvoiceStatus(Enum):
-    TO_BE_MARKED_AS_READY = "to_be_marked_as_ready"
-    MARKED_AS_READY = "marked_as_ready"
-    CREATED = "created"
-    SENT = "sent"
-    ERROR = "error"
-
-    class Labels:
-        TO_BE_MARKED_AS_READY =  _("To be marked as ready")
-        MARKED_AS_READY = _("Marked as ready")
-        CREATED = _("Invoice created, waiting to be sent")
-        SENT = _("Sent to SAP")
-        ERROR = _("Error")
+class ReservationInvoiceStatus(models.TextChoices):
+    TO_BE_MARKED_AS_READY = "to_be_marked_as_ready", _("To be marked as ready")
+    MARKED_AS_READY = "marked_as_ready", _("Marked as ready")
+    CREATED = "created", _("Invoice created, waiting to be sent")
+    SENT = "sent", _("Sent to SAP")
+    ERROR = "error", _("Error")

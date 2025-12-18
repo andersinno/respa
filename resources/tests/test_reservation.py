@@ -322,7 +322,7 @@ def test_admin_may_bypass_min_period(resource_with_opening_hours, user):
 
     UnitAuthorization.objects.create(
         subject=resource_with_opening_hours.unit,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         authorized=user,
     )
 

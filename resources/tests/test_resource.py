@@ -287,7 +287,7 @@ def test_queryset_with_perm(resource_in_unit, user):
 
     user.unit_authorizations.create(
         authorized=user,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         subject=resource_in_unit.unit,
     )
     user.save()
@@ -298,7 +298,7 @@ def test_queryset_with_perm(resource_in_unit, user):
 
     user.unit_authorizations.create(
         authorized=user,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         subject=resource_in_unit.unit,
     )
 
@@ -309,7 +309,7 @@ def test_queryset_with_perm(resource_in_unit, user):
 
     user.unit_authorizations.create(
         authorized=user,
-        level=UnitAuthorizationLevel.viewer,
+        level=UnitAuthorizationLevel.VIEWER,
         subject=resource_in_unit.unit,
     )
 

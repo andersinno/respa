@@ -302,6 +302,9 @@ def test_only_active_resource_types_are_visible():
 
 @pytest.mark.django_db
 def test_only_reservation_metadata_sets_are_visible():
+    default_data_set = ReservationMetadataSet.objects.get(name="default")
+    default_data_set.active = False
+    default_data_set.save()
     active_metadata_set = ReservationMetadataSet.objects.create(
         name="Active metadata set",
         active=True)

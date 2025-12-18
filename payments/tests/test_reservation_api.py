@@ -531,7 +531,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": True,
             "success": True,
             "new_state": Reservation.WAITING_FOR_PAYMENT,
@@ -539,7 +539,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": True,
             "success": False,
             "new_state": None,
@@ -547,7 +547,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": False,
             "success": False,
             "new_state": None,
@@ -555,7 +555,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": True,
             "success": False,
             "new_state": None,
@@ -563,7 +563,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.manager,
+            "level": UnitAuthorizationLevel.MANAGER,
             "has_order": True,
             "success": True,
             "new_state": Reservation.WAITING_FOR_PAYMENT,
@@ -571,7 +571,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.manager,
+            "level": UnitAuthorizationLevel.MANAGER,
             "has_order": False,
             "success": False,
             "new_state": None,
@@ -579,7 +579,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.manager,
+            "level": UnitAuthorizationLevel.MANAGER,
             "has_order": False,
             "success": True,
             "new_state": Reservation.CONFIRMED,
@@ -587,7 +587,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.admin,
+            "level": UnitAuthorizationLevel.ADMIN,
             "has_order": True,
             "success": True,
             "new_state": Reservation.WAITING_FOR_PAYMENT,
@@ -595,7 +595,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.admin,
+            "level": UnitAuthorizationLevel.ADMIN,
             "has_order": False,
             "success": False,
             "new_state": None,
@@ -603,7 +603,7 @@ def test_order_must_include_rent_if_one_exists(user_api_client, paid_resource):
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.admin,
+            "level": UnitAuthorizationLevel.ADMIN,
             "has_order": False,
             "success": True,
             "new_state": Reservation.CONFIRMED,
@@ -724,7 +724,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": True,
             "success": True,
             "need_manual_confirmation": False,
@@ -734,7 +734,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": True,
             "success": False,
             "need_manual_confirmation": False,
@@ -744,7 +744,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": False,
             "success": False,
             "need_manual_confirmation": False,
@@ -754,7 +754,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.viewer,
+            "level": UnitAuthorizationLevel.VIEWER,
             "has_order": True,
             "success": False,
             "need_manual_confirmation": False,
@@ -764,7 +764,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.manager,
+            "level": UnitAuthorizationLevel.MANAGER,
             "has_order": True,
             "success": False,
             "need_manual_confirmation": False,
@@ -774,7 +774,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.manager,
+            "level": UnitAuthorizationLevel.MANAGER,
             "has_order": False,
             "success": False,
             "need_manual_confirmation": False,
@@ -784,7 +784,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.manager,
+            "level": UnitAuthorizationLevel.MANAGER,
             "has_order": False,
             "success": False,
             "need_manual_confirmation": False,
@@ -794,7 +794,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.admin,
+            "level": UnitAuthorizationLevel.ADMIN,
             "has_order": True,
             "success": False,
             "need_manual_confirmation": False,
@@ -804,7 +804,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_NORMAL,
-            "level": UnitAuthorizationLevel.admin,
+            "level": UnitAuthorizationLevel.ADMIN,
             "has_order": False,
             "success": False,
             "need_manual_confirmation": False,
@@ -814,7 +814,7 @@ def test_user_may_bypass_payment_on_paid_resource(
         },
         {
             "reservation_type": Reservation.TYPE_INTERNAL_USE,
-            "level": UnitAuthorizationLevel.admin,
+            "level": UnitAuthorizationLevel.ADMIN,
             "has_order": False,
             "success": False,
             "need_manual_confirmation": False,

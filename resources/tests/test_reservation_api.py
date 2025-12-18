@@ -868,10 +868,7 @@ def test_reservation_excel(staff_api_client, list_url, detail_url, reservation, 
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.xlsx",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.xlsx"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -880,10 +877,7 @@ def test_reservation_excel(staff_api_client, list_url, detail_url, reservation, 
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.xlsx".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.xlsx"
     assert len(response.content) > 0
 
 @pytest.mark.django_db
@@ -898,10 +892,7 @@ def test_reservation_csv(staff_api_client, list_url, detail_url, reservation, us
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.csv",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.csv"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -910,10 +901,7 @@ def test_reservation_csv(staff_api_client, list_url, detail_url, reservation, us
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.csv".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.csv"
     assert len(response.content) > 0
 
 
@@ -939,10 +927,7 @@ def test_reservation_excel_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.xlsx",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.xlsx"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -952,10 +937,7 @@ def test_reservation_excel_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.xlsx".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.xlsx"
     assert len(response.content) > 0
 
 @pytest.mark.django_db
@@ -980,10 +962,7 @@ def test_reservation_csv_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservations.csv",
-    )
+    assert response.headers["Content-Disposition"] == "attachment; filename=reservations.csv"
     assert len(response.content) > 0
 
     response = staff_api_client.get(
@@ -993,10 +972,7 @@ def test_reservation_csv_accounting(
         HTTP_ACCEPT_LANGUAGE="en",
     )
     assert response.status_code == 200
-    assert response._headers["content-disposition"] == (
-        "Content-Disposition",
-        "attachment; filename=reservation-{}.csv".format(reservation.pk),
-    )
+    assert response.headers["Content-Disposition"] == f"attachment; filename=reservation-{reservation.pk}.csv"
     assert len(response.content) > 0
 
 
@@ -1181,7 +1157,7 @@ def test_staff_event_restrictions(
     # unit manager but reserver_name and event_description missing
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         authorized=staff_user,
     )
     response = staff_api_client.post(list_url, data=reservation_data)
@@ -1260,7 +1236,7 @@ def test_new_staff_event_gets_confirmed(
 
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         authorized=staff_user,
     )
     reservation_data["staff_event"] = True
@@ -1894,7 +1870,7 @@ def test_unit_admins_are_notified_when_reservation_is_created_along_with_officia
     )
     UnitAuthorization.objects.create(
         subject=resource.unit,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         authorized=unit_admin,
     )
 
@@ -2834,7 +2810,7 @@ def test_manager_can_make_staff_reservation(
     reservation_data["event_description"] = "herra huun bileet"
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         authorized=staff_user,
     )
     response = staff_api_client.post(list_url, data=reservation_data)
@@ -3346,7 +3322,7 @@ def test_admin_may_bypass_min_period(resource_in_unit, user, user_api_client, li
 
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         authorized=user,
     )
 
@@ -3395,7 +3371,7 @@ def test_can_ignore_max_period(
 
     UnitAuthorization.objects.create(
         subject=resource_with_opening_hours.unit,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         authorized=user,
     )
 
@@ -3407,7 +3383,7 @@ def test_can_ignore_max_period(
 
     UnitAuthorization.objects.create(
         subject=resource_with_opening_hours.unit,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         authorized=user,
     )
 
@@ -3451,7 +3427,7 @@ def test_can_ignore_max_reservations_per_user(
 
     UnitAuthorization.objects.create(
         subject=resource_with_opening_hours.unit,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         authorized=user,
     )
 
@@ -3465,7 +3441,7 @@ def test_can_ignore_max_reservations_per_user(
 
     UnitAuthorization.objects.create(
         subject=resource_with_opening_hours.unit,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         authorized=user,
     )
 
@@ -3589,7 +3565,7 @@ def test_disallow_overlapping_reservations(
     # Admin user should be allowed to overlap reservations
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.admin,
+        level=UnitAuthorizationLevel.ADMIN,
         authorized=user,
     )
     response_admin = user_api_client.post(list_url, reservation_data2)
@@ -3602,7 +3578,7 @@ def test_disallow_overlapping_reservations(
     UnitAuthorization.objects.all().delete()
     UnitAuthorization.objects.create(
         subject=resource_in_unit.unit,
-        level=UnitAuthorizationLevel.manager,
+        level=UnitAuthorizationLevel.MANAGER,
         authorized=user,
     )
     response_manager = user_api_client.post(list_url, reservation_data2)

@@ -1,5 +1,5 @@
 # ======================================================================
-FROM python:3.8-buster AS app-base
+FROM python:3.12-bullseye AS app-base
 # ======================================================================
 WORKDIR /app
 
@@ -14,14 +14,14 @@ RUN set -eux; \
         postgresql-client \
         gettext \
     ; \
-    curl -sL https://deb.nodesource.com/setup_12.x | bash -; \
+    curl -sL https://deb.nodesource.com/setup_24.x | bash -; \
     apt-get install -y nodejs; \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
     rm -rf /var/lib/apt/lists/*; \
     rm -rf /var/cache/apt/archives; \
     pip install --no-cache-dir -r requirements.txt
 
-# Install wait-for-it.sh 
+# Install wait-for-it.sh
 RUN curl -o /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
     chmod +x /usr/local/bin/wait-for-it.sh
 
